@@ -1,0 +1,25 @@
+# Ninja files
+.ninja_deps
+.ninja_log
+build.ninja
+
+# Build objects and artifacts
+build/*
+bin/*
+*.o
+*.a
+*.pyc
+*.pyo
+*.so
+*.dylib
+*.nexe
+*.pexe
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

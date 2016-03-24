@@ -1,0 +1,61 @@
+#include <ppapi/c/pp_var.h>
+
+extern struct PP_Var string_var_error_message_type;
+extern struct PP_Var string_var_error_benchmark_unspecified;
+extern struct PP_Var string_var_error_benchmark_type;
+extern struct PP_Var string_var_error_benchmark_value;
+extern struct PP_Var string_var_error_iterations_unspecified;
+extern struct PP_Var string_var_error_iterations_type;
+extern struct PP_Var string_var_error_iterations_value;
+extern struct PP_Var string_var_error_threads_type;
+extern struct PP_Var string_var_error_threads_value;
+extern struct PP_Var string_var_error_algorithm_unspecified;
+extern struct PP_Var string_var_error_algorithm_type;
+extern struct PP_Var string_var_error_algorithm_value;
+extern struct PP_Var string_var_error_batch_size_unspecified;
+extern struct PP_Var string_var_error_batch_size_type;
+extern struct PP_Var string_var_error_batch_size_value;
+extern struct PP_Var string_var_error_input_channels_unspecified;
+extern struct PP_Var string_var_error_input_channels_type;
+extern struct PP_Var string_var_error_input_channels_value;
+extern struct PP_Var string_var_error_output_channels_unspecified;
+extern struct PP_Var string_var_error_output_channels_type;
+extern struct PP_Var string_var_error_output_channels_value;
+extern struct PP_Var string_var_error_input_height_unspecified;
+extern struct PP_Var string_var_error_input_height_type;
+extern struct PP_Var string_var_error_input_height_value;
+extern struct PP_Var string_var_error_input_width_unspecified;
+extern struct PP_Var string_var_error_input_width_type;
+extern struct PP_Var string_var_error_input_width_value;
+extern struct PP_Var string_var_error_input_padding_unspecified;
+extern struct PP_Var string_var_error_input_padding_type;
+extern struct PP_Var string_var_error_input_padding_value;
+extern struct PP_Var string_var_error_kernel_height_unspecified;
+extern struct PP_Var string_var_error_kernel_height_type;
+extern struct PP_Var string_var_error_kernel_height_value;
+extern struct PP_Var string_var_error_kernel_width_unspecified;
+extern struct PP_Var string_var_error_kernel_width_type;
+extern struct PP_Var string_var_error_kernel_width_value;
+
+extern struct PP_Var string_var_benchmark;
+extern struct PP_Var string_var_iterations;
+extern struct PP_Var string_var_threads;
+extern struct PP_Var string_var_algorithm;
+extern struct PP_Var string_var_batch_size;
+extern struct PP_Var string_var_input_channels;
+extern struct PP_Var string_var_output_channels;
+extern struct PP_Var string_var_input_height;
+extern struct PP_Var string_var_input_width;
+extern struct PP_Var string_var_input_padding;
+extern struct PP_Var string_var_kernel_height;
+extern struct PP_Var string_var_kernel_width;
+
+extern struct PP_Var string_var_total_time;
+extern struct PP_Var string_var_input_transform_time;
+extern struct PP_Var string_var_kernel_transform_time;
+extern struct PP_Var string_var_output_transform_time;
+extern struct PP_Var string_var_block_multiplication_time;
+
+extern void init_string_vars(void);
+extern void release_string_vars(void);
+

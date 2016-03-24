@@ -1,0 +1,228 @@
+import winograd.o6x6k3x3
+import block8x8
+from common import _MM_SHUFFLE
+
+
+for post_operation in ["store", "stream"]:
+    arg_d_pointer = Argument(ptr(const_float_), name="d_pointer")
+    arg_wd_pointer = Argument(ptr(float_), name="wd_pointer")
+    arg_d_stride = Argument(size_t, name="d_stride")
+    arg_wd_stride = Argument(size_t, name="wd_stride")
+    arg_row_count = Argument(uint32_t, name="row_count")
+    arg_column_count = Argument(uint32_t, name="column_count")
+    arg_row_offset = Argument(uint32_t, name="row_offset")
+    arg_column_offset = Argument(uint32_t, name="column_offset")
+    with Function("nnp_iwt8x8_3x3_and_{post_operation}__avx2".format(post_operation=post_operation),
+        (arg_d_pointer, arg_wd_pointer, arg_d_stride, arg_wd_stride, arg_row_count, arg_column_count, arg_row_offset, arg_column_offset),
+        target=uarch.default + isa.fma3 + isa.avx2):
+
+        reg_d = GeneralPurposeRegister64()
+        LOAD.ARGUMENT(reg_d, arg_d_pointer)
+
+        reg_wd = GeneralPurposeRegister64()
+        LOAD.ARGUMENT(reg_wd, arg_wd_pointer)
+
+        reg_stride_d = GeneralPurposeRegister64()
+        LOAD.ARGUMENT(reg_stride_d, arg_d_stride)
+
+        reg_stride_wd = GeneralPurposeRegister64()
+        LOAD.ARGUMENT(reg_stride_wd, arg_wd_stride)
+
+        reg_row_cnt = GeneralPurposeRegister32()
+        LOAD.ARGUMENT(reg_row_cnt, arg_row_count)
+
+        reg_col_cnt = GeneralPurposeRegister32()
+        LOAD.ARGUMENT(reg_col_cnt, arg_column_count)
+
+        reg_row_off = GeneralPurposeRegister32()
+        LOAD.ARGUMENT(reg_row_off, arg_row_offset)
+
+        reg_col_off = GeneralPurposeRegister32()
+        LOAD.ARGUMENT(reg_col_off, arg_column_offset)
+
+        ymm_data = [YMMRegister() for _ in range(8)]
+
+        block8x8.load_with_padding(ymm_data, reg_d, reg_stride_d, reg_row_off, reg_row_cnt, reg_col_off, reg_col_cnt)
+
+        ymm_data = winograd.o6x6k3x3.input_transform(ymm_data)
+        winograd.o6x6k3x3.transpose8x8(ymm_data)
+        ymm_data = winograd.o6x6k3x3.input_transform(ymm_data)
+
+        VSTOREPS = {"store": VMOVAPS, "stream": VMOVNTPS}[post_operation]
+        for ymm_row in ymm_data:
+            VSTOREPS([reg_wd], ymm_row)
+            if ymm_row is not ymm_data[-1]:
+                ADD(reg_wd, reg_stride_wd)
+
+        RETURN()
+
+
+for reverse_kernel in [False, True]:
+    for post_operation in ["store", "mac", "stream"]:
+        arg_g_pointer = Argument(ptr(const_float_), name="d_pointer")
+        arg_wg_pointer = Argument(ptr(float_), name="wd_pointer")
+        if post_operation == "mac":
+            arg_x_pointer = Argument(ptr(const_float_), name="x_pointer")
+        arg_g_stride = Argument(size_t, name="d_stride")
+        if post_operation != "mac":
+            arg_wg_stride = Argument(size_t, name="wd_stride")
+        arg_row_count = Argument(uint32_t, name="row_count")
+        arg_column_count = Argument(uint32_t, name="column_count")
+        arg_row_offset = Argument(uint32_t, name="row_offset")
+        arg_column_offset = Argument(uint32_t, name="column_offset")
+
+        if post_operation == "mac":
+            kwt_arguments = (arg_g_pointer, arg_wg_pointer, arg_x_pointer, arg_g_stride)
+        else:
+            kwt_arguments = (arg_g_pointer, arg_wg_pointer, arg_g_stride, arg_wg_stride, arg_row_count, arg_column_count, arg_row_offset, arg_column_offset)
+        with Function("nnp_kwt8x8_3{reverse}x3{reverse}_and_{post_operation}__avx2".format(
+                reverse="R" if reverse_kernel else "", post_operation=post_operation),
+            kwt_arguments, target=uarch.default + isa.fma3 + isa.avx2):
+
+            reg_g = GeneralPurposeRegister64()
+            LOAD.ARGUMENT(reg_g, arg_g_pointer)
+
+            reg_wg = GeneralPurposeRegister64()
+            LOAD.ARGUMENT(reg_wg, arg_wg_pointer)
+
+            if post_operation == "mac":
+                reg_x = GeneralPurposeRegister64()
+                LOAD.ARGUMENT(reg_x, arg_x_pointer)
+
+            reg_stride_g = GeneralPurposeRegister64()
+            LOAD.ARGUMENT(reg_stride_g, arg_g_stride)
+
+            if post_operation != "mac":
+                reg_stride_wg = GeneralPurposeRegister64()
+                LOAD.ARGUMENT(reg_stride_wg, arg_wg_stride)
+
+            # stride is in elements; multiply by sizeof(float) to get stride in bytes
+            SHL(reg_stride_g, 2)
+
+            xmm_load_mask = XMMRegister()
+            VMOVAPS(xmm_load_mask.as_ymm, Constant.float32x8(-0.0, -0.0, -0.0, +0.0, +0.0, +0.0, +0.0, +0.0))
+            xmm_g = [XMMRegister() for _ in range(3)]
+            for xmm in xmm_g:
+                VMASKMOVPS(xmm, xmm_load_mask, [reg_g])
+                if xmm is not xmm_g[-1]:
+                    ADD(reg_g, reg_stride_g)
+
+            if reverse_kernel:
+                xmm_g = xmm_g[::-1]
+            ymm_wg_rows = winograd.o6x6k3x3.kernel_transform([xmm.as_ymm for xmm in xmm_g], rescale_coefficients=False)
+            ymm_g_rows = winograd.o6x6k3x3.transpose8x3([ymm.as_xmm for ymm in ymm_wg_rows])
+            if reverse_kernel:
+                ymm_g_rows = ymm_g_rows[::-1]
+            ymm_wg_rows = winograd.o6x6k3x3.kernel_transform(ymm_g_rows, rescale_coefficients=False)
+
+            rcp_36     = float.fromhex("0x1.C71C72p-6")
+            rcp_48     = float.fromhex("0x1.555556p-6")
+            rcp_120    = float.fromhex("0x1.111112p-7")
+            rcp_720    = float.fromhex("0x1.6C16C2p-10")
+            rcp_1296   = float.fromhex("0x1.948B10p-11")
+            rcp_1728   = float.fromhex("0x1.2F684Cp-11")
+            rcp_2304   = float.fromhex("0x1.C71C72p-12")
+            rcp_4320   = float.fromhex("0x1.E573ACp-13")
+            rcp_5760   = float.fromhex("0x1.6C16C2p-13")
+            rcp_14400  = float.fromhex("0x1.234568p-14")
+            rcp_25920  = float.fromhex("0x1.43A274p-15")
+            rcp_34560  = float.fromhex("0x1.E573ACp-16")
+            rcp_86400  = float.fromhex("0x1.845C8Ap-17")
+            rcp_194400 = float.fromhex("0x1.02E85Cp-19")
+
+            VMULPS(ymm_wg_rows[0], ymm_wg_rows[0], Constant.float32x8( rcp_1296,  -rcp_1728, -rcp_1728,   rcp_4320,   rcp_4320,  -rcp_25920,  -rcp_25920,  -rcp_36))
+            VMULPS(ymm_wg_rows[1], ymm_wg_rows[1], Constant.float32x8(-rcp_1728,   rcp_2304,  rcp_2304,  -rcp_5760,  -rcp_5760,   rcp_34560,   rcp_34560,   rcp_48))
+            VMULPS(ymm_wg_rows[2], ymm_wg_rows[2], Constant.float32x8(-rcp_1728,   rcp_2304,  rcp_2304,  -rcp_5760,  -rcp_5760,   rcp_34560,   rcp_34560,   rcp_48))
+            VMULPS(ymm_wg_rows[3], ymm_wg_rows[3], Constant.float32x8( rcp_4320,  -rcp_5760, -rcp_5760,   rcp_14400,  rcp_14400, -rcp_86400,  -rcp_86400,  -rcp_120))
+            VMULPS(ymm_wg_rows[4], ymm_wg_rows[4], Constant.float32x8( rcp_4320,  -rcp_5760, -rcp_5760,   rcp_14400,  rcp_14400, -rcp_86400,  -rcp_86400,  -rcp_120))
+            VMULPS(ymm_wg_rows[5], ymm_wg_rows[5], Constant.float32x8(-rcp_25920,  rcp_34560, rcp_34560, -rcp_86400, -rcp_86400,  rcp_194400,  rcp_194400,  rcp_720))
+            VMULPS(ymm_wg_rows[6], ymm_wg_rows[6], Constant.float32x8(-rcp_25920,  rcp_34560, rcp_34560, -rcp_86400, -rcp_86400,  rcp_194400,  rcp_194400,  rcp_720))
+            VMULPS(ymm_wg_rows[7], ymm_wg_rows[7], Constant.float32x8(-rcp_36,     rcp_48,    rcp_48,    -rcp_120,   -rcp_120,    rcp_720,     rcp_720,     1.0))
+
+            if post_operation == "mac":
+                # Multiply with X block, accumulate with ACC block, and write output sequentially
+                row_offset = 0
+                for ymm_wg_row in ymm_wg_rows:
+                    if row_offset == 128:
+                        SUB(reg_x, -128)
+                        SUB(reg_wg, -128)
+                        row_offset = 0
+
+                    ymm_acc = YMMRegister()
+                    VMOVAPS(ymm_acc, [reg_wg + row_offset])
+                    VFMADD231PS(ymm_acc, ymm_wg_row, [reg_x + row_offset])
+                    VMOVAPS([reg_wg + row_offset], ymm_acc)
+
+                    row_offset += YMMRegister.size
+            else:
+                # Write output with stride
+                VSTOREPS = {"store": VMOVAPS, "stream": VMOVNTPS}[post_operation]
+                for ymm_wg_row in ymm_wg_rows:
+                    VSTOREPS([reg_wg], ymm_wg_row)
+                    if ymm_wg_row is not ymm_wg_rows[-1]:
+                        ADD(reg_wg, reg_stride_wg)
+
+            RETURN()
+
+
+arg_m_pointer = Argument(ptr(const_float_), name="m_pointer")
+arg_s_pointer = Argument(ptr(float_), name="s_pointer")
+arg_bias = Argument(ptr(const_float_), name="bias_pointer")
+arg_m_stride = Argument(size_t, name="m_stride")
+arg_s_stride = Argument(size_t, name="s_stride")
+arg_row_count = Argument(uint32_t, name="row_count")
+arg_column_count = Argument(uint32_t, name="column_count")
+arg_row_offset = Argument(uint32_t, name="row_offset")
+arg_column_offset = Argument(uint32_t, name="column_offset")
+for with_bias in [False, True]:
+    if with_bias:
+        owt8x8_arguments = (arg_m_pointer, arg_s_pointer, arg_bias, arg_m_stride, arg_s_stride, arg_row_count, arg_column_count)
+    else:
+        owt8x8_arguments = (arg_m_pointer, arg_s_pointer, arg_m_stride, arg_s_stride, arg_row_count, arg_column_count, arg_row_offset, arg_column_offset)
+    with Function("nnp_owt8x8_3x3{with_bias}__avx2".format(with_bias="_with_bias" if with_bias else ""),
+        owt8x8_arguments, target=uarch.default + isa.fma3 + isa.avx2):
+
+        reg_m = GeneralPurposeRegister64()
+        LOAD.ARGUMENT(reg_m, arg_m_pointer)
+
+        reg_s = GeneralPurposeRegister64()
+        LOAD.ARGUMENT(reg_s, arg_s_pointer)
+
+        if with_bias:
+            reg_bias = GeneralPurposeRegister64()
+            LOAD.ARGUMENT(reg_bias, arg_bias)
+
+            xmm_bias = XMMRegister()
+            VINSERTPS(xmm_bias, xmm_bias, [reg_bias], 0b1101 | 1<<4)
+
+        reg_m_stride = GeneralPurposeRegister64()
+        LOAD.ARGUMENT(reg_m_stride, arg_m_stride)
+
+        reg_s_stride = GeneralPurposeRegister64()
+        LOAD.ARGUMENT(reg_s_stride, arg_s_stride)
+
+        reg_row_count = GeneralPurposeRegister32()
+        LOAD.ARGUMENT(reg_row_count, arg_row_count)
+
+        reg_column_count = GeneralPurposeRegister32()
+        LOAD.ARGUMENT(reg_column_count, arg_column_count)
+
+        ymm_m = [YMMRegister() for _ in range(8)]
+        for ymm in ymm_m:
+            if with_bias and ymm is ymm_m[1]:
+                VADDPS(ymm, xmm_bias.as_ymm, [reg_m])
+            else:
+                VMOVAPS(ymm, [reg_m])
+
+            if ymm is not ymm_m[-1]:
+                ADD(reg_m, reg_m_stride)
+
+        ymm_t = winograd.o6x6k3x3.output_transform(ymm_m)
+
+        ymm_tt = winograd.o6x6k3x3.transpose6x8(ymm_t)
+
+        ymm_s = winograd.o6x6k3x3.output_transform(ymm_tt)
+
+        block8x8.store_packed(ymm_s, reg_s, reg_s_stride, reg_row_count, reg_column_count)
+
+        RETURN()

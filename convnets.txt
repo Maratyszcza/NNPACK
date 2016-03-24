@@ -1,0 +1,51 @@
+Alexnet (batch = 128)
+
+input_channels = 3
+output_channels = 64
+kernel = 11x11
+
+input_channels = 64
+output_channels = 192
+kernel = 5x5
+
+input_channels = 192
+output_channels = 384
+kernel = 3x3
+
+input_channels = 384
+output_channels = 256
+kernel = 3x3
+
+input_channels = 256
+output_channels = 256
+kernel = 3x3
+
+VGG Model-A (batch = 64)
+
+input_channels = 3
+output_channels = 64
+kernel = 3x3
+
+input_channels = 64
+output_channels = 128
+kernel = 3x3
+
+input_channels = 128
+output_channels = 256
+kernel = 3x3
+
+input_channels = 256
+output_channels = 256
+kernel = 3x3
+
+input_channels = 256
+output_channels = 512
+kernel = 3x3
+
+input_channels = 512
+output_channels = 512
+kernel = 3x3
+
+input_channels = 512
+output_channels = 512
+kernel = 3x3
