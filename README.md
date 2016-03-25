@@ -20,7 +20,7 @@ NNPACK is not intended to be directly used by machine learning researchers; inst
   
     | Library        | Caffe              | NNPACK      | NNPACK        | NNPACK                   |
     | -------------- | ------------------ | ----------- | ------------- | ------------------------ |
-    | **Algorithm**  | **im2col + sgemm** | **FFT-8x8** | **FFT-16x16** | **Winograd F(3x3, 6x6)** |
+    | **Algorithm**  | **im2col + sgemm** | **FFT-8x8** | **FFT-16x16** | **Winograd F(6x6, 3x3)** |
     | AlexNet:conv2  |  315 ms            | 129 ms      | **86** ms     | N/A                      |
     | AlexNet:conv3  |  182 ms            |  87 ms      | **44** ms     | 70 ms                    |
     | AlexNet:conv4  |  264 ms            | 109 ms      | **56** ms     | 89 ms                    |
