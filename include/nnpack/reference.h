@@ -78,6 +78,23 @@ void nnp_max_pooling_output__reference(
 	float* output_pointer,
 	pthreadpool_t threadpool);
 
+void nnp_relu_output__reference(
+	size_t batch_size,
+	size_t channels,
+	const float input[],
+	float output[],
+	float negative_slope,
+	pthreadpool_t threadpool);
+
+void nnp_relu_input_gradient__reference(
+	size_t batch_size,
+	size_t channels,
+	const float grad_output[],
+	const float input[],
+	float grad_input[],
+	float negative_slope,
+	pthreadpool_t threadpool);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

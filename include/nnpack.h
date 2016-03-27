@@ -426,6 +426,45 @@ enum nnp_status nnp_softmax_output(
     float output[],
     pthreadpool_t threadpool);
 
+/**
+ * @brief Computes output of a rectified linear unit (ReLU) layer for an input matrix.
+ * @details This function targets both prediction and training of convolutional neural networks and performs forward
+ *          propagation. Is is optimized for both large and small minibatch sizes.
+ * @param batch_size The number of vectors on the input and output of the ReLU layer.
+ * @param channels   The number of channels (AKA features, dimensions) in both input and output matrices.
+ * @param[in]  input  A 2D matrix input[batch_size][channels].
+ * @param[out] output A 2D matrix output[batch_size][channels].
+ * @param threadpool A thread pool for parallelization of the computation.
+ *                   If threadpool is NULL, the computation would run on the caller thread without parallelization.
+ */
+enum nnp_status nnp_relu_output(
+	size_t batch_size,
+	size_t channels,
+	const float input[],
+	float output[],
+	float negative_slope,
+	pthreadpool_t threadpool);
+
+/**
+ * @brief Computes gradient of input of a rectified linear unit (ReLU) layer from gradient of output and input matrices.
+ * @details This function targets training of convolutional neural networks and performs backward propagation.
+ *          Is is optimized for both large and small minibatch sizes.
+ * @param batch_size The number of vectors on the input and output of the ReLU layer.
+ * @param channels   The number of channels (AKA features, dimensions) in both input and output matrices.
+ * @param[in]  input  A 2D matrix input[batch_size][channels].
+ * @param[out] output A 2D matrix output[batch_size][channels].
+ * @param threadpool A thread pool for parallelization of the computation.
+ *                   If threadpool is NULL, the computation would run on the caller thread without parallelization.
+ */
+enum nnp_status nnp_relu_input_gradient(
+	size_t batch_size,
+	size_t channels,
+	const float grad_output[],
+	const float input[],
+	float grad_input[],
+	float negative_slope,
+	pthreadpool_t threadpool);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

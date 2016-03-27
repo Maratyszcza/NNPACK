@@ -306,6 +306,8 @@ def main():
         config.cc("ref/fully-connected-output.c"),
         config.cc("ref/pooling-output.c"),
         config.cc("ref/softmax-output.c"),
+        config.cc("ref/relu-output.c"),
+        config.cc("ref/relu-input-gradient.c"),
     ]
 
     reference_fft_objects = [
