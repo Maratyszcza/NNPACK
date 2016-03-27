@@ -11,10 +11,8 @@
 
 #include <nnpack/validation.h>
 
-extern bool is_haswell_compatible_isa(void);
-
 struct NNP_CACHE_ALIGN pooling_context {
-	void (*pooling_function)(const float*, float*, size_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
+	nnp_pooling_function pooling_function;
 	const float* input_pointer;
 	float* output_pointer;
 
@@ -38,6 +36,7 @@ static void compute_pooling_output(
 	const struct nnp_size output_size      = context->output_size;
 	const struct nnp_size input_tile       = context->input_tile;
 	const struct nnp_size output_tile      = context->output_tile;
+	const nnp_pooling_function pooling     = context->pooling_function;
 
 	const float (*input)[channels][input_size.height][input_size.width] =
 		(const float(*)[channels][input_size.height][input_size.width]) context->input_pointer;
@@ -54,7 +53,7 @@ static void compute_pooling_output(
 			const size_t input_column_offset = doz(input_padding.left, x);
 			const size_t input_column_count = min(input_tile.width, doz(input_size.width, input_x));
 			const size_t output_column_count = min(output_tile.width, output_size.width - x);
-			context->pooling_function(
+			pooling(
 				&input[sample][channel][input_y][input_x],
 				&output[sample][channel][y][x],
 				input_size.width,
@@ -74,8 +73,8 @@ enum nnp_status nnp_max_pooling_output(
 	struct nnp_padding input_padding,
 	struct nnp_size pooling_size,
 	struct nnp_size pooling_stride,
-	const float input_pointer[],
-	float output_pointer[],
+	const float input[],
+	float output[],
 	pthreadpool_t threadpool)
 {
 	enum nnp_status status = validate_pooling_arguments(
@@ -93,8 +92,8 @@ enum nnp_status nnp_max_pooling_output(
 
 	struct pooling_context pooling_context = {
 		.channels = channels,
-		.input_pointer = input_pointer,
-		.output_pointer = output_pointer,
+		.input_pointer = input,
+		.output_pointer = output,
 		.input_size = input_size,
 		.pooling_stride = pooling_stride,
 		.output_size = output_size,
