@@ -348,11 +348,12 @@ enum nnp_status nnp_convolution_inference(
  * @details This function targets training of convolutional neural networks and performs forward propagation.
  *          It is optimized for moderate minibatch sizes (64-128) and can be inefficient on a small minibatch.
  *          For minibatch size 1, use nnp_fully_connected_inference for optimal performance.
- * @param input_channels The number of channels (AKA features, dimensions) in the input vector.
- * @param output_channels The number of channels (AKA features, dimensions) in the output vector.
- * @param[in]  input  A 1D array input[input_channels].
+ * @param batch_size The number of vectors on the input and output of the fully connected layer.
+ * @param input_channels The number of channels (AKA features, dimensions) in the input matrix.
+ * @param output_channels The number of channels (AKA features, dimensions) in the output matrix.
+ * @param[in]  input  A 2D matrix input[batch_size][input_channels].
  * @param[in]  kernel A 2D matrix kernel[output_channels][input_channels].
- * @param[out] output A 1D array output[output_channels].
+ * @param[out] output A 2D matrix output[batch_size][output_channels].
  * @param threadpool A thread pool for parallelization of the computation.
  *                   If threadpool is NULL, the computation would run on the caller thread without parallelization.
  */
@@ -389,13 +390,14 @@ enum nnp_status nnp_fully_connected_inference(
  * @brief Computes output of a max-pooling layer for an input tensor.
  * @details This function targets both prediction and training of convolutional neural networks and performs forward
  *          propagation. Is is optimized for both large and small minibatch sizes.
+ * @param batch_size The number of images on the input and output of the max-pooling layer.
  * @param channels   The number of channels (AKA features, dimensions) in both input and output images.
  * @param input_size Size of input images, excluding implicit zero-padding.
  * @param input_padding Implicit padding of input images. The padding pixels are ignored by the pooling filter, but
  *                      affect the output size.
  * @param pooling_size   Size of the pooling filter. Only 2x2 filter are currently supported.
  * @param pooling_stride Stride of the pooling filter. Only 2x2 strides are currently supported.
- * @param[in]  input  A 4D tensors input[batch_size][channels][input_size.height][input_size.width].
+ * @param[in]  input  A 4D tensor input[batch_size][channels][input_size.height][input_size.width].
  * @param[out] output A 4D tensor output[batch_size][channels][output_size.height][output_size.width] where
  *                    output_size.height = ceil(
  *                      (input_padding.top + input_size.height + input_padding.bottom - pooling_size.height) /
