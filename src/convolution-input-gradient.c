@@ -481,6 +481,10 @@ enum nnp_status nnp_convolution_input_gradient(
 			fourier_transform = true;
 			break;
 		case nnp_convolution_algorithm_wt8x8:
+			if ((kernel_size.height != 3) || (kernel_size.width != 3)) {
+				status = nnp_status_unsupported_algorithm;
+				goto cleanup;
+			}
 			grad_output_transform_function = nnp_iwt8x8_3x3_and_stream__avx2;
 			kernel_transform_function = nnp_kwt8x8_3Rx3R_and_stream__avx2;
 			grad_input_transform_function = nnp_owt8x8_3x3__avx2;

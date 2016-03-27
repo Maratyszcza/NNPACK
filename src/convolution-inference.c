@@ -80,6 +80,10 @@ enum nnp_status nnp_convolution_inference(
 	void (*output_transform_function)(const float[], float[], const float[], size_t, size_t, uint32_t, uint32_t) = NULL;
 	switch (algorithm) {
 		case nnp_convolution_algorithm_wt8x8:
+			if ((kernel_size.height != 3) || (kernel_size.width != 3)) {
+				status = nnp_status_unsupported_algorithm;
+				goto cleanup;
+			}
 			tile_size = (struct nnp_size) { .height = 8, .width = 8 };
 			input_transform_function = nnp_iwt8x8_3x3_and_store__avx2;
 			kernel_transform_function = nnp_kwt8x8_3x3_and_stream__avx2;
@@ -107,8 +111,9 @@ enum nnp_status nnp_convolution_inference(
 			fourier_transform = true;
 			break;
 		case nnp_convolution_algorithm_auto:
+			NNP_UNREACHABLE;
 		default:
-			status = nnp_status_unsupported_algorithm;
+			status = nnp_status_invalid_algorithm;
 			goto cleanup;
 	}
 
