@@ -328,6 +328,10 @@ def main():
         config.peachpy("x86_64-fma/ifft-real.py"),
     ]
 
+    x86_64_winograd_stub_objects = [
+        config.peachpy("x86_64-fma/winograd-f6k3.py"),
+    ]
+
     fft_objects = reference_fft_objects + x86_64_fft_stub_objects
 
     reference_blockmac_objects = [
@@ -369,6 +373,11 @@ def main():
             config.cxxld(reference_fft_objects + x86_64_fft_stub_objects + [config.cxx("fourier/x86_64-avx2.cc")] + gtest_objects,
                 "fourier-x86_64-avx2-test", libs=unittest_libs)
         config.run(fourier_x86_64_avx2_test_binary, "fourier-x86_64-avx2-test")
+
+        winograd_x86_64_fma3_test_binary = \
+            config.cxxld(x86_64_winograd_stub_objects + [config.cxx("winograd/x86_64-fma3.cc")] + gtest_objects,
+                "winograd-x86_64-fma3-test", libs=unittest_libs)
+        config.run(winograd_x86_64_fma3_test_binary, "winograd-x86_64-fma3-test")
 
         convolution_output_smoke_test_binary = \
             config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/smoke.cc")] + gtest_objects,
@@ -491,6 +500,7 @@ def main():
 
         config.writer.default([
             fourier_reference_test_binary, fourier_x86_64_avx2_test_binary,
+            winograd_x86_64_fma3_test_binary,
             convolution_output_smoke_test_binary, convolution_output_alexnet_test_binary, convolution_output_vgg_a_test_binary, convolution_output_overfeat_fast_test_binary,
             convolution_input_gradient_smoke_test_binary, convolution_input_gradient_alexnet_test_binary, convolution_input_gradient_vgg_a_test_binary, convolution_input_gradient_overfeat_fast_test_binary,
             convolution_kernel_gradient_smoke_test_binary, convolution_kernel_gradient_alexnet_test_binary, convolution_kernel_gradient_vgg_a_test_binary, convolution_kernel_gradient_overfeat_fast_test_binary,
