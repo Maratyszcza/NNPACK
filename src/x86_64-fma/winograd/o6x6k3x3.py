@@ -365,37 +365,6 @@ def transpose6x8(ymm_rows):
     return ymm_rows
 
 
-def input_transform_3x3_6x6(d0, d1, d2, d3, d4, d5, d6, d7):
-    return d6 - 36 * d0 + 49 * d2 - 14 * d4, \
-        (d6 + 36 * d2 - 13 * d4) + (d5 + 36 * d1 - 13 * d3), \
-        (d6 + 36 * d2 - 13 * d4) - (d5 + 36 * d1 - 13 * d3), \
-        (d6 + 9 * d2 - 10 * d4) + 2 * (d5 + 9 * d1 - 10 * d3), \
-        (d6 + 9 * d2 - 10 * d4) - 2 * (d5 + 9 * d1 - 10 * d3), \
-        (d6 + 4 * d2 - 5 * d4) + 3 * (d5 + 4 * d1 - 5 * d3), \
-        (d6 + 4 * d2 - 5 * d4) - 3 * (d5 + 4 * d1 - 5 * d3), \
-        d7 - 36 * d1 + 49 * d3 - 14 * d5
-
-
-def kernel_transform_3x3_6x6(k0, k1, k2):
-    return -k0 / 36., \
-            (k0 + k1 + k2) / 48., \
-            (k0 - k1 + k2) / 48., \
-            (k0 + 2 * k1 + 4 * k2) / (-120.), \
-            (k0 - 2 * k1 + 4 * k2) / (-120.), \
-            (k0 + 3 * k1 + 9 * k2) / 720., \
-            (k0 - 3 * k1 + 9 * k2) / 720., \
-            k2
-
-
-def product_transform_3x3_6x6(m0, m1, m2, m3, m4, m5, m6, m7):
-    return m0 + m1 + m2 + m3 + m4 + m5 + m6, \
-        m1 - m2 + 2 * m3 - 2 * m4 + 3 * m5 - 3 * m6, \
-        m1 + m2 + 4 * m3 + 4 * m4 + 9 * m5 + 9 * m6, \
-        m1 - m2 + 8 * m3 - 8 * m4 + 27 * m5 - 27 * m6, \
-        m1 + m2 + 16 * m3 + 16 * m4 + 81 * m5 + 81 * m6, \
-        m1 - m2 + 32 * m3 - 32 * m4 + 243 * m5 - 243 * m6 + m7
-
-
 def transpose8x3(xmm_rows):
     assert isinstance(xmm_rows, list) and len(xmm_rows) == 8 and all(isinstance(xmm_row, XMMRegister) for xmm_row in xmm_rows)
     # xmm_rows[0] = ( 0.0, g02, g01, g00 )
