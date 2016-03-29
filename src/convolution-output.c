@@ -16,7 +16,7 @@
 #include <nnpack/blas.h>
 
 
-NNP_CACHE_ALIGN struct kernel_transform_context {
+struct NNP_CACHE_ALIGN kernel_transform_context {
 	nnp_transform_2d transform_function;
 	const float* kernel;
 	float* kernel_transform;
@@ -59,7 +59,7 @@ static void compute_kernel_transform(const struct kernel_transform_context conte
 	}
 }
 
-NNP_CACHE_ALIGN struct input_transform_context {
+struct NNP_CACHE_ALIGN input_transform_context {
 	nnp_transform_2d transform_function;
 	const float* input;
 	float* input_transform;
@@ -110,7 +110,7 @@ static void compute_input_transform(const struct input_transform_context context
 	}
 }
 
-NNP_CACHE_ALIGN struct output_transform_context {
+struct NNP_CACHE_ALIGN output_transform_context {
 	nnp_transform_2d_with_bias transform_function;
 	float* output;
 	const float* output_transform;
@@ -164,7 +164,7 @@ static void compute_output_transform(const struct output_transform_context conte
 	}
 }
 
-NNP_CACHE_ALIGN struct matrix_multiplication_context {
+struct NNP_CACHE_ALIGN matrix_multiplication_context {
 	size_t tuple_elements;
 	size_t batch_block_size;
 	size_t input_channels_block_start;
