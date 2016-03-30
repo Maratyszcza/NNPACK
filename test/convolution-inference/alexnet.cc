@@ -63,13 +63,13 @@ TEST(FT16x16_REUSE, conv3) {
 
 TEST(WT8x8_RECOMPUTE, conv3) {
 	AlexNet::conv3()
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_recompute);
 }
 
 TEST(WT8x8_REUSE, conv3) {
 	AlexNet::conv3()
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_reuse);
 }
 
@@ -103,13 +103,13 @@ TEST(FT16x16_REUSE, conv4) {
 
 TEST(WT8x8_RECOMPUTE, conv4) {
 	AlexNet::conv4()
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_recompute);
 }
 
 TEST(WT8x8_REUSE, conv4) {
 	AlexNet::conv4()
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_reuse);
 }
 
@@ -143,13 +143,13 @@ TEST(FT16x16_REUSE, conv5) {
 
 TEST(WT8x8_RECOMPUTE, conv5) {
 	AlexNet::conv5()
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_recompute);
 }
 
 TEST(WT8x8_REUSE, conv5) {
 	AlexNet::conv5()
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_reuse);
 }
 

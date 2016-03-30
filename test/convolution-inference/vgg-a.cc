@@ -35,13 +35,13 @@ TEST(FT16x16_REUSE, conv1) {
 
 TEST(WT8x8_RECOMPUTE, conv1) {
 	VGG_A::conv1()
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_recompute);
 }
 
 TEST(WT8x8_REUSE, conv1) {
 	VGG_A::conv1()
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_reuse);
 }
 
@@ -75,13 +75,13 @@ TEST(FT16x16_REUSE, conv2) {
 
 TEST(WT8x8_RECOMPUTE, conv2) {
 	VGG_A::conv2()
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_recompute);
 }
 
 TEST(WT8x8_REUSE, conv2) {
 	VGG_A::conv2()
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_reuse);
 }
 
@@ -115,13 +115,13 @@ TEST(FT16x16_REUSE, conv3) {
 
 TEST(WT8x8_RECOMPUTE, conv3) {
 	VGG_A::conv3()
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_recompute);
 }
 
 TEST(WT8x8_REUSE, conv3) {
 	VGG_A::conv3()
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_reuse);
 }
 
@@ -155,13 +155,13 @@ TEST(FT16x16_REUSE, conv4) {
 
 TEST(WT8x8_RECOMPUTE, conv4) {
 	VGG_A::conv4()
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_recompute);
 }
 
 TEST(WT8x8_REUSE, conv4) {
 	VGG_A::conv4()
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_reuse);
 }
 
@@ -195,13 +195,13 @@ TEST(FT16x16_REUSE, conv5) {
 
 TEST(WT8x8_RECOMPUTE, conv5) {
 	VGG_A::conv5()
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_recompute);
 }
 
 TEST(WT8x8_REUSE, conv5) {
 	VGG_A::conv5()
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_reuse);
 }
 
@@ -235,13 +235,13 @@ TEST(FT16x16_REUSE, conv6) {
 
 TEST(WT8x8_RECOMPUTE, conv6) {
 	VGG_A::conv6()
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_recompute);
 }
 
 TEST(WT8x8_REUSE, conv6) {
 	VGG_A::conv6()
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_reuse);
 }
 
@@ -275,13 +275,13 @@ TEST(FT16x16_REUSE, conv8) {
 
 TEST(WT8x8_RECOMPUTE, conv8) {
 	VGG_A::conv8()
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_recompute);
 }
 
 TEST(WT8x8_REUSE, conv8) {
 	VGG_A::conv8()
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_reuse);
 }
 

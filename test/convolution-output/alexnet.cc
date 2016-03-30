@@ -44,7 +44,7 @@ TEST(FT16x16, conv3) {
 TEST(WT8x8, conv3) {
 	AlexNet::conv3()
 		.batchSize(128)
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testOutput(nnp_convolution_algorithm_wt8x8);
 }
 
@@ -69,7 +69,7 @@ TEST(FT16x16, conv4) {
 TEST(WT8x8, conv4) {
 	AlexNet::conv4()
 		.batchSize(128)
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testOutput(nnp_convolution_algorithm_wt8x8);
 }
 
@@ -94,7 +94,7 @@ TEST(FT16x16, conv5) {
 TEST(WT8x8, conv5) {
 	AlexNet::conv5()
 		.batchSize(128)
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-5)
 		.testOutput(nnp_convolution_algorithm_wt8x8);
 }
 

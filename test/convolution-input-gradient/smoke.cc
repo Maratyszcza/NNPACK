@@ -28,7 +28,7 @@ TEST(WT8x8, single_tile) {
 	ConvolutionTester()
 		.inputSize(8, 8)
 		.iterations(100)
-		.errorLimit(1.0e-3)
+		.errorLimit(1.0e-2)
 		.testInputGradient(nnp_convolution_algorithm_wt8x8);
 }
 
