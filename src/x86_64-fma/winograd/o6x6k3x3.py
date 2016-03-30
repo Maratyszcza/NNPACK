@@ -218,52 +218,6 @@ def output_transform(ymm_m):
     return ymm_s
 
 
-def transpose8x3(xmm_rows):
-    assert isinstance(xmm_rows, list) and len(xmm_rows) == 8 and all(isinstance(xmm_row, XMMRegister) for xmm_row in xmm_rows)
-    # xmm_rows[0] = ( 0.0, g02, g01, g00 )
-    # xmm_rows[1] = ( 0.0, g12, g11, g10 )
-    # xmm_rows[2] = ( 0.0, g22, g21, g20 )
-    # xmm_rows[3] = ( 0.0, g32, g31, g30 )
-    # xmm_rows[4] = ( 0.0, g42, g41, g40 )
-    # xmm_rows[5] = ( 0.0, g52, g51, g50 )
-    # xmm_rows[6] = ( 0.0, g62, g61, g60 )
-    # xmm_rows[7] = ( 0.0, g72, g71, g70 )
-
-    ymm_rows = [YMMRegister() for _ in range(4)]
-
-    VINSERTF128(ymm_rows[0], xmm_rows[0].as_ymm, xmm_rows[4], 1)
-    VINSERTF128(ymm_rows[1], xmm_rows[1].as_ymm, xmm_rows[5], 1)
-    VINSERTF128(ymm_rows[2], xmm_rows[2].as_ymm, xmm_rows[6], 1)
-    VINSERTF128(ymm_rows[3], xmm_rows[3].as_ymm, xmm_rows[7], 1)
-
-    # ymm_rows[0] = ( 0.0, g42, g41, g40, 0.0, g02, g01, g00 )
-    # ymm_rows[1] = ( 0.0, g52, g51, g50, 0.0, g12, g11, g10 )
-    # ymm_rows[2] = ( 0.0, g62, g61, g60, 0.0, g22, g21, g20 )
-    # ymm_rows[3] = ( 0.0, g72, g71, g70, 0.0, g32, g31, g30 )
-
-    ymm_new_rows = [YMMRegister() for _ in range(4)]
-    VUNPCKLPS(ymm_new_rows[0], ymm_rows[0], ymm_rows[1])
-    VUNPCKHPS(ymm_new_rows[1], ymm_rows[0], ymm_rows[1])
-    VUNPCKLPS(ymm_new_rows[2], ymm_rows[2], ymm_rows[3])
-    VUNPCKHPS(ymm_new_rows[3], ymm_rows[2], ymm_rows[3])
-    for ymm_row, ymm_new_row in zip(ymm_rows, ymm_new_rows):
-        SWAP.REGISTERS(ymm_row, ymm_new_row)
-
-    # ymm_rows[0] = ( g51, g41, g50, g40, g11, g01, g10, g00 )
-    # ymm_rows[1] = ( 0.0, 0.0, g52, g42, 0.0, 0.0, g12, g02 )
-    # ymm_rows[2] = ( g71, g61, g70, g60, g31, g21, g30, g20 )
-    # ymm_rows[3] = ( 0.0, 0.0, g72, g62, 0.0, 0.0, g32, g22 )
-
-    # ymm_rows[0] = ( g70, g60, g50, g40, g30, g20, g10, g00 )
-    VUNPCKLPD(ymm_rows[0], ymm_rows[0], ymm_rows[2])
-    # ymm_rows[2] = ( g71, g61, g51, g41, g31, g21, g11, g01 )
-    VUNPCKHPD(ymm_rows[0], ymm_rows[0], ymm_rows[2])
-    # ymm_rows[1] = ( g72, g62, g52, g42, g32, g22, g12, g02 )
-    VUNPCKLPD(ymm_rows[1], ymm_rows[1], ymm_rows[3])
-
-    return ymm_rows[0:3]
-
-
 def transpose8x8(ymm_rows):
     assert isinstance(ymm_rows, list) and len(ymm_rows) == 8 and all(isinstance(ymm_row, YMMRegister) for ymm_row in ymm_rows)
     # ymm_rows[0] = ( g07, g06, g05, g04, g03, g02, g01, g00 )
