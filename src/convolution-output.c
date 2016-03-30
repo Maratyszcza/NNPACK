@@ -462,7 +462,11 @@ enum nnp_status nnp_convolution_output(
 				divide_round_up(output_size.width, 16 - kernel_size.width + 1);
 			if (tile_count_8x8 <= 4 * tile_count_16x16) {
 				/* 8x8 tiles are more efficient */
-				algorithm = nnp_convolution_algorithm_ft8x8;
+				if ((kernel_size.height == 3) && (kernel_size.width == 3)) {
+					algorithm = nnp_convolution_algorithm_wt8x8;
+				} else {
+					algorithm = nnp_convolution_algorithm_ft8x8;
+				}
 			} else {
 				algorithm = nnp_convolution_algorithm_ft16x16;
 			}
