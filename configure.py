@@ -280,6 +280,7 @@ def main():
         config.cc("fully-connected-output.c"),
         config.cc("fully-connected-inference.c"),
         config.cc("pooling-output.c"),
+        config.cc("relu-output.c"),
     ]
 
     x86_64_nnpack_objects = [
@@ -289,6 +290,8 @@ def main():
         config.peachpy("x86_64-fma/2d-wt-8x8-3x3.py"),
         # Pooling
         config.peachpy("x86_64-fma/max-pooling.py"),
+        # ReLU
+        config.peachpy("x86_64-fma/relu.py"),
         # FFT block accumulation
         config.peachpy("x86_64-fma/fft-block-mac.py"),
         # Tuple GEMM
@@ -494,9 +497,21 @@ def main():
             config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("pooling-output/overfeat-fast.cc")] + gtest_objects, "pooling-output-overfeat-fast", libs=unittest_libs)
         config.run(pooling_output_smoke_test_binary, "pooling-output-smoketest")
         config.run(pooling_output_vgg_a_test_binary, "pooling-output-vgg-a-test")
-        config.run(pooling_output_overfeat_fast_test_binary, "pooling-output-overfeat-fast")
+        config.run(pooling_output_overfeat_fast_test_binary, "pooling-output-overfeat-fast-test")
         config.phony("pooling-output-test",
-            ["pooling-output-smoketest", "pooling-output-vgg-a-test", "pooling-output-overfeat-fast"])
+            ["pooling-output-smoketest", "pooling-output-vgg-a-test", "pooling-output-overfeat-fast-test"])
+
+        relu_output_alexnet_test_binary = \
+            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("relu-output/alexnet.cc")] + gtest_objects, "relu-output-alexnet-test", libs=unittest_libs)
+        relu_output_vgg_a_test_binary = \
+            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("relu-output/vgg-a.cc")] + gtest_objects, "relu-output-vgg-a-test", libs=unittest_libs)
+        relu_output_overfeat_fast_test_binary = \
+            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("relu-output/overfeat-fast.cc")] + gtest_objects, "relu-output-overfeat-fast-test", libs=unittest_libs)
+        config.run(relu_output_alexnet_test_binary, "relu-output-alexnet-test")
+        config.run(relu_output_vgg_a_test_binary, "relu-output-vgg-a-test")
+        config.run(relu_output_overfeat_fast_test_binary, "relu-output-overfeat-fast-test")
+        config.phony("relu-output-test",
+            ["relu-output-alexnet-test", "relu-output-vgg-a-test", "relu-output-overfeat-fast-test"])
 
         config.writer.default([
             fourier_reference_test_binary, fourier_x86_64_avx2_test_binary,
@@ -507,12 +522,18 @@ def main():
             convolution_inference_smoke_test_binary, convolution_inference_alexnet_test_binary, convolution_inference_vgg_a_test_binary, convolution_inference_overfeat_fast_test_binary,
             fully_connected_output_smoke_test_binary, fully_connected_output_alexnet_test_binary, fully_connected_output_vgg_a_test_binary, fully_connected_output_overfeat_fast_test_binary,
             fully_connected_inference_alexnet_test_binary, fully_connected_inference_vgg_a_test_binary, fully_connected_inference_overfeat_fast_test_binary,
-            pooling_output_smoke_test_binary, pooling_output_vgg_a_test_binary, pooling_output_overfeat_fast_test_binary])
+            pooling_output_smoke_test_binary, pooling_output_vgg_a_test_binary, pooling_output_overfeat_fast_test_binary,
+            relu_output_alexnet_test_binary, relu_output_vgg_a_test_binary, relu_output_overfeat_fast_test_binary])
 
-        config.phony("test",
-            ["convolution-output-test", "convolution-inference-test", "fully-connected-output-test", "pooling-output-test"])
-        config.phony("smoketest",
-            ["convolution-output-smoketest", "convolution-inference-smoketest", "fully-connected-output-smoketest", "pooling-output-smoketest"])
+        config.phony("test", [
+            "convolution-output-test", "convolution-input-gradient-test", "convolution-kernel-gradient-test", "convolution-inference-test",
+            "fully-connected-output-test", "fully-connected-inference-test",
+            "pooling-output-test",
+            "relu-output-test"])
+        config.phony("smoketest", [
+            "convolution-output-smoketest", "convolution-input-gradient-smoketest", "convolution-kernel-gradient-smoketest", "convolution-inference-smoketest",
+            "fully-connected-output-smoketest",
+            "pooling-output-smoketest"])
 
     # Build benchmarks
     config.source_dir = os.path.join(root_dir, "bench")
@@ -538,11 +559,13 @@ def main():
 
     convolution_bench_binary = config.ccld([config.cc("convolution.c")] + nnpack_objects + bench_support_objects,
         "convolution-benchmark", libs=["m"])
-    pooling_forward_bench_binary = config.ccld([config.cc("pooling.c")] + nnpack_objects + bench_support_objects,
-        "pooling-benchmark", libs=["m"])
-    fully_connected_forward_bench_binary = config.ccld([config.cc("fully-connected.c")] + nnpack_objects + bench_support_objects,
+    fully_connected_bench_binary = config.ccld([config.cc("fully-connected.c")] + nnpack_objects + bench_support_objects,
         "fully-connected-benchmark", libs=["m"])
-    config.default([convolution_bench_binary, pooling_forward_bench_binary, fully_connected_forward_bench_binary])
+    pooling_bench_binary = config.ccld([config.cc("pooling.c")] + nnpack_objects + bench_support_objects,
+        "pooling-benchmark", libs=["m"])
+    relu_bench_binary = config.ccld([config.cc("relu.c")] + nnpack_objects + bench_support_objects,
+        "relu-benchmark", libs=["m"])
+    config.default([convolution_bench_binary, fully_connected_bench_binary, pooling_bench_binary, relu_bench_binary])
 
     ugemm_bench_binary = config.ccld([config.cc("ugemm.c")] + x86_64_nnpack_objects + bench_support_objects, "ugemm-bench", libs=["m"])
     if options.use_mkl:

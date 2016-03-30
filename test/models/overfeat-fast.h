@@ -5,8 +5,21 @@
 #include <testers/convolution.h>
 #include <testers/fully-connected.h>
 #include <testers/pooling.h>
+#include <testers/relu.h>
 
 namespace OverFeat_Fast {
+
+	/*
+	 * OverFeat (Fast model) conv1 ReLU layer
+	 *   channels   = 96
+	 *   image size = 56x56
+	 */
+	inline ReLUTester conv1_relu() {
+		return std::move(ReLUTester()
+			.multithreading(true)
+			.channels(96)
+			.imageSize(56, 56));
+	}
 
 	/*
 	 * OverFeat (Fast model) conv2 layer:
@@ -23,6 +36,18 @@ namespace OverFeat_Fast {
 			.outputChannels(256)
 			.inputSize(24, 24)
 			.kernelSize(5, 5));
+	}
+
+	/*
+	 * OverFeat (Fast model) conv2 ReLU layer
+	 *   channels   = 256
+	 *   image size = 24x24
+	 */
+	inline ReLUTester conv2_relu() {
+		return std::move(ReLUTester()
+			.multithreading(true)
+			.channels(256)
+			.imageSize(24, 24));
 	}
 
 	/*
@@ -44,6 +69,18 @@ namespace OverFeat_Fast {
 	}
 
 	/*
+	 * OverFeat (Fast model) conv3 ReLU layer
+	 *   channels   = 512
+	 *   image size = 12x12
+	 */
+	inline ReLUTester conv3_relu() {
+		return std::move(ReLUTester()
+			.multithreading(true)
+			.channels(512)
+			.imageSize(12, 12));
+	}
+
+	/*
 	 * OverFeat (Fast model) conv4 layer:
 	 *   input channels   = 512
 	 *   output channels  = 1024
@@ -59,6 +96,18 @@ namespace OverFeat_Fast {
 			.inputSize(12, 12)
 			.kernelSize(3, 3)
 			.inputPadding(1, 1, 1, 1));
+	}
+
+	/*
+	 * OverFeat (Fast model) conv4 ReLU layer
+	 *   channels   = 1024
+	 *   image size = 12x12
+	 */
+	inline ReLUTester conv4_relu() {
+		return std::move(ReLUTester()
+			.multithreading(true)
+			.channels(1024)
+			.imageSize(12, 12));
 	}
 
 	/*
@@ -92,6 +141,16 @@ namespace OverFeat_Fast {
 	}
 
 	/*
+	 * OverFeat (Fast model) fc6 ReLU layer
+	 *   channels = 3072
+	 */
+	inline ReLUTester fc6_relu() {
+		return std::move(ReLUTester()
+			.multithreading(true)
+			.channels(3072));
+	}
+
+	/*
 	 * OverFeat (Fast model) fc7 layer:
 	 *   input channels  = 3072
 	 *   output channels = 4096
@@ -104,6 +163,16 @@ namespace OverFeat_Fast {
 	}
 
 	/*
+	 * OverFeat (Fast model) fc7 ReLU layer
+	 *   channels = 4096
+	 */
+	inline ReLUTester fc7_relu() {
+		return std::move(ReLUTester()
+			.multithreading(true)
+			.channels(4096));
+	}
+
+	/*
 	 * OverFeat (Fast model) fc8 layer:
 	 *   input channels  = 4096
 	 *   output channels = 1000
@@ -113,6 +182,16 @@ namespace OverFeat_Fast {
 			.multithreading(true)
 			.inputChannels(4096)
 			.outputChannels(1000));
+	}
+
+	/*
+	 * OverFeat (Fast model) fc8 ReLU layer
+	 *   channels = 1000
+	 */
+	inline ReLUTester fc8_relu() {
+		return std::move(ReLUTester()
+			.multithreading(true)
+			.channels(1000));
 	}
 
 	/*

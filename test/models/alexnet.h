@@ -5,8 +5,21 @@
 #include <testers/convolution.h>
 #include <testers/fully-connected.h>
 #include <testers/pooling.h>
+#include <testers/relu.h>
 
 namespace AlexNet {
+
+	/*
+	 * AlexNet conv1 ReLU layer
+	 *   channels   = 64
+	 *   image size = 55x55
+	 */
+	inline ReLUTester conv1_relu() {
+		return std::move(ReLUTester()
+			.multithreading(true)
+			.channels(64)
+			.imageSize(55, 55));
+	}
 
 	/*
 	 * AlexNet conv2 layer:
@@ -24,6 +37,18 @@ namespace AlexNet {
 			.inputSize(27, 27)
 			.kernelSize(5, 5)
 			.inputPadding(2, 2, 2, 2));
+	}
+
+	/*
+	 * AlexNet conv2 ReLU layer
+	 *   channels   = 192
+	 *   image size = 27x27
+	 */
+	inline ReLUTester conv2_relu() {
+		return std::move(ReLUTester()
+			.multithreading(true)
+			.channels(192)
+			.imageSize(27, 27));
 	}
 
 	/*
@@ -45,6 +70,18 @@ namespace AlexNet {
 	}
 
 	/*
+	 * AlexNet conv3 ReLU layer
+	 *   channels   = 384
+	 *   image size = 13x13
+	 */
+	inline ReLUTester conv3_relu() {
+		return std::move(ReLUTester()
+			.multithreading(true)
+			.channels(384)
+			.imageSize(13, 13));
+	}
+
+	/*
 	 * AlexNet conv4 layer:
 	 *   input channels   = 384
 	 *   output channels  = 256
@@ -60,6 +97,18 @@ namespace AlexNet {
 			.inputSize(13, 13)
 			.kernelSize(3, 3)
 			.inputPadding(1, 1, 1, 1));
+	}
+
+	/*
+	 * AlexNet conv4 ReLU layer
+	 *   channels   = 256
+	 *   image size = 13x13
+	 */
+	inline ReLUTester conv4_relu() {
+		return std::move(ReLUTester()
+			.multithreading(true)
+			.channels(256)
+			.imageSize(13, 13));
 	}
 
 	/*
@@ -93,6 +142,16 @@ namespace AlexNet {
 	}
 
 	/*
+	 * AlexNet fc6 ReLU layer
+	 *   channels = 4096
+	 */
+	inline ReLUTester fc6_relu() {
+		return std::move(ReLUTester()
+			.multithreading(true)
+			.channels(4096));
+	}
+
+	/*
 	 * AlexNet fc7 layer:
 	 *   input channels = 4096
 	 *   output_channels = 4096
@@ -116,4 +175,13 @@ namespace AlexNet {
 			.outputChannels(1000));
 	}
 
+	/*
+	 * AlexNet fc8 ReLU layer
+	 *   channels = 1000
+	 */
+	inline ReLUTester fc8_relu() {
+		return std::move(ReLUTester()
+			.multithreading(true)
+			.channels(1000));
+	}
 }

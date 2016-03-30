@@ -5,6 +5,7 @@
 #include <testers/convolution.h>
 #include <testers/fully-connected.h>
 #include <testers/pooling.h>
+#include <testers/relu.h>
 
 namespace VGG_A {
 
@@ -27,6 +28,18 @@ namespace VGG_A {
 	}
 
 	/*
+	 * VGG model A conv1 ReLU layer:
+	 *   channels   = 64
+	 *   image size = 224x224
+	 */
+	inline ReLUTester conv1_relu() {
+		return std::move(ReLUTester()
+			.multithreading(true)
+			.channels(64)
+			.imageSize(224, 224));
+	}
+
+	/*
 	 * VGG model A conv2 layer:
 	 *   input channels   = 64
 	 *   output channels  = 128
@@ -45,6 +58,18 @@ namespace VGG_A {
 	}
 
 	/*
+	 * VGG model A conv2 ReLU layer:
+	 *   channels   = 128
+	 *   image size = 224x224
+	 */
+	inline ReLUTester conv2_relu() {
+		return std::move(ReLUTester()
+			.multithreading(true)
+			.channels(128)
+			.imageSize(224, 224));
+	}
+
+	/*
 	 * VGG model A conv3 layer:
 	 *   input channels   = 128
 	 *   output channels  = 256
@@ -60,6 +85,18 @@ namespace VGG_A {
 			.inputSize(56, 56)
 			.kernelSize(3, 3)
 			.inputPadding(1, 1, 1, 1));
+	}
+
+	/*
+	 * VGG model A conv3 ReLU layer:
+	 *   channels   = 256
+	 *   image size = 56x56
+	 */
+	inline ReLUTester conv3_relu() {
+		return std::move(ReLUTester()
+			.multithreading(true)
+			.channels(256)
+			.imageSize(56, 56));
 	}
 
 	/*
@@ -99,6 +136,18 @@ namespace VGG_A {
 	}
 
 	/*
+	 * VGG model A conv5 ReLU layer:
+	 *   channels   = 512
+	 *   image size = 28x28
+	 */
+	inline ReLUTester conv5_relu() {
+		return std::move(ReLUTester()
+			.multithreading(true)
+			.channels(512)
+			.imageSize(28, 28));
+	}
+
+	/*
 	 * VGG model A conv6 layer:
 	 *   input channels   = 512
 	 *   output channels  = 512
@@ -135,6 +184,18 @@ namespace VGG_A {
 	}
 
 	/*
+	 * VGG model A conv8 ReLU layer:
+	 *   channels   = 512
+	 *   image size = 14x14
+	 */
+	inline ReLUTester conv8_relu() {
+		return std::move(ReLUTester()
+			.multithreading(true)
+			.channels(512)
+			.imageSize(14, 14));
+	}
+
+	/*
 	 * VGG model A fc6 layer:
 	 *   input channels  = 25088
 	 *   output channels = 4096
@@ -144,6 +205,16 @@ namespace VGG_A {
 			.multithreading(true)
 			.inputChannels(25088)
 			.outputChannels(4096));
+	}
+
+	/*
+	 * VGG model A fc6 ReLU layer:
+	 *   channels = 4096
+	 */
+	inline ReLUTester fc6_relu() {
+		return std::move(ReLUTester()
+			.multithreading(true)
+			.channels(4096));
 	}
 
 	/*
@@ -168,6 +239,16 @@ namespace VGG_A {
 			.multithreading(true)
 			.inputChannels(4096)
 			.outputChannels(1000));
+	}
+
+	/*
+	 * VGG model A fc8 ReLU layer:
+	 *   channels = 1000
+	 */
+	inline ReLUTester fc8_relu() {
+		return std::move(ReLUTester()
+			.multithreading(true)
+			.channels(1000));
 	}
 
 	/*
