@@ -64,7 +64,7 @@ enum nnp_status nnp_relu_output(
 	}
 
 	size_t elements = batch_size * channels;
-	const size_t simd_width = 8;
+	const size_t simd_width = nnp_hwinfo.simd_width;
 
 	assert(((uintptr_t) input) % sizeof(float) == 0);
 	assert(((uintptr_t) output) % sizeof(float) == 0);

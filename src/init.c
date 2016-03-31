@@ -220,6 +220,7 @@ static void init_hwinfo(void) {
 	if (nnp_hwinfo.isa.has_avx2 && nnp_hwinfo.isa.has_fma3 &&
 		nnp_hwinfo.cache.l1.size && nnp_hwinfo.cache.l2.size && nnp_hwinfo.cache.l3.size)
 	{
+		nnp_hwinfo.simd_width = 8;
 		nnp_hwinfo.supported = true;
 	}
 

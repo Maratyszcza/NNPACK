@@ -440,7 +440,7 @@ enum nnp_status nnp_convolution_kernel_gradient(
 		goto cleanup;
 	}
 
-	const size_t tuple_elements = 16;
+	const size_t tuple_elements = 2 * nnp_hwinfo.simd_width;
 	const size_t transform_tile_elements = transform_tile.height * transform_tile.width;
 
 	/* Calculate cache blocking parameters */

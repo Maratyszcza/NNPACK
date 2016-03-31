@@ -69,7 +69,7 @@ enum nnp_status nnp_convolution_inference(
 		}
 	}
 
-	const size_t simd_width = 8;
+	const size_t simd_width = nnp_hwinfo.simd_width;
 	struct nnp_size tile_size;
 	bool fourier_transform;
 	void (*input_transform_function)(const float[], float[], size_t, size_t, uint32_t, uint32_t, uint32_t, uint32_t) = NULL;

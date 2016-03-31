@@ -258,7 +258,7 @@ enum nnp_status nnp_fully_connected_output(
 	const size_t cache_elements_l2 = nnp_hwinfo.blocking.l2 / sizeof(float);
 	const size_t cache_elements_l3 = nnp_hwinfo.blocking.l3 / sizeof(float);
 
-	const size_t simd_width = 8;
+	const size_t simd_width = nnp_hwinfo.simd_width;
 	const size_t batch_subblock_max = 4;
 	const size_t output_channels_subblock_max = 24;
 

@@ -518,7 +518,7 @@ enum nnp_status nnp_convolution_output(
 		goto cleanup;
 	}
 
-	const size_t simd_width = 8;
+	const size_t simd_width = nnp_hwinfo.simd_width;
 	const size_t tuple_elements = (fourier_transform ? simd_width * 2 : simd_width);
 	const size_t transform_tile_elements = transform_tile.height * transform_tile.width;
 
