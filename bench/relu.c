@@ -17,12 +17,14 @@ extern void read_memory(const void* memory, size_t length);
 enum mode {
 	mode_output,
 	mode_output_inplace,
+	mode_input_gradient,
 };
 
 unsigned long long benchmark_relu(
 	enum mode mode,
 	const void* memory, size_t cache_size,
 	size_t batch_size, size_t channels,
+	const float gradient[],
 	const float input[],
 	float output[],
 	pthreadpool_t threadpool,
@@ -52,6 +54,13 @@ unsigned long long benchmark_relu(
 					0.0f,
 					threadpool);
 				break;
+			case mode_input_gradient:
+				nnp_relu_input_gradient(
+					batch_size, channels,
+					gradient, input, output,
+					0.0f,
+					threadpool);
+				break;
 		}
 
 		if (!read_timer(&end_time))
@@ -77,7 +86,7 @@ static void print_options_help(const char* program_name) {
 "Required parameters:\n"
 "  -c   --channels           The number of channels\n"
 "Optional parameters:\n"
-"  -m   --mode               The fully connected layer mode (output, output-inplace)\n"
+"  -m   --mode               The fully connected layer mode (output, output-inplace, input-gradient)\n"
 "  -b   --batch              The size of a minibatch (default: 1)\n"
 "  -t   --threads            The number of threads (default: all; 0 to disable threadpool)\n"
 "  -i   --iterations         # iterations (default: 15)\n",
@@ -131,6 +140,8 @@ static struct options parse_options(int argc, char** argv) {
 				options.mode = mode_output;
 			} else if (strcmp(argv[argi + 1], "output-inplace") == 0) {
 				options.mode = mode_output_inplace;
+			} else if (strcmp(argv[argi + 1], "input-gradient") == 0) {
+				options.mode = mode_input_gradient;
 			} else {
 				fprintf(stderr, "Error: invalid value %s for the mode\n", argv[argi + 1]);
 				exit(EXIT_FAILURE);
@@ -199,12 +210,19 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	const size_t input_bytes = options.batch_size * options.channels * sizeof(float);
-	const size_t output_bytes = options.batch_size * options.channels * sizeof(float);
-	void* input = malloc(input_bytes);
-	void* output = malloc(output_bytes);
-	memset(input, 0, input_bytes);
-	memset(output, 0, output_bytes);
+	const size_t layer_bytes = options.batch_size * options.channels * sizeof(float);
+	void* gradient = NULL;
+	void* input = NULL;
+	void* output = malloc(layer_bytes);
+	memset(output, 0, layer_bytes);
+	if (options.mode == mode_input_gradient) {
+		gradient = malloc(layer_bytes);
+		memset(gradient, 0, layer_bytes);
+	}
+	if (options.mode != mode_output_inplace) {
+		input = malloc(layer_bytes);
+		memset(input, 0, layer_bytes);
+	}
 
 	pthreadpool_t threadpool = NULL;
 	if (options.threadpool) {
@@ -217,12 +235,15 @@ int main(int argc, char** argv) {
 		options.mode,
 		memory, cache_size,
 		options.batch_size, options.channels,
-		input, output,
+		gradient, input, output,
 		threadpool, options.iterations);
 
+	const double transferred_bytes =
+		(options.mode == mode_input_gradient) ?
+			3.0 * layer_bytes : 2.0 * layer_bytes;
 	printf("Time: %5.3f ms [%.1f GB/s]\n",
 		((double) relu_nanoseconds) * 1.0e-6,
-		((double) (input_bytes + output_bytes)) / ((double) relu_nanoseconds));
+		transferred_bytes / ((double) relu_nanoseconds));
 	if (threadpool) {
 		pthreadpool_destroy(threadpool);
 	}
