@@ -66,7 +66,7 @@ namespace VGG_A {
 		return std::move(ReLUTester()
 			.multithreading(true)
 			.channels(128)
-			.imageSize(224, 224));
+			.imageSize(112, 112));
 	}
 
 	/*
