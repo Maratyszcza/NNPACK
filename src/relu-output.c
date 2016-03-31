@@ -43,9 +43,6 @@ static void compute_outplace_relu_output(
 	float* output                            = context->output;
 	float negative_slope                     = context->negative_slope;
 
-	assert(block_start % 8 == 0);
-	assert(block_size % 8 == 0);
-
 	relu_function(input + block_start, output + block_start, block_size, negative_slope);
 }
 

@@ -281,6 +281,7 @@ def main():
         config.cc("fully-connected-inference.c"),
         config.cc("pooling-output.c"),
         config.cc("relu-output.c"),
+        config.cc("relu-input-gradient.c"),
     ]
 
     x86_64_nnpack_objects = [
@@ -513,6 +514,18 @@ def main():
         config.phony("relu-output-test",
             ["relu-output-alexnet-test", "relu-output-vgg-a-test", "relu-output-overfeat-fast-test"])
 
+        relu_input_gradient_alexnet_test_binary = \
+            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("relu-input-gradient/alexnet.cc")] + gtest_objects, "relu-input-gradient-alexnet-test", libs=unittest_libs)
+        relu_input_gradient_vgg_a_test_binary = \
+            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("relu-input-gradient/vgg-a.cc")] + gtest_objects, "relu-input-gradient-vgg-a-test", libs=unittest_libs)
+        relu_input_gradient_overfeat_fast_test_binary = \
+            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("relu-input-gradient/overfeat-fast.cc")] + gtest_objects, "relu-input-gradient-overfeat-fast-test", libs=unittest_libs)
+        config.run(relu_input_gradient_alexnet_test_binary, "relu-input-gradient-alexnet-test")
+        config.run(relu_input_gradient_vgg_a_test_binary, "relu-input-gradient-vgg-a-test")
+        config.run(relu_input_gradient_overfeat_fast_test_binary, "relu-input-gradient-overfeat-fast-test")
+        config.phony("relu-input-gradient-test",
+            ["relu-input-gradient-alexnet-test", "relu-input-gradient-vgg-a-test", "relu-input-gradient-overfeat-fast-test"])
+
         config.writer.default([
             fourier_reference_test_binary, fourier_x86_64_avx2_test_binary,
             winograd_x86_64_fma3_test_binary,
@@ -523,13 +536,14 @@ def main():
             fully_connected_output_smoke_test_binary, fully_connected_output_alexnet_test_binary, fully_connected_output_vgg_a_test_binary, fully_connected_output_overfeat_fast_test_binary,
             fully_connected_inference_alexnet_test_binary, fully_connected_inference_vgg_a_test_binary, fully_connected_inference_overfeat_fast_test_binary,
             pooling_output_smoke_test_binary, pooling_output_vgg_a_test_binary, pooling_output_overfeat_fast_test_binary,
-            relu_output_alexnet_test_binary, relu_output_vgg_a_test_binary, relu_output_overfeat_fast_test_binary])
+            relu_output_alexnet_test_binary, relu_output_vgg_a_test_binary, relu_output_overfeat_fast_test_binary,
+            relu_input_gradient_alexnet_test_binary, relu_input_gradient_vgg_a_test_binary, relu_input_gradient_overfeat_fast_test_binary])
 
         config.phony("test", [
             "convolution-output-test", "convolution-input-gradient-test", "convolution-kernel-gradient-test", "convolution-inference-test",
             "fully-connected-output-test", "fully-connected-inference-test",
             "pooling-output-test",
-            "relu-output-test"])
+            "relu-output-test", "relu-input-gradient-test"])
         config.phony("smoketest", [
             "convolution-output-smoketest", "convolution-input-gradient-smoketest", "convolution-kernel-gradient-smoketest", "convolution-inference-smoketest",
             "fully-connected-output-smoketest",

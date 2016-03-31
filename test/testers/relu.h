@@ -177,6 +177,39 @@ public:
 		}
 	}
 
+	void testInputGradient() const {
+		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
+		auto rng = std::bind(std::uniform_real_distribution<float>(-1.0f, +1.0f), std::mt19937(seed));
+
+		std::vector<float> outputGradient(batchSize() * channels() * imageHeight() * imageWidth());
+		std::vector<float> input(batchSize() * channels() * imageHeight() * imageWidth());
+		std::vector<float> inputGradient(batchSize() * channels() * imageHeight() * imageWidth());
+		std::vector<float> referenceInputGradient(batchSize() * channels() * imageHeight() * imageWidth());
+		const float negativeSlope = 0.2f;
+
+		for (size_t iteration = 0; iteration < iterations(); iteration++) {
+			std::generate(outputGradient.begin(), outputGradient.end(), std::ref(rng));
+			std::generate(input.begin(), input.end(), std::ref(rng));
+			std::fill(inputGradient.begin(), inputGradient.end(), std::nanf(""));
+			std::fill(referenceInputGradient.begin(), referenceInputGradient.end(), std::nanf(""));
+
+			nnp_relu_input_gradient__reference(
+				batchSize(), channels() * imageHeight() * imageWidth(),
+				outputGradient.data(), input.data(), referenceInputGradient.data(), negativeSlope,
+				this->threadpool);
+
+			enum nnp_status status = nnp_relu_input_gradient(
+				batchSize(), channels() * imageHeight() * imageWidth(),
+				outputGradient.data(), input.data(), inputGradient.data(), negativeSlope,
+				this->threadpool);
+			ASSERT_EQ(nnp_status_success, status);
+
+			const float maxError = std::inner_product(referenceInputGradient.cbegin(), referenceInputGradient.cend(), inputGradient.cbegin(), 0.0f,
+				[](float x, float y)->float { return std::max<float>(y, x); }, relativeError);
+			EXPECT_LT(maxError, errorLimit());
+		}
+	}
+
 protected:
 	pthreadpool_t threadpool;
 

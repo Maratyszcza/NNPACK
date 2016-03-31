@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include <nnpack.h>
 #include <nnpack/reference.h>
 
@@ -10,7 +12,7 @@ struct relu_input_gradient_context {
 };
 
 static inline float grad_relu(float grad_output_data, float input_data, float negative_slope) {
-	return input_data > 0.0f ? grad_output_data : grad_output_data * negative_slope;
+	return signbit(input_data) ? grad_output_data * negative_slope : grad_output_data;
 }
 
 static void compute_relu_input_gradient(
