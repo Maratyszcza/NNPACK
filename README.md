@@ -53,8 +53,8 @@ NNPACK is not intended to be directly used by machine learning researchers; inst
 - Convolutional layer
   - **Only convolutional layers without stride are currently supported**
   - Training-optimized forward propagation (`nnp_convolution_output`)
-  - Training-optimized backward input gradient propagation (`nnp_convolution_input_gradient`)
-  - Training-optimized backward kernel gradient propagation (`nnp_convolution_kernel_gradient`)
+  - Training-optimized backward input gradient update (`nnp_convolution_input_gradient`)
+  - Training-optimized backward kernel gradient update (`nnp_convolution_kernel_gradient`)
   - Inference-optimized forward propagation (`nnp_convolution_inference`) is a work-in-progress
 - Fully-connected layer
   - Training-optimized forward propagation (`nnp_fully_connected_output`)
@@ -62,6 +62,9 @@ NNPACK is not intended to be directly used by machine learning researchers; inst
 - Max pooling layer
   - **Only 2x2 pooling is currently supported**
   - Forward propagation, both for training and inference, (`nnp_max_pooling_output`)
+- ReLU layer (with parametrized negative slope)
+  - Forward propagation, both for training and inference, optionally in-place, (`nnp_relu_output`)
+  - Backward input gradient update (`nnp_relu_input_gradient`)
 
 ## Building
 
