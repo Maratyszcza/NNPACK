@@ -3,7 +3,8 @@
 #include <nnpack/macros.h>
 
 #if defined(__pnacl__)
-typedef float v4f __attribute__((vector_size(16), aligned(1)));
+typedef float v4f __attribute__((__vector_size__(16), __aligned__(1)));
+typedef int v4i __attribute__((__vector_size__(16), __aligned__(1)));
 
 static inline v4f v4f_ld(const void* address) {
     return *((const v4f*) address);
@@ -52,7 +53,34 @@ static inline void v4f_st4(void* address, v4f value) {
 	v4f_st(address, value);
 }
 
+static inline v4f v4f_zero(void) {
+	return (v4f) { };
+}
+
 static inline v4f v4f_splat(float c) {
 	return (v4f) { c, c, c, c };
 }
+
+/*
+ * return (mask ? a : b)
+ */
+static inline v4f v4f_blend(v4i mask, v4f a, v4f b) {
+	return (v4f) ((mask & ((v4i) a)) | (~mask & ((v4i) b)));
+}
+
+/*
+ * return signbit(x) ? a : b;
+ */
+static inline v4f v4f_signblend(v4f x, v4f a, v4f b) {
+	const v4i mask = ((v4i) x) >> ((v4i) { 31, 31, 31, 31 });
+	return (v4f) ((mask & ((v4i) a)) | (~mask & ((v4i) b)));
+}
+
+static inline void v4f_swap(v4f a[restrict static 1], v4f b[restrict static 1]) {
+    const v4f new_a = *b;
+    const v4f new_b = *a;
+    *a = new_a;
+    *b = new_b;
+}
+
 #endif

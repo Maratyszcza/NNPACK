@@ -87,7 +87,11 @@ enum nnp_status nnp_relu_output(
 	if (input == output) {
 		/* In-place transformation */
 		struct inplace_relu_context inplace_relu_context = {
+		#if defined(__x86_64__)
 			.relu_function = nnp_inplace_relu_forward__avx2,
+		#elif defined(__pnacl__)
+			.relu_function = nnp_inplace_relu_forward__psimd,
+		#endif
 			.data = output,
 			.negative_slope = negative_slope,
 		};
@@ -99,7 +103,11 @@ enum nnp_status nnp_relu_output(
 	} else {
 		/* Out-of-place transformation */
 		struct outplace_relu_context outplace_relu_context = {
+		#if defined(__x86_64__)
 			.relu_function = nnp_outplace_relu_forward__avx2,
+		#elif defined(__pnacl__)
+			.relu_function = nnp_outplace_relu_forward__psimd,
+		#endif
 			.input = input,
 			.output = output,
 			.negative_slope = negative_slope,
