@@ -7,6 +7,7 @@
 #endif
 
 #define SQRT2_OVER_2 0x1.6A09E6p-1f
+#define SQRT2_OVER_4 0x1.6A09E6p-2f
 
 #define COS__0PI_OVER_32 1.0f
 #define COS__1PI_OVER_32 0x1.FD88DAp-1f
