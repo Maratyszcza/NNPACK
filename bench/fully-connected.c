@@ -5,8 +5,6 @@
 #include <string.h>
 #include <limits.h>
 
-#include <cpuid.h>
-
 #include <perf_counter.h>
 
 #include <nnpack.h>
@@ -78,73 +76,6 @@ struct nnp_profile benchmark_fully_connected_output(
 	}
 }
 
-unsigned long long profile_fully_connected_output(
-	size_t batch_size,
-	size_t input_channels,
-	size_t output_channels,
-	const float input[],
-	const float kernel[],
-	float output[],
-	int perf_counter_file_descriptor, size_t max_iterations)
-{
-	unsigned long long overhead_count[max_iterations];
-	size_t overhead_samples = 0;
-	for (size_t iteration = 0; iteration < max_iterations; iteration++) {
-		unsigned long long start_count = 0, end_count = 0;
-		if (!read_perf_counter(perf_counter_file_descriptor, &start_count))
-			continue;
-
-		unsigned int eax, ebx, ecx, edx;
-		__cpuid(0, eax, ebx, ecx, edx);
-		__cpuid(0, eax, ebx, ecx, edx);
-
-		if (!read_perf_counter(perf_counter_file_descriptor, &end_count))
-			continue;
-
-		overhead_count[overhead_samples++] = end_count - start_count;
-	}
-
-	/* Performance counters aren't working */
-	if (overhead_samples == 0)
-		return ULLONG_MAX;
-
-	unsigned long long computation_count[max_iterations];
-	size_t computation_samples = 0;
-	for (size_t iteration = 0; iteration < max_iterations; iteration++) {
-		unsigned long long start_count = 0, end_count = 0;
-		if (!read_perf_counter(perf_counter_file_descriptor, &start_count))
-			continue;
-
-		unsigned int eax, ebx, ecx, edx;
-		__cpuid(0, eax, ebx, ecx, edx);
-
-		nnp_fully_connected_output(
-			batch_size,
-			input_channels,
-			output_channels,
-			input,
-			kernel,
-			output,
-			NULL,
-			NULL);
-
-		__cpuid(0, eax, ebx, ecx, edx);
-
-		if (!read_perf_counter(perf_counter_file_descriptor, &end_count))
-			continue;
-
-		computation_count[computation_samples++] = end_count - start_count;
-	}
-
-	const unsigned long long median_overhead_count = median(overhead_count, overhead_samples);
-	const unsigned long long median_computation_count = median(computation_count, computation_samples);
-
-	if (median_computation_count > median_overhead_count)
-		return median_computation_count - median_overhead_count;
-	else
-		return 0;
-}
-
 struct options {
 	enum mode mode;
 	size_t batch_size;
@@ -152,7 +83,6 @@ struct options {
 	size_t output_channels;
 	size_t threads;
 	size_t iterations;
-	bool hardware_events;
 	bool threadpool;
 };
 
@@ -166,8 +96,7 @@ static void print_options_help(const char* program_name) {
 "  -m   --mode               The fully connected layer mode (output, inference)\n"
 "  -b   --batch              The size of a minibatch (default: 1)\n"
 "  -t   --threads            The number of threads (default: all; 0 to disable threadpool)\n"
-"  -i   --iterations         # iterations (default: 3)\n"
-"  -e   --hardware-events    Collect hardware events for the kernel\n",
+"  -i   --iterations         # iterations (default: 3)\n",
 		program_name);
 }
 
@@ -179,7 +108,6 @@ static struct options parse_options(int argc, char** argv) {
 		.output_channels = 0,
 		.threads = 0,
 		.iterations = 3,
-		.hardware_events = false,
 		.threadpool = true,
 	};
 	for (int argi = 1; argi < argc; argi += 1) {
@@ -266,8 +194,6 @@ static struct options parse_options(int argc, char** argv) {
 				exit(EXIT_FAILURE);
 			}
 			argi += 1;
-		} else if ((strcmp(argv[argi], "--hardware-events") == 0) || (strcmp(argv[argi], "-e") == 0)) {
-			options.hardware_events = true;
 		} else if ((strcmp(argv[argi], "--help") == 0) || (strcmp(argv[argi], "-h") == 0)) {
 			print_options_help(argv[0]);
 			exit(EXIT_SUCCESS);
@@ -321,77 +247,41 @@ int main(int argc, char** argv) {
 	memset(kernel, 0, input_channels * output_channels * sizeof(float));
 	memset(output, 0, batch_size * output_channels * sizeof(float));
 
-	{
-		pthreadpool_t threadpool = NULL;
-		if (options.threadpool) {
-			threadpool = pthreadpool_create(options.threads);
-			printf("Threads: %zu\n", pthreadpool_get_threads_count(threadpool));
-		}
-		printf("Iterations: %zu\n", options.iterations);
+	pthreadpool_t threadpool = NULL;
+	if (options.threadpool) {
+		threadpool = pthreadpool_create(options.threads);
+		printf("Threads: %zu\n", pthreadpool_get_threads_count(threadpool));
+	}
+	printf("Iterations: %zu\n", options.iterations);
 
-		const struct nnp_profile output_profile =
-			benchmark_fully_connected_output(
-				options.mode,
-				memory, cache_size,
-				batch_size, input_channels, output_channels,
-				input, kernel, output,
-				threadpool, options.iterations);
+	const struct nnp_profile output_profile =
+		benchmark_fully_connected_output(
+			options.mode,
+			memory, cache_size,
+			batch_size, input_channels, output_channels,
+			input, kernel, output,
+			threadpool, options.iterations);
 
-		printf("Time: %5.3f ms [%.1f GFLOPS]\n", output_profile.total * 1.0e+3,
-			(2.0 * batch_size * output_channels * input_channels * 1.0e-9) / output_profile.total);
-		printf("Input packing: %5.3f ms (%.1f%%)\n",
-			output_profile.input_transform * 1.0e+3,
-			(output_profile.input_transform / output_profile.total) * 100.0);
-		printf("Kernel packing: %5.3f ms (%.1f%%)\n",
-			output_profile.kernel_transform * 1.0e+3,
-			(output_profile.kernel_transform / output_profile.total) * 100.0);
-		printf("Block multiplication: %5.3f ms (%.1f%%) [%.1f GFLOPS]\n",
-			output_profile.block_multiplication * 1.0e+3,
-			(output_profile.block_multiplication / output_profile.total) * 100.0,
-			(2.0 * batch_size * output_channels * input_channels * 1.0e-9) / output_profile.block_multiplication);
-		const double overhead = output_profile.total - output_profile.input_transform - output_profile.kernel_transform - output_profile.block_multiplication;
-		printf("Overhead: %5.3f ms (%.1f%%)\n",
-			overhead * 1.0e+3,
-			(overhead / output_profile.total) * 100.0);
+	printf("Time: %5.3f ms [%.1f GFLOPS]\n", output_profile.total * 1.0e+3,
+		(2.0 * batch_size * output_channels * input_channels * 1.0e-9) / output_profile.total);
+	printf("Input packing: %5.3f ms (%.1f%%)\n",
+		output_profile.input_transform * 1.0e+3,
+		(output_profile.input_transform / output_profile.total) * 100.0);
+	printf("Kernel packing: %5.3f ms (%.1f%%)\n",
+		output_profile.kernel_transform * 1.0e+3,
+		(output_profile.kernel_transform / output_profile.total) * 100.0);
+	printf("Block multiplication: %5.3f ms (%.1f%%) [%.1f GFLOPS]\n",
+		output_profile.block_multiplication * 1.0e+3,
+		(output_profile.block_multiplication / output_profile.total) * 100.0,
+		(2.0 * batch_size * output_channels * input_channels * 1.0e-9) / output_profile.block_multiplication);
+	const double overhead = output_profile.total - output_profile.input_transform - output_profile.kernel_transform - output_profile.block_multiplication;
+	printf("Overhead: %5.3f ms (%.1f%%)\n",
+		overhead * 1.0e+3,
+		(overhead / output_profile.total) * 100.0);
 
-		if (threadpool) {
-			pthreadpool_destroy(threadpool);
-		}
+	if (threadpool) {
+		pthreadpool_destroy(threadpool);
 	}
 
-	int failures = 0;
-	if (options.hardware_events) {
-		size_t performance_counters_count = 0;
-		const struct performance_counter* performance_counters =
-			init_performance_counters(&performance_counters_count);
-
-		for (size_t i = 0; i < performance_counters_count; i++) {
-			if (!enable_perf_counter(performance_counters[i].file_descriptor)) {
-				failures++;
-				continue;
-			}
-
-			unsigned long long count = profile_fully_connected_output(
-				batch_size,
-				input_channels,
-				output_channels,
-				input,
-				kernel,
-				output,
-				performance_counters[i].file_descriptor,
-				options.iterations);
-			if (count == ULLONG_MAX) {
-				failures++;
-				continue;
-			}
-
-			if (!disable_perf_counter(performance_counters[i].file_descriptor)) {
-				failures++;
-				continue;
-			}
-
-			printf("%s: %llu\n", performance_counters[i].name, count);
-		}
-	}
-	return failures;
+	return EXIT_SUCCESS;
 }

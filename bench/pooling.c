@@ -5,8 +5,6 @@
 #include <string.h>
 #include <limits.h>
 
-#include <cpuid.h>
-
 #include <perf_counter.h>
 
 #include <nnpack.h>
@@ -15,7 +13,7 @@
 extern unsigned long long median(unsigned long long array[], size_t length);
 extern void read_memory(const void* memory, size_t length);
 
-unsigned long long benchmark_pooling_output(
+unsigned long long benchmark_pooling(
 	const void* memory, size_t cache_size,
 	size_t batch_size,
 	size_t channels,
@@ -294,28 +292,26 @@ int main(int argc, char** argv) {
 	memset(input, 0, input_bytes);
 	memset(output, 0, output_bytes);
 
-	{
-		pthreadpool_t threadpool = NULL;
-		if (options.threadpool) {
-			threadpool = pthreadpool_create(options.threads);
-			printf("Threads: %zu\n", pthreadpool_get_threads_count(threadpool));
-		}
-		printf("Iterations: %zu\n", options.iterations);
+	pthreadpool_t threadpool = NULL;
+	if (options.threadpool) {
+		threadpool = pthreadpool_create(options.threads);
+		printf("Threads: %zu\n", pthreadpool_get_threads_count(threadpool));
+	}
+	printf("Iterations: %zu\n", options.iterations);
 
-		const unsigned long long pooling_output_nanoseconds =
-			benchmark_pooling_output(
-				memory, cache_size,
-				batch_size, channels,
-				input_size, input_padding, pooling_size, pooling_stride,
-				input, output,
-				threadpool, options.iterations);
+	const unsigned long long pooling_output_nanoseconds =
+		benchmark_pooling(
+			memory, cache_size,
+			batch_size, channels,
+			input_size, input_padding, pooling_size, pooling_stride,
+			input, output,
+			threadpool, options.iterations);
 
-		printf("Time: %5.3f ms [%.1f GB/s]\n",
-			((double) pooling_output_nanoseconds) * 1.0e-6,
-			((double) (input_bytes + output_bytes)) / ((double) pooling_output_nanoseconds));
-		if (threadpool) {
-			pthreadpool_destroy(threadpool);
-		}
+	printf("Time: %5.3f ms [%.1f GB/s]\n",
+		((double) pooling_output_nanoseconds) * 1.0e-6,
+		((double) (input_bytes + output_bytes)) / ((double) pooling_output_nanoseconds));
+	if (threadpool) {
+		pthreadpool_destroy(threadpool);
 	}
 
 	return EXIT_SUCCESS;

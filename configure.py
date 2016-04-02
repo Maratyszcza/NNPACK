@@ -24,9 +24,11 @@ class Configuration:
         self.build, self.host = Configuration.detect_system(options.host)
 
         cflags = ["-g", "-std=gnu11"]
+        if options.use_psimd or config.host == "pnacl-nacl-newlib":
+            cflags += ["-DNNP_ARCH_PSIMD"]
         cxxflags = ["-g", "-std=gnu++11"]
         ldflags = ["-g"]
-        if self.host in ["x86_64-linux-gnu", "x86_64-nacl-glibc", "x86_64-nacl-newlib"]:
+        if self.host in ["x86_64-linux-gnu", "x86_64-nacl-glibc", "x86_64-nacl-newlib", "pnacl-nacl-newlib"]:
             cflags.append("-pthread")
             cxxflags.append("-pthread")
             ldflags.append("-pthread")
@@ -50,17 +52,20 @@ class Configuration:
             self.writer.variable("visual_studio_dir", vs_dir)
             self.writer.variable("cc", "\"" + os.path.join("$visual_studio_dir", "VC", "Clang 3.7", "bin", "x86", "clang.exe") + "\"")
             self.writer.variable("cxx", "\"" + os.path.join("$visual_studio_dir", "VC", "Clang 3.7", "bin", "x86", "clang.exe") + "\"")
-        elif self.host in ["x86_64-nacl-newlib", "x86_64-nacl-glibc"]:
-            self.writer.variable("imageformat", "elf")
-            self.writer.variable("abi", "nacl")
+        elif self.host in ["x86_64-nacl-newlib", "x86_64-nacl-glibc", "pnacl-nacl-newlib"]:
+            if self.host.startswith("x86_64-"):
+                self.writer.variable("imageformat", "elf")
+                self.writer.variable("abi", "nacl")
             self.writer.variable("nacl_sdk_dir", os.getenv("NACL_SDK_ROOT"))
             self.writer.variable("pepper_include_dir", os.path.join("$nacl_sdk_dir", "include"))
 
             toolchain_library_subdir_map = {
                 ("x86_64-linux-gnu", "x86_64-nacl-glibc"):  ("linux_x86_glibc", "glibc_x86_64"),
                 ("x86_64-linux-gnu", "x86_64-nacl-newlib"): ("linux_pnacl", "clang-newlib_x86_64"),
+                ("x86_64-linux-gnu", "pnacl-nacl-newlib"):  ("linux_pnacl", "pnacl"),
                 ("x86_64-osx",       "x86_64-nacl-glibc"):  ("mac_x86_glibc", "glibc_x86_64"),
                 ("x86_64-osx",       "x86_64-nacl-newlib"): ("mac_pnacl", "clang-newlib_x86_64"),
+                ("x86_64-osx",       "pnacl-nacl-newlib"):  ("mac_pnacl", "pnacl"),
             }
             if (self.build, self.host) in toolchain_library_subdir_map:
                 toolchain_subdir, library_subdir = toolchain_library_subdir_map.get((self.build, self.host))
@@ -70,13 +75,17 @@ class Configuration:
                 print("Error: cross-compilation for %s is not supported on %s" % (self.host, self.build))
                 sys.exit(1)
             toolchain_compiler_map = {
-                "x86_64-nacl-glibc": ("x86_64-nacl-gcc", "x86_64-nacl-g++"),
-                "x86_64-nacl-newlib": ("x86_64-nacl-clang", "x86_64-nacl-clang++"),
+                "x86_64-nacl-glibc":  ("x86_64-nacl-gcc",   "x86_64-nacl-g++",     "x86_64-nacl-ar"),
+                "x86_64-nacl-newlib": ("x86_64-nacl-clang", "x86_64-nacl-clang++", "x86_64-nacl-ar"),
+                "pnacl-nacl-newlib":  ("pnacl-clang",       "pnacl-clang++",       "pnacl-ar"),
             }
-            toolchain_cc, toolchain_cxx = toolchain_compiler_map[self.host]
-            self.writer.variable("ar", os.path.join("$nacl_toolchain_dir", "bin", "x86_64-nacl-ar"))
+            toolchain_cc, toolchain_cxx, toolchain_ar = toolchain_compiler_map[self.host]
+            self.writer.variable("ar", os.path.join("$nacl_toolchain_dir", "bin", toolchain_ar))
             self.writer.variable("cc", os.path.join("$nacl_toolchain_dir", "bin", toolchain_cc))
             self.writer.variable("cxx", os.path.join("$nacl_toolchain_dir", "bin", toolchain_cxx))
+            if self.host == "pnacl-nacl-newlib":
+                self.writer.variable("finalize", os.path.join("$nacl_toolchain_dir", "bin", "pnacl-finalize"))
+                self.writer.variable("translate", os.path.join("$nacl_toolchain_dir", "bin", "pnacl-translate"))
             if self.build in ["x86_64-linux-gnu", "x86_64-osx"]:
                 self.writer.variable("sel_ldr", os.path.join("$nacl_sdk_dir", "tools", "sel_ldr.py"))
         elif self.host == "x86_64-osx":
@@ -108,10 +117,14 @@ class Configuration:
             description="CCLD $descpath")
         self.writer.rule("cxxld", "$cxx $ldflags $libdirs -o $out $in $libs",
             description="CXXLD $descpath")
-        self.writer.rule("peachpy", "$python2 -m peachpy.x86_64 -mabi=$abi -g4 -mimage-format=$imageformat -MMD -MF $object.d -emit-c-header $header -o $object $in",
-            deps="gcc", depfile="$object.d",
-            description="PEACHPY[x86-64] $descpath")
-        if self.host in ["x86_64-nacl-newlib", "x86_64-nacl-glibc"]:
+        if self.host.startswith("x86_64-"):
+            self.writer.rule("peachpy", "$python2 -m peachpy.x86_64 -mabi=$abi -g4 -mimage-format=$imageformat -MMD -MF $object.d -emit-c-header $header -o $object $in",
+                deps="gcc", depfile="$object.d",
+                description="PEACHPY[x86-64] $descpath")
+        if self.host == "pnacl-nacl-newlib":
+            self.writer.rule("translate", "$translate --allow-llvm-bitcode-input -O3 -threads=auto -arch x86-64 $in -o $out",
+                description="TRANSLATE $descpath")
+        if self.host in ["x86_64-nacl-newlib", "x86_64-nacl-glibc", "pnacl-nacl-newlib"]:
             self.writer.rule("run", "$sel_ldr -- $in $args",
                 description="RUN $descpath", pool="console")
         else:
@@ -196,12 +209,33 @@ class Configuration:
 
 
     def ccld(self, object_files, binary_file, lib_dirs=[], libs=[], extra_ldflags=[]):
-        return self._link("ccld", object_files, binary_file, self.artifact_dir, lib_dirs, libs, extra_ldflags)
-
+        if self.host == "pnacl-nacl-newlib":
+            return self.translate(
+                self._link("ccld", object_files, binary_file + ".bc", self.build_dir, lib_dirs, libs, extra_ldflags),
+                binary_file)
+        else:
+            return self._link("ccld", object_files, binary_file, self.artifact_dir, lib_dirs, libs, extra_ldflags)
 
     def cxxld(self, object_files, binary_file, lib_dirs=[], libs=[], extra_ldflags=[]):
-        return self._link("cxxld", object_files, binary_file, self.artifact_dir, lib_dirs, libs, extra_ldflags)
+        if self.host == "pnacl-nacl-newlib":
+            return self.translate(
+                self._link("cxxld", object_files, binary_file + ".bc", self.build_dir, lib_dirs, libs, extra_ldflags),
+                binary_file)
+        else:
+            return self._link("cxxld", object_files, binary_file, self.artifact_dir, lib_dirs, libs, extra_ldflags)
 
+    def translate(self, portable_file, native_file):
+        assert self.host == "pnacl-nacl-newlib"
+
+        if not os.path.isabs(portable_file):
+            portable_file = os.path.join(self.build_dir, portable_file)
+        if not os.path.isabs(native_file):
+            native_file = os.path.join(self.artifact_dir, native_file)
+        variables = {
+            "descpath": os.path.relpath(native_file, self.artifact_dir)
+        }
+        self.writer.build(native_file, "translate", portable_file, variables=variables)
+        return native_file
 
     def lib(self, object_files, library_file):
         library_basename = os.path.basename(library_file)
@@ -237,10 +271,11 @@ class Configuration:
 
 
 parser = argparse.ArgumentParser(description="NNPACK configuration script")
-parser.add_argument("--host", dest="host", choices=("x86_64-linux-gnu", "x86_64-osx", "x86_64-nacl-newlib", "x86_64-nacl-glibc"))
+parser.add_argument("--host", dest="host", choices=("x86_64-linux-gnu", "x86_64-osx", "x86_64-nacl-newlib", "x86_64-nacl-glibc", "pnacl-nacl-newlib"))
 parser.add_argument("--enable-mkl", dest="use_mkl", action="store_true")
 parser.add_argument("--enable-openblas", dest="use_openblas", action="store_true")
 parser.add_argument("--enable-blis", dest="use_blis", action="store_true")
+parser.add_argument("--enable-psimd", dest="use_psimd", action="store_true")
 
 
 def main():
@@ -269,7 +304,7 @@ def main():
     # Build the library
     config.source_dir = os.path.join(root_dir, "src")
     config.build_dir = os.path.join(root_dir, "build")
-    config.include_dirs = [os.path.join(root_dir, "include"), os.path.join(root_dir, "src", "ref"), os.path.join(pthreadpool_dir, "include")]
+    config.include_dirs = [os.path.join(root_dir, "include"), os.path.join(root_dir, "src"), os.path.join(root_dir, "src", "ref"), os.path.join(pthreadpool_dir, "include")]
 
     nnpack_objects = [
         config.cc("init.c"),
@@ -284,24 +319,30 @@ def main():
         config.cc("relu-input-gradient.c"),
     ]
 
-    x86_64_nnpack_objects = [
-        # Transformations
-        config.peachpy("x86_64-fma/2d-fft-8x8.py"),
-        config.peachpy("x86_64-fma/2d-fft-16x16.py"),
-        config.peachpy("x86_64-fma/2d-wt-8x8-3x3.py"),
-        # Pooling
-        config.peachpy("x86_64-fma/max-pooling.py"),
-        # ReLU
-        config.peachpy("x86_64-fma/relu.py"),
-        # FFT block accumulation
-        config.peachpy("x86_64-fma/fft-block-mac.py"),
-        # Tuple GEMM
-        config.peachpy("x86_64-fma/c8gemm.py"),
-        config.peachpy("x86_64-fma/s8gemm.py"),
-        # BLAS microkernels
-        config.peachpy("x86_64-fma/sgemm.py"),
-        config.peachpy("x86_64-fma/sdotxf.py"),
-    ]
+    if config.host.startswith("x86_64-") and not options.use_psimd:
+        arch_nnpack_objects = [
+            # Transformations
+            config.peachpy("x86_64-fma/2d-fft-8x8.py"),
+            config.peachpy("x86_64-fma/2d-fft-16x16.py"),
+            config.peachpy("x86_64-fma/2d-wt-8x8-3x3.py"),
+            # Pooling
+            config.peachpy("x86_64-fma/max-pooling.py"),
+            # ReLU
+            config.peachpy("x86_64-fma/relu.py"),
+            # FFT block accumulation
+            config.peachpy("x86_64-fma/fft-block-mac.py"),
+            # Tuple GEMM
+            config.peachpy("x86_64-fma/c8gemm.py"),
+            config.peachpy("x86_64-fma/s8gemm.py"),
+            # BLAS microkernels
+            config.peachpy("x86_64-fma/sgemm.py"),
+            config.peachpy("x86_64-fma/sdotxf.py"),
+        ]
+    else:
+        arch_nnpack_objects = [
+            # ReLU
+            config.cc("psimd/relu.c"),
+        ]
 
     reference_layer_objects = [
         config.cc("ref/convolution-output.c"),
@@ -323,26 +364,39 @@ def main():
         config.cc("ref/fft/inverse-dualreal.c"),
     ]
 
-    x86_64_fft_stub_objects = [
-        config.peachpy("x86_64-fma/fft-soa.py"),
-        config.peachpy("x86_64-fma/fft-aos.py"),
-        config.peachpy("x86_64-fma/fft-dualreal.py"),
-        config.peachpy("x86_64-fma/ifft-dualreal.py"),
-        config.peachpy("x86_64-fma/fft-real.py"),
-        config.peachpy("x86_64-fma/ifft-real.py"),
-    ]
+    if config.host.startswith("x86_64-") and not options.use_psimd:
+        arch_fft_stub_objects = [
+            config.peachpy("x86_64-fma/fft-soa.py"),
+            config.peachpy("x86_64-fma/fft-aos.py"),
+            config.peachpy("x86_64-fma/fft-dualreal.py"),
+            config.peachpy("x86_64-fma/ifft-dualreal.py"),
+            config.peachpy("x86_64-fma/fft-real.py"),
+            config.peachpy("x86_64-fma/ifft-real.py"),
+        ]
+    else:
+        arch_fft_stub_objects = [
+            config.cc("psimd/fft-aos.c"),
+            config.cc("psimd/fft-soa.c"),
+            config.cc("psimd/fft-real.c"),
+            config.cc("psimd/fft-dualreal.c"),
+        ]
 
-    x86_64_winograd_stub_objects = [
-        config.peachpy("x86_64-fma/winograd-f6k3.py"),
-    ]
+    if config.host.startswith("x86_64-") and not options.use_psimd:
+        arch_winograd_stub_objects = [
+            config.peachpy("x86_64-fma/winograd-f6k3.py"),
+        ]
+    else:
+        arch_winograd_stub_objects = [
+            config.cc("psimd/winograd-f6k3.c"),
+        ]
 
-    fft_objects = reference_fft_objects + x86_64_fft_stub_objects
+    fft_objects = reference_fft_objects + arch_fft_stub_objects
 
     reference_blockmac_objects = [
         config.cc("ref/fft/block-mac.c"),
     ]
 
-    nnpack_objects = nnpack_objects + x86_64_nnpack_objects + pthreadpool_objects
+    nnpack_objects = nnpack_objects + arch_nnpack_objects + pthreadpool_objects
 
     # Build the library
     config.artifact_dir = os.path.join(root_dir, "lib")
@@ -373,15 +427,33 @@ def main():
             config.cxxld(reference_fft_objects + [config.cxx("fourier/reference.cc")] + gtest_objects,
                 "fourier-reference-test", libs=unittest_libs)
         config.run(fourier_reference_test_binary, "fourier-reference-test")
-        fourier_x86_64_avx2_test_binary = \
-            config.cxxld(reference_fft_objects + x86_64_fft_stub_objects + [config.cxx("fourier/x86_64-avx2.cc")] + gtest_objects,
-                "fourier-x86_64-avx2-test", libs=unittest_libs)
-        config.run(fourier_x86_64_avx2_test_binary, "fourier-x86_64-avx2-test")
 
-        winograd_x86_64_fma3_test_binary = \
-            config.cxxld(x86_64_winograd_stub_objects + [config.cxx("winograd/x86_64-fma3.cc")] + gtest_objects,
-                "winograd-x86_64-fma3-test", libs=unittest_libs)
-        config.run(winograd_x86_64_fma3_test_binary, "winograd-x86_64-fma3-test")
+        if config.host.startswith("x86_64-") and not options.use_psimd:
+            fourier_x86_64_avx2_test_binary = \
+                config.cxxld(reference_fft_objects + arch_fft_stub_objects + [config.cxx("fourier/x86_64-avx2.cc")] + gtest_objects,
+                    "fourier-x86_64-avx2-test", libs=unittest_libs)
+            config.run(fourier_x86_64_avx2_test_binary, "fourier-x86_64-avx2-test")
+
+            winograd_x86_64_fma3_test_binary = \
+                config.cxxld(arch_winograd_stub_objects + [config.cxx("winograd/x86_64-fma3.cc")] + gtest_objects,
+                    "winograd-x86_64-fma3-test", libs=unittest_libs)
+            config.run(winograd_x86_64_fma3_test_binary, "winograd-x86_64-fma3-test")
+
+            config.default([fourier_x86_64_avx2_test_binary, winograd_x86_64_fma3_test_binary])
+
+        if config.host.startswith("pnacl-") or options.use_psimd:
+            fourier_psimd_test_binary = \
+                config.cxxld(reference_fft_objects + arch_fft_stub_objects + [config.cxx("fourier/psimd.cc")] + gtest_objects,
+                    "fourier-psimd-test", libs=unittest_libs)
+            config.run(fourier_psimd_test_binary, "fourier-psimd-test")
+
+            winograd_psimd_test_binary = \
+                config.cxxld(arch_winograd_stub_objects + [config.cxx("winograd/psimd.cc")] + gtest_objects,
+                    "winograd-psimd-test", libs=unittest_libs)
+            config.run(winograd_psimd_test_binary, "winograd-psimd-test")
+
+            config.default([fourier_psimd_test_binary, winograd_psimd_test_binary])
+
 
         convolution_output_smoke_test_binary = \
             config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/smoke.cc")] + gtest_objects,
@@ -527,8 +599,7 @@ def main():
             ["relu-input-gradient-alexnet-test", "relu-input-gradient-vgg-a-test", "relu-input-gradient-overfeat-fast-test"])
 
         config.writer.default([
-            fourier_reference_test_binary, fourier_x86_64_avx2_test_binary,
-            winograd_x86_64_fma3_test_binary,
+            fourier_reference_test_binary,
             convolution_output_smoke_test_binary, convolution_output_alexnet_test_binary, convolution_output_vgg_a_test_binary, convolution_output_overfeat_fast_test_binary,
             convolution_input_gradient_smoke_test_binary, convolution_input_gradient_alexnet_test_binary, convolution_input_gradient_vgg_a_test_binary, convolution_input_gradient_overfeat_fast_test_binary,
             convolution_kernel_gradient_smoke_test_binary, convolution_kernel_gradient_alexnet_test_binary, convolution_kernel_gradient_vgg_a_test_binary, convolution_kernel_gradient_overfeat_fast_test_binary,
@@ -554,7 +625,10 @@ def main():
     config.build_dir = os.path.join(root_dir, "build", "bench")
     config.artifact_dir = os.path.join(root_dir, "bin")
     config.include_dirs = [os.path.join(root_dir, "include"), os.path.join(pthreadpool_dir, "include"), os.path.join(root_dir, "bench")]
-    bench_support_objects = [config.cc("median.c"), config.peachpy("memread.py")]
+    bench_support_objects = [config.cc("median.c")]
+    if config.host.startswith("x86_64-"):
+        bench_support_objects.append(config.peachpy("memread.py"))
+
     if config.host == "x86_64-linux-gnu":
         bench_support_objects.append(config.cc("perf_counter.c"))
     extra_cflags = []
@@ -569,40 +643,46 @@ def main():
         extra_ldflags.append("-Wl,--no-as-needed")
     transform_bench_binary = config.ccld([config.cc("transform.c", extra_cflags=extra_cflags)] + nnpack_objects + bench_support_objects, "transform-bench",
         lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
+    config.phony("transform-bench", transform_bench_binary)
     config.default(transform_bench_binary)
 
     convolution_bench_binary = config.ccld([config.cc("convolution.c")] + nnpack_objects + bench_support_objects,
         "convolution-benchmark", libs=["m"])
+    config.phony("convolution-bench", convolution_bench_binary)
     fully_connected_bench_binary = config.ccld([config.cc("fully-connected.c")] + nnpack_objects + bench_support_objects,
         "fully-connected-benchmark", libs=["m"])
+    config.phony("fully-connected-bench", fully_connected_bench_binary)
     pooling_bench_binary = config.ccld([config.cc("pooling.c")] + nnpack_objects + bench_support_objects,
         "pooling-benchmark", libs=["m"])
+    config.phony("pooling-bench", pooling_bench_binary)
     relu_bench_binary = config.ccld([config.cc("relu.c")] + nnpack_objects + bench_support_objects,
         "relu-benchmark", libs=["m"])
+    config.phony("relu-bench", relu_bench_binary)
     config.default([convolution_bench_binary, fully_connected_bench_binary, pooling_bench_binary, relu_bench_binary])
 
-    ugemm_bench_binary = config.ccld([config.cc("ugemm.c")] + x86_64_nnpack_objects + bench_support_objects, "ugemm-bench", libs=["m"])
-    if options.use_mkl:
-        extra_cflags = ["-DUSE_MKL", "-I/opt/intel/mkl/include", "-pthread"]
-        extra_lib_dirs = ["/opt/intel/mkl/lib/intel64"]
-        extra_libs = ["mkl_intel_lp64", "mkl_core", "mkl_gnu_thread", "m", "pthread"]
-        extra_ldflags = ["-Wl,--no-as-needed", "-pthread", "-fopenmp"]
-        mkl_gemm_bench_binary = config.ccld([config.cc("gemm.c", "mkl-gemm.o", extra_cflags=extra_cflags)] + bench_support_objects, "mkl-gemm-bench", lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
-        config.default(mkl_gemm_bench_binary)
-    if options.use_openblas:
-        extra_cflags = ["-DUSE_OPENBLAS", "-I/opt/OpenBLAS/include", "-pthread"]
-        extra_lib_dirs = ["/opt/OpenBLAS/lib"]
-        extra_libs = ["openblas", "m", "pthread"]
-        extra_ldflags = []
-        openblas_gemm_bench_binary = config.ccld([config.cc("gemm.c", "openblas-gemm.o", extra_cflags=extra_cflags)] + bench_support_objects, "openblas-gemm-bench", lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
-        config.default(openblas_gemm_bench_binary)
-    if options.use_blis:
-        extra_cflags = ["-DUSE_BLIS", "-I/opt/BLIS/include", "-pthread", "-fopenmp"]
-        extra_libs = ["m", "pthread"]
-        extra_ldflags = ["-fopenmp"]
-        blis_gemm_bench_binary = config.ccld([config.cc("gemm.c", "blis-gemm.o", extra_cflags=extra_cflags), "/opt/BLIS/lib/libblis.a"] + bench_support_objects, "blis-gemm-bench", lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
-        config.default(blis_gemm_bench_binary)
-    config.default(ugemm_bench_binary)
+    if config.host.startswith("x86_64-") and not options.use_psimd:
+        ugemm_bench_binary = config.ccld([config.cc("ugemm.c")] + arch_nnpack_objects + bench_support_objects, "ugemm-bench", libs=["m"])
+        if options.use_mkl:
+            extra_cflags = ["-DUSE_MKL", "-I/opt/intel/mkl/include", "-pthread"]
+            extra_lib_dirs = ["/opt/intel/mkl/lib/intel64"]
+            extra_libs = ["mkl_intel_lp64", "mkl_core", "mkl_gnu_thread", "m", "pthread"]
+            extra_ldflags = ["-Wl,--no-as-needed", "-pthread", "-fopenmp"]
+            mkl_gemm_bench_binary = config.ccld([config.cc("gemm.c", "mkl-gemm.o", extra_cflags=extra_cflags)] + bench_support_objects, "mkl-gemm-bench", lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
+            config.default(mkl_gemm_bench_binary)
+        if options.use_openblas:
+            extra_cflags = ["-DUSE_OPENBLAS", "-I/opt/OpenBLAS/include", "-pthread"]
+            extra_lib_dirs = ["/opt/OpenBLAS/lib"]
+            extra_libs = ["openblas", "m", "pthread"]
+            extra_ldflags = []
+            openblas_gemm_bench_binary = config.ccld([config.cc("gemm.c", "openblas-gemm.o", extra_cflags=extra_cflags)] + bench_support_objects, "openblas-gemm-bench", lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
+            config.default(openblas_gemm_bench_binary)
+        if options.use_blis:
+            extra_cflags = ["-DUSE_BLIS", "-I/opt/BLIS/include", "-pthread", "-fopenmp"]
+            extra_libs = ["m", "pthread"]
+            extra_ldflags = ["-fopenmp"]
+            blis_gemm_bench_binary = config.ccld([config.cc("gemm.c", "blis-gemm.o", extra_cflags=extra_cflags), "/opt/BLIS/lib/libblis.a"] + bench_support_objects, "blis-gemm-bench", lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
+            config.default(blis_gemm_bench_binary)
+        config.default(ugemm_bench_binary)
 
 if __name__ == "__main__":
     sys.exit(main())

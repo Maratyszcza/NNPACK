@@ -15,7 +15,9 @@
 		#include <mach/mach.h>
 		#include <mach/mach_time.h>
 	#endif
-	#include <x86intrin.h>
+	#if defined(__x86_64__)
+		#include <x86intrin.h>
+	#endif
 #endif
 
 struct performance_counter {
@@ -42,6 +44,8 @@ inline bool disable_perf_counter(int file_descriptor) {
 inline bool read_perf_counter(int file_descriptor, unsigned long long output[restrict static 1]) {
 #if defined(__linux__)
 	return read(file_descriptor, output, sizeof(*output)) == sizeof(*output);
+#elif defined(__native_client__) && !defined(__x86_64__)
+	return false;
 #elif defined(__native_client__)
 	unsigned int lo, hi;
 	asm volatile(

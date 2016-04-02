@@ -107,11 +107,13 @@ enum nnp_status nnp_max_pooling_output(
 		return nnp_status_unsupported_pooling_size;
 	}
 	switch (pooling_size.width) {
+#if NNP_ARCH_X86_64
 		case 2:
 			pooling_context.pooling_function = nnp_maxpool_2x2_2x2__avx2;
 			pooling_context.input_tile = (struct nnp_size) { .height = 2, .width = 16 };
 			pooling_context.output_tile = (struct nnp_size) { .height = 1, .width = 8 };
 			break;
+#endif
 		case 3:
 			return nnp_status_unsupported_pooling_size;
 		default:

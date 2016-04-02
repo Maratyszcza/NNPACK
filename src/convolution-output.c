@@ -358,29 +358,35 @@ static void compute_convolution_output(
 						};
 						if (fourier_transform) {
 							if (tuple_index == 0) {
-								matrix_multiplication_context.cgemm[0][0] = nnp_s4c6gemmcb1x1__fma3;
-								matrix_multiplication_context.cgemm[0][1] = nnp_s4c6gemmcb1x2__fma3;
-								matrix_multiplication_context.cgemm[1][0] = nnp_s4c6gemmcb2x1__fma3;
-								matrix_multiplication_context.cgemm[1][1] = nnp_s4c6gemmcb2x2__fma3;
+								#if NNP_ARCH_X86_64
+									matrix_multiplication_context.cgemm[0][0] = nnp_s4c6gemmcb1x1__fma3;
+									matrix_multiplication_context.cgemm[0][1] = nnp_s4c6gemmcb1x2__fma3;
+									matrix_multiplication_context.cgemm[1][0] = nnp_s4c6gemmcb2x1__fma3;
+									matrix_multiplication_context.cgemm[1][1] = nnp_s4c6gemmcb2x2__fma3;
+								#endif
 							} else {
-								matrix_multiplication_context.cgemm[0][0] = nnp_c8gemmcb1x1__fma3;
-								matrix_multiplication_context.cgemm[0][1] = nnp_c8gemmcb1x2__fma3;
-								matrix_multiplication_context.cgemm[1][0] = nnp_c8gemmcb2x1__fma3;
-								matrix_multiplication_context.cgemm[1][1] = nnp_c8gemmcb2x2__fma3;
+								#if NNP_ARCH_X86_64
+									matrix_multiplication_context.cgemm[0][0] = nnp_c8gemmcb1x1__fma3;
+									matrix_multiplication_context.cgemm[0][1] = nnp_c8gemmcb1x2__fma3;
+									matrix_multiplication_context.cgemm[1][0] = nnp_c8gemmcb2x1__fma3;
+									matrix_multiplication_context.cgemm[1][1] = nnp_c8gemmcb2x2__fma3;
+								#endif
 							}
 						} else {
-							matrix_multiplication_context.sgemm[0][0] = nnp_s8gemm1x1__fma3;
-							matrix_multiplication_context.sgemm[0][1] = nnp_s8gemm1x2__fma3;
-							matrix_multiplication_context.sgemm[0][2] = nnp_s8gemm1x3__fma3;
-							matrix_multiplication_context.sgemm[0][3] = nnp_s8gemm1x4__fma3;
-							matrix_multiplication_context.sgemm[1][0] = nnp_s8gemm2x1__fma3;
-							matrix_multiplication_context.sgemm[1][1] = nnp_s8gemm2x2__fma3;
-							matrix_multiplication_context.sgemm[1][2] = nnp_s8gemm2x3__fma3;
-							matrix_multiplication_context.sgemm[1][3] = nnp_s8gemm2x4__fma3;
-							matrix_multiplication_context.sgemm[2][0] = nnp_s8gemm3x1__fma3;
-							matrix_multiplication_context.sgemm[2][1] = nnp_s8gemm3x2__fma3;
-							matrix_multiplication_context.sgemm[2][2] = nnp_s8gemm3x3__fma3;
-							matrix_multiplication_context.sgemm[2][3] = nnp_s8gemm3x4__fma3;
+							#if NNP_ARCH_X86_64
+								matrix_multiplication_context.sgemm[0][0] = nnp_s8gemm1x1__fma3;
+								matrix_multiplication_context.sgemm[0][1] = nnp_s8gemm1x2__fma3;
+								matrix_multiplication_context.sgemm[0][2] = nnp_s8gemm1x3__fma3;
+								matrix_multiplication_context.sgemm[0][3] = nnp_s8gemm1x4__fma3;
+								matrix_multiplication_context.sgemm[1][0] = nnp_s8gemm2x1__fma3;
+								matrix_multiplication_context.sgemm[1][1] = nnp_s8gemm2x2__fma3;
+								matrix_multiplication_context.sgemm[1][2] = nnp_s8gemm2x3__fma3;
+								matrix_multiplication_context.sgemm[1][3] = nnp_s8gemm2x4__fma3;
+								matrix_multiplication_context.sgemm[2][0] = nnp_s8gemm3x1__fma3;
+								matrix_multiplication_context.sgemm[2][1] = nnp_s8gemm3x2__fma3;
+								matrix_multiplication_context.sgemm[2][2] = nnp_s8gemm3x3__fma3;
+								matrix_multiplication_context.sgemm[2][3] = nnp_s8gemm3x4__fma3;
+							#endif
 						}
 						pthreadpool_compute_2d_tiled(threadpool,
 							(pthreadpool_function_2d_tiled_t) (fourier_transform ?
@@ -481,16 +487,20 @@ enum nnp_status nnp_convolution_output(
 	nnp_transform_2d_with_bias output_transform_function;
 	switch (algorithm) {
 		case nnp_convolution_algorithm_ft8x8:
-			kernel_transform_function = nnp_fft8x8_and_stream__avx2;
-			input_transform_function = nnp_fft8x8_and_stream__avx2;
-			output_transform_function = nnp_ifft8x8_with_bias__avx2;
+			#if NNP_ARCH_X86_64
+				kernel_transform_function = nnp_fft8x8_and_stream__avx2;
+				input_transform_function = nnp_fft8x8_and_stream__avx2;
+				output_transform_function = nnp_ifft8x8_with_bias__avx2;
+			#endif
 			transform_tile = (struct nnp_size) { .height = 8, .width = 8 };
 			fourier_transform = true;
 			break;
 		case nnp_convolution_algorithm_ft16x16:
-			kernel_transform_function = nnp_fft16x16_and_stream__avx2;
-			input_transform_function = nnp_fft16x16_and_stream__avx2;
-			output_transform_function = nnp_ifft16x16_with_bias__avx2;
+			#if NNP_ARCH_X86_64
+				kernel_transform_function = nnp_fft16x16_and_stream__avx2;
+				input_transform_function = nnp_fft16x16_and_stream__avx2;
+				output_transform_function = nnp_ifft16x16_with_bias__avx2;
+			#endif
 			transform_tile = (struct nnp_size) { .height = 16, .width = 16 };
 			fourier_transform = true;
 			break;
@@ -499,9 +509,11 @@ enum nnp_status nnp_convolution_output(
 				status = nnp_status_unsupported_algorithm;
 				goto cleanup;
 			}
-			kernel_transform_function = nnp_kwt8x8_3x3_and_stream__avx2;
-			input_transform_function = nnp_iwt8x8_3x3_and_stream__avx2;
-			output_transform_function = nnp_owt8x8_3x3_with_bias__avx2;
+			#if NNP_ARCH_X86_64
+				kernel_transform_function = nnp_kwt8x8_3x3_and_stream__avx2;
+				input_transform_function = nnp_iwt8x8_3x3_and_stream__avx2;
+				output_transform_function = nnp_owt8x8_3x3_with_bias__avx2;
+			#endif
 			transform_tile = (struct nnp_size) { .height = 8, .width = 8 };
 			fourier_transform = false;
 			break;

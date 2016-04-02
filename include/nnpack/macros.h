@@ -12,6 +12,21 @@
 #endif
 
 
+#if defined(NNP_ARCH_PSIMD)
+	#if !(NNP_ARCH_PSIMD)
+		#error NNP_ARCH_PSIMD predefined as 0
+	#endif
+	#define NNP_ARCH_X86_64 0
+#elif defined(__pnacl__)
+	#define NNP_ARCH_PSIMD 1
+	#define NNP_ARCH_X86_64 0
+#elif defined(__x86_64__)
+	#define NNP_ARCH_X86_64 1
+	#define NNP_ARCH_PSIMD 0
+#else
+	#error Unknown host architecture
+#endif
+
 #define NNP_ALIGN(alignment) __attribute__((__aligned__(alignment)))
 #define NNP_SIMD_ALIGN NNP_ALIGN(64)
 #define NNP_CACHE_ALIGN NNP_ALIGN(64)

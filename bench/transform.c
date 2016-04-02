@@ -6,8 +6,6 @@
 #include <limits.h>
 #include <assert.h>
 
-#include <cpuid.h>
-
 #include <perf_counter.h>
 
 #include <nnpack/transform.h>
@@ -157,22 +155,30 @@ unsigned long long benchmark_batch_transform(
 
 	switch (type) {
 		case transform_type_nnpack_forward_8x8:
-			nnpack_context.fft_function = nnp_fft8x8_and_stream__avx2;
+			#if NNP_ARCH_X86_64
+				nnpack_context.fft_function = nnp_fft8x8_and_stream__avx2;
+			#endif
 			compute_function = (pthreadpool_function_1d_t) compute_nnpack_transform;
 			compute_context = &nnpack_context;
 			break;
 		case transform_type_nnpack_forward_16x16:
-			nnpack_context.fft_function = nnp_fft16x16_and_stream__avx2;
+			#if NNP_ARCH_X86_64
+				nnpack_context.fft_function = nnp_fft16x16_and_stream__avx2;
+			#endif
 			compute_function = (pthreadpool_function_1d_t) compute_nnpack_transform;
 			compute_context = &nnpack_context;
 			break;
 		case transform_type_nnpack_inverse_8x8:
-			nnpack_context.ifft_function = nnp_ifft8x8__avx2;
+			#if NNP_ARCH_X86_64
+				nnpack_context.ifft_function = nnp_ifft8x8__avx2;
+			#endif
 			compute_function = (pthreadpool_function_1d_t) compute_nnpack_transform;
 			compute_context = &nnpack_context;
 			break;
 		case transform_type_nnpack_inverse_16x16:
-			nnpack_context.ifft_function = nnp_ifft16x16__avx2;
+			#if NNP_ARCH_X86_64
+				nnpack_context.ifft_function = nnp_ifft16x16__avx2;
+			#endif
 			compute_function = (pthreadpool_function_1d_t) compute_nnpack_transform;
 			compute_context = &nnpack_context;
 			break;
@@ -206,17 +212,27 @@ unsigned long long benchmark_batch_transform(
 		}
 #endif
 		case transform_type_nnpack_winograd6x6of3x3_input:
-			nnpack_context.winograd_input_transform_function = nnp_iwt8x8_3x3_and_stream__avx2;
+			#if NNP_ARCH_X86_64
+				nnpack_context.winograd_input_transform_function = nnp_iwt8x8_3x3_and_stream__avx2;
+			#elif NNP_ARCH_PSIMD
+				nnpack_context.winograd_input_transform_function = nnp_iwt8x8_3x3__psimd;
+			#endif
 			compute_function = (pthreadpool_function_1d_t) compute_nnpack_transform;
 			compute_context = &nnpack_context;
 			break;
 		case transform_type_nnpack_winograd6x6of3x3_kernel:
-			nnpack_context.winograd_kernel_transform_function = nnp_kwt8x8_3x3_and_stream__avx2;
+			#if NNP_ARCH_X86_64
+				nnpack_context.winograd_kernel_transform_function = nnp_kwt8x8_3x3_and_stream__avx2;
+			#elif NNP_ARCH_PSIMD
+				nnpack_context.winograd_kernel_transform_function = nnp_kwt8x8_3x3__psimd;
+			#endif
 			compute_function = (pthreadpool_function_1d_t) compute_nnpack_transform;
 			compute_context = &nnpack_context;
 			break;
 		case transform_type_nnpack_winograd6x6of3x3_output:
-			nnpack_context.winograd_output_transform_function = nnp_owt8x8_3x3__avx2;
+			#if NNP_ARCH_X86_64
+				nnpack_context.winograd_output_transform_function = nnp_owt8x8_3x3__avx2;
+			#endif
 			compute_function = (pthreadpool_function_1d_t) compute_nnpack_transform;
 			compute_context = &nnpack_context;
 			break;
@@ -271,25 +287,39 @@ unsigned long long profile_batch_fft(
 
 	switch (type) {
 		case transform_type_nnpack_forward_8x8:
-			context.fft_function = nnp_fft8x8_and_stream__avx2;
+			#if NNP_ARCH_X86_64
+				context.fft_function = nnp_fft8x8_and_stream__avx2;
+			#endif
 			break;
 		case transform_type_nnpack_forward_16x16:
-			context.fft_function = nnp_fft16x16_and_stream__avx2;
+			#if NNP_ARCH_X86_64
+				context.fft_function = nnp_fft16x16_and_stream__avx2;
+			#endif
 			break;
 		case transform_type_nnpack_inverse_8x8:
-			context.ifft_function = nnp_ifft8x8__avx2;
+			#if NNP_ARCH_X86_64
+				context.ifft_function = nnp_ifft8x8__avx2;
+			#endif
 			break;
 		case transform_type_nnpack_inverse_16x16:
-			context.ifft_function = nnp_ifft16x16__avx2;
+			#if NNP_ARCH_X86_64
+				context.ifft_function = nnp_ifft16x16__avx2;
+			#endif
 			break;
 		case transform_type_nnpack_winograd6x6of3x3_input:
-			context.winograd_input_transform_function = nnp_iwt8x8_3x3_and_stream__avx2;
+			#if NNP_ARCH_X86_64
+				context.winograd_input_transform_function = nnp_iwt8x8_3x3_and_stream__avx2;
+			#endif
 			break;
 		case transform_type_nnpack_winograd6x6of3x3_kernel:
-			context.winograd_kernel_transform_function = nnp_kwt8x8_3x3_and_stream__avx2;
+			#if NNP_ARCH_X86_64
+				context.winograd_kernel_transform_function = nnp_kwt8x8_3x3_and_stream__avx2;
+			#endif
 			break;
 		case transform_type_nnpack_winograd6x6of3x3_output:
-			context.winograd_output_transform_function = nnp_owt8x8_3x3__avx2;
+			#if NNP_ARCH_X86_64
+				context.winograd_output_transform_function = nnp_owt8x8_3x3__avx2;
+			#endif
 			break;
 		case transform_type_unknown:
 		default:
@@ -302,10 +332,6 @@ unsigned long long profile_batch_fft(
 		unsigned long long start_count = 0, end_count = 0;
 		if (!read_perf_counter(perf_counter_file_descriptor, &start_count))
 			continue;
-
-		unsigned int eax, ebx, ecx, edx;
-		__cpuid(0, eax, ebx, ecx, edx);
-		__cpuid(0, eax, ebx, ecx, edx);
 
 		if (!read_perf_counter(perf_counter_file_descriptor, &end_count))
 			continue;
@@ -324,12 +350,7 @@ unsigned long long profile_batch_fft(
 		if (!read_perf_counter(perf_counter_file_descriptor, &start_count))
 			continue;
 
-		unsigned int eax, ebx, ecx, edx;
-		__cpuid(0, eax, ebx, ecx, edx);
-
 		pthreadpool_compute_1d(NULL, (pthreadpool_function_1d_t) compute_nnpack_transform, &context, batch_size);
-
-		__cpuid(0, eax, ebx, ecx, edx);
 
 		if (!read_perf_counter(perf_counter_file_descriptor, &end_count))
 			continue;

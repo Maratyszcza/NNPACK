@@ -177,6 +177,7 @@ static void compute_fully_connected_output(
 		.simd_width = simd_width,
 		.column_mask = column_mask,
 		.sgemm_functions = {
+#if NNP_ARCH_X86_64
 			[0] = {
 				[0] = nnp_sgemm_1x8__fma3,
 				[1] = nnp_sgemm_1x16__fma3,
@@ -197,6 +198,7 @@ static void compute_fully_connected_output(
 				[1] = nnp_sgemm_4x16__fma3,
 				[2] = nnp_sgemm_4x24__fma3,
 			},
+#endif
 		},
 	};
 	for (size_t input_channels_block_start = 0; input_channels_block_start < input_channels; input_channels_block_start += input_channels_block_max) {

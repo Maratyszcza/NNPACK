@@ -258,12 +258,12 @@ static void init_hwinfo(void) {
 	nnp_hwinfo.blocking.l4 = nnp_hwinfo.cache.l4.size;
 
 	if (nnp_hwinfo.cache.l1.size && nnp_hwinfo.cache.l2.size && nnp_hwinfo.cache.l3.size) {
-		#if defined(__x86_64__)
+		#if NNP_ARCH_X86_64
 			if (nnp_hwinfo.isa.has_avx2 && nnp_hwinfo.isa.has_fma3) {
 				nnp_hwinfo.simd_width = 8;
 				nnp_hwinfo.supported = true;
 			}
-		#elif defined(__pnacl__)
+		#elif NNP_ARCH_PSIMD
 			nnp_hwinfo.simd_width = 4;
 			nnp_hwinfo.supported = true;
 		#else

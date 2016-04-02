@@ -56,6 +56,7 @@ enum nnp_status nnp_fully_connected_inference(
 		.kernel = kernel,
 		.output = output,
 		.sdotxf = {
+#if NNP_ARCH_X86_64
 			[0] = nnp_sdotxf1__avx2,
 			[1] = nnp_sdotxf2__avx2,
 			[2] = nnp_sdotxf3__avx2,
@@ -64,6 +65,7 @@ enum nnp_status nnp_fully_connected_inference(
 			[5] = nnp_sdotxf6__avx2,
 			[6] = nnp_sdotxf7__avx2,
 			[7] = nnp_sdotxf8__avx2,
+#endif
 		},
 	};
 	pthreadpool_compute_1d_tiled(threadpool,
