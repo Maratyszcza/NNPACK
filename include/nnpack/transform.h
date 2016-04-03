@@ -33,6 +33,14 @@ void nnp_kwt8x8_3Rx3R_and_mac__avx2(const float g[], float wg[], const float x[]
 void nnp_owt8x8_3x3__avx2(const float m[], float s[], size_t stride_m, size_t stride_s, uint32_t row_count, uint32_t column_count, uint32_t, uint32_t);
 void nnp_owt8x8_3x3_with_bias__avx2(const float m[], float s[], const float bias[], size_t stride_m, size_t stride_s, uint32_t row_count, uint32_t column_count);
 
+void nnp_iwt8x8_3x3__psimd(const float d[], float wd[], size_t stride_d, size_t stride_wd, uint32_t row_count, uint32_t column_count, uint32_t row_offset, uint32_t column_offset);
+void nnp_kwt8x8_3x3__psimd(const float g[], float wg[], size_t stride_g, size_t stride_wg, uint32_t, uint32_t, uint32_t, uint32_t);
+void nnp_kwt8x8_3x3_and_mac__psimd(const float g[], float wg[], const float x[], size_t stride_g);
+void nnp_kwt8x8_3Rx3R__psimd(const float g[], float wg[], size_t stride_g, size_t stride_wg, uint32_t, uint32_t, uint32_t, uint32_t);
+void nnp_owt8x8_3x3__psimd(const float m[], float s[], size_t stride_m, size_t stride_s, uint32_t row_count, uint32_t column_count, uint32_t, uint32_t);
+void nnp_owt8x8_3x3_with_bias__psimd(const float m[], float s[], const float bias[], size_t stride_m, size_t stride_s, uint32_t row_count, uint32_t column_count);
+
+
 /* Convolution */
 
 void nnp_ft8x8gemmc__fma3(float acc[], const float x[], const float y[]);

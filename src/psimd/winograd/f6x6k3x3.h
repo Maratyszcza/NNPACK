@@ -7,14 +7,7 @@
 
 
 static inline void winograd_f6k3_input_transform(
-	const v4f input0[restrict static 1],
-	const v4f input1[restrict static 1],
-	const v4f input2[restrict static 1],
-	const v4f input3[restrict static 1],
-	const v4f input4[restrict static 1],
-	const v4f input5[restrict static 1],
-	const v4f input6[restrict static 1],
-	const v4f input7[restrict static 1],
+	const v4f d0, const v4f d1, const v4f d2, const v4f d3, const v4f d4, const v4f d5, const v4f d6, const v4f d7,
 	v4f transform0[restrict static 1],
 	v4f transform1[restrict static 1],
 	v4f transform2[restrict static 1],
@@ -24,15 +17,6 @@ static inline void winograd_f6k3_input_transform(
 	v4f transform6[restrict static 1],
 	v4f transform7[restrict static 1])
 {
-	const v4f d0 = *input0;
-	const v4f d1 = *input1;
-	const v4f d2 = *input2;
-	const v4f d3 = *input3;
-	const v4f d4 = *input4;
-	const v4f d5 = *input5;
-	const v4f d6 = *input6;
-	const v4f d7 = *input7;
-
 	const v4f const_0_25 = v4f_splat(0.25f);
 
 	// Compute wd0 := d0 - d6
@@ -94,9 +78,7 @@ static inline void winograd_f6k3_input_transform(
 }
 
 static inline void winograd_f6k3_kernel_transform(
-	const v4f kernel0[restrict static 1],
-	const v4f kernel1[restrict static 1],
-	const v4f kernel2[restrict static 1],
+	const v4f g0, const v4f g1, const v4f g2,
 	v4f transform0[restrict static 1],
 	v4f transform1[restrict static 1],
 	v4f transform2[restrict static 1],
@@ -107,10 +89,6 @@ static inline void winograd_f6k3_kernel_transform(
 	v4f transform7[restrict static 1],
 	bool rescale_coefficients)
 {
-	const v4f g0 = *kernel0;
-	const v4f g1 = *kernel1;
-	const v4f g2 = *kernel2;
-
 	/*
 	 * w0 = g0
 	 * w1 = ((g0 + g2) + g1) * (-2.0 / 9)
@@ -175,14 +153,7 @@ static inline void winograd_f6k3_kernel_transform(
 }
 
 static inline void winograd_f6k3_output_transform(
-	const v4f transform0[restrict static 1],
-	const v4f transform1[restrict static 1],
-	const v4f transform2[restrict static 1],
-	const v4f transform3[restrict static 1],
-	const v4f transform4[restrict static 1],
-	const v4f transform5[restrict static 1],
-	const v4f transform6[restrict static 1],
-	const v4f transform7[restrict static 1],
+	const v4f m0, const v4f m1, const v4f m2, const v4f m3, const v4f m4, const v4f m5, const v4f m6, const v4f m7,
 	v4f output0[restrict static 1],
 	v4f output1[restrict static 1],
 	v4f output2[restrict static 1],
@@ -190,15 +161,6 @@ static inline void winograd_f6k3_output_transform(
 	v4f output4[restrict static 1],
 	v4f output5[restrict static 1])
 {
-	const v4f m0 = *transform0;
-	const v4f m1 = *transform1;
-	const v4f m2 = *transform2;
-	const v4f m3 = *transform3;
-	const v4f m4 = *transform4;
-	const v4f m5 = *transform5;
-	const v4f m6 = *transform6;
-	const v4f m7 = *transform7;
-
 	/*
 	 * s0 = m0 + (m1 + m2) +      (m3 + m4) + 32 * (m5 + m6)
 	 * s1 =      (m1 - m2) +  2 * (m3 - m4) + 16 * (m5 - m6)
@@ -206,7 +168,6 @@ static inline void winograd_f6k3_output_transform(
 	 * s3 =      (m1 - m2) +  8 * (m3 - m4) +  4 * (m5 - m6)
 	 * s4 =      (m1 + m2) + 16 * (m3 + m4) +  2 * (m5 + m6)
 	 * s5 =      (m1 - m2) + 32 * (m3 - m4) +      (m5 - m6) + m7
-	 *
 	 */
 
 	const v4f m1_add_m2 = m1 + m2;

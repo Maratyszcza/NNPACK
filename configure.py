@@ -340,6 +340,8 @@ def main():
         ]
     else:
         arch_nnpack_objects = [
+            # Transformations
+            config.cc("psimd/2d-wt-8x8-3x3.c"),
             # ReLU
             config.cc("psimd/relu.c"),
         ]
@@ -435,7 +437,7 @@ def main():
             config.run(fourier_x86_64_avx2_test_binary, "fourier-x86_64-avx2-test")
 
             winograd_x86_64_fma3_test_binary = \
-                config.cxxld(arch_winograd_stub_objects + [config.cxx("winograd/x86_64-fma3.cc")] + gtest_objects,
+                config.cxxld(arch_winograd_stub_objects + nnpack_objects + [config.cxx("winograd/x86_64-fma3.cc")] + gtest_objects,
                     "winograd-x86_64-fma3-test", libs=unittest_libs)
             config.run(winograd_x86_64_fma3_test_binary, "winograd-x86_64-fma3-test")
 
@@ -448,12 +450,11 @@ def main():
             config.run(fourier_psimd_test_binary, "fourier-psimd-test")
 
             winograd_psimd_test_binary = \
-                config.cxxld(arch_winograd_stub_objects + [config.cxx("winograd/psimd.cc")] + gtest_objects,
+                config.cxxld(arch_winograd_stub_objects + nnpack_objects + [config.cxx("winograd/psimd.cc")] + gtest_objects,
                     "winograd-psimd-test", libs=unittest_libs)
             config.run(winograd_psimd_test_binary, "winograd-psimd-test")
 
             config.default([fourier_psimd_test_binary, winograd_psimd_test_binary])
-
 
         convolution_output_smoke_test_binary = \
             config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/smoke.cc")] + gtest_objects,
