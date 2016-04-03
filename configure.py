@@ -344,6 +344,8 @@ def main():
             config.cc("psimd/2d-wt-8x8-3x3.c"),
             # ReLU
             config.cc("psimd/relu.c"),
+            # Tuple GEMM
+            config.cc("psimd/blas/s4gemm.c"),
         ]
 
     reference_layer_objects = [

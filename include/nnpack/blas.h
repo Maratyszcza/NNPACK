@@ -67,6 +67,20 @@ void nnp_s8gemm3x3__fma3(size_t k, size_t k_tile, const float* a, const float* b
 void nnp_s8gemm3x4__fma3(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
 
 
+void nnp_s4gemm1x1__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_s4gemm1x2__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_s4gemm1x3__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_s4gemm1x4__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_s4gemm2x1__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_s4gemm2x2__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_s4gemm2x3__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_s4gemm2x4__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_s4gemm3x1__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_s4gemm3x2__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_s4gemm3x3__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_s4gemm3x4__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+
+
 typedef void (*nnp_sdotxf_function)(const float*, const float*, size_t, float*, size_t);
 void nnp_sdotxf1__avx2(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
 void nnp_sdotxf2__avx2(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
