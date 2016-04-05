@@ -134,7 +134,7 @@ static inline void v4f_ifft16_dualreal(
 	const v4f r0246 = __builtin_shufflevector(r0123, r4567, 0, 2, 4, 6);
 	const v4f r1357 = __builtin_shufflevector(r0123, r4567, 1, 3, 5, 7);
 	const v4f r8ACE = __builtin_shufflevector(r89AB, rCDEF, 0, 2, 4, 6);
-	const v4f r9BDF = __builtin_shufflevector(r89AB, r4567, 1, 3, 5, 7);
+	const v4f r9BDF = __builtin_shufflevector(r89AB, rCDEF, 1, 3, 5, 7);
 	const v4f i0246 = __builtin_shufflevector(i0123, i4567, 0, 2, 4, 6);
 	const v4f i1357 = __builtin_shufflevector(i0123, i4567, 1, 3, 5, 7);
 	const v4f i8ACE = __builtin_shufflevector(i89AB, iCDEF, 0, 2, 4, 6);
@@ -154,5 +154,5 @@ static inline void v4f_ifft16_dualreal(
 	*h89AB = __builtin_shufflevector(hCBA9, i1357, 4, 3, 2, 1);
 	*hCDEF = __builtin_shufflevector(h_FED, hCBA9, 4, 3, 2, 1);
 
-	v4f_ifft8_soa(s0123, s4567, h0123, h4567);
+	v4f_ifft16_soa(s0123, s4567, s89AB, sCDEF, h0123, h4567, h89AB, hCDEF);
 }

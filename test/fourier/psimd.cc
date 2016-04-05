@@ -69,14 +69,12 @@ TEST(IFFT8_DUAL_REAL_WITHIN_ROWS, match_reference) {
 	tester.testOptimizedDualReal(nnp_ifft8_dualreal__psimd, nnp_ifft8_dualreal__ref);
 }
 
-#if 0
 TEST(IFFT16_DUAL_REAL_WITHIN_ROWS, match_reference) {
 	auto tester = FFTTester()
 		.fftSize(16)
 		.errorLimit(1.0e-7f);
 	tester.testOptimizedDualReal(nnp_ifft16_dualreal__psimd, nnp_ifft16_dualreal__ref);
 }
-#endif
 
 /**
  * Test output of complex 1D forward FFT across rows against reference implementation with AOS layout.
