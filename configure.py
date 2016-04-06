@@ -341,11 +341,19 @@ def main():
     else:
         arch_nnpack_objects = [
             # Transformations
+            config.cc("psimd/2d-fourier-8x8.c"),
+            config.cc("psimd/2d-fourier-16x16.c"),
             config.cc("psimd/2d-wt-8x8-3x3.c"),
             # ReLU
             config.cc("psimd/relu.c"),
             # Tuple GEMM
             config.cc("psimd/blas/s4gemm.c"),
+            config.cc("psimd/blas/c4gemm.c"),
+            config.cc("psimd/blas/s4c2gemm.c"),
+            config.cc("psimd/blas/c4gemmcb.c"),
+            config.cc("psimd/blas/s4c2gemmcb.c"),
+            config.cc("psimd/blas/c4gemmca.c"),
+            config.cc("psimd/blas/s4c2gemmca.c"),
         ]
 
     reference_layer_objects = [

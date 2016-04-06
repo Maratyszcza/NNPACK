@@ -321,9 +321,11 @@ static void compute_convolution_input_gradient(
 				.output_channels_block_max = output_channels_block_max,
 				.output_size = output_size,
 				.row_offset = doz(kernel_size.height - 1, y + input_padding.top),
-				.row_count = min(output_size.height - grad_output_y, transform_tile.height),
+				.row_count = min(output_size.height - grad_output_y,
+					transform_tile.height - grad_output_transform_context.row_offset),
 				.column_offset = doz(kernel_size.width - 1, x + input_padding.left),
-				.column_count = min(output_size.width - grad_output_x, transform_tile.width),
+				.column_count = min(output_size.width - grad_output_x,
+					transform_tile.width - grad_output_transform_context.column_offset),
 			};
 			pthreadpool_compute_2d_tiled(threadpool,
 				(pthreadpool_function_2d_tiled_t) compute_grad_output_transform,
@@ -358,6 +360,11 @@ static void compute_convolution_input_gradient(
 									matrix_multiplication_context.cgemm[0][1] = nnp_s4c6gemm1x2__fma3;
 									matrix_multiplication_context.cgemm[1][0] = nnp_s4c6gemm2x1__fma3;
 									matrix_multiplication_context.cgemm[1][1] = nnp_s4c6gemm2x2__fma3;
+								#elif NNP_ARCH_PSIMD
+									matrix_multiplication_context.cgemm[0][0] = nnp_s4c2gemm1x1__psimd;
+									matrix_multiplication_context.cgemm[0][1] = nnp_s4c2gemm1x2__psimd;
+									matrix_multiplication_context.cgemm[1][0] = nnp_s4c2gemm2x1__psimd;
+									matrix_multiplication_context.cgemm[1][1] = nnp_s4c2gemm2x2__psimd;
 								#endif
 							} else {
 								#if NNP_ARCH_X86_64
@@ -365,6 +372,11 @@ static void compute_convolution_input_gradient(
 									matrix_multiplication_context.cgemm[0][1] = nnp_c8gemm1x2__fma3;
 									matrix_multiplication_context.cgemm[1][0] = nnp_c8gemm2x1__fma3;
 									matrix_multiplication_context.cgemm[1][1] = nnp_c8gemm2x2__fma3;
+								#elif NNP_ARCH_PSIMD
+									matrix_multiplication_context.cgemm[0][0] = nnp_c4gemm1x1__psimd;
+									matrix_multiplication_context.cgemm[0][1] = nnp_c4gemm1x2__psimd;
+									matrix_multiplication_context.cgemm[1][0] = nnp_c4gemm2x1__psimd;
+									matrix_multiplication_context.cgemm[1][1] = nnp_c4gemm2x2__psimd;
 								#endif
 							}
 						} else {
@@ -383,6 +395,17 @@ static void compute_convolution_input_gradient(
 								matrix_multiplication_context.sgemm[2][3] = nnp_s8gemm3x4__fma3;
 							#elif NNP_ARCH_PSIMD
 								matrix_multiplication_context.sgemm[0][0] = nnp_s4gemm1x1__psimd;
+								matrix_multiplication_context.sgemm[0][1] = nnp_s4gemm1x2__psimd;
+								matrix_multiplication_context.sgemm[0][2] = nnp_s4gemm1x3__psimd;
+								matrix_multiplication_context.sgemm[0][3] = nnp_s4gemm1x4__psimd;
+								matrix_multiplication_context.sgemm[1][0] = nnp_s4gemm2x1__psimd;
+								matrix_multiplication_context.sgemm[1][1] = nnp_s4gemm2x2__psimd;
+								matrix_multiplication_context.sgemm[1][2] = nnp_s4gemm2x3__psimd;
+								matrix_multiplication_context.sgemm[1][3] = nnp_s4gemm2x4__psimd;
+								matrix_multiplication_context.sgemm[2][0] = nnp_s4gemm3x1__psimd;
+								matrix_multiplication_context.sgemm[2][1] = nnp_s4gemm3x2__psimd;
+								matrix_multiplication_context.sgemm[2][2] = nnp_s4gemm3x3__psimd;
+								matrix_multiplication_context.sgemm[2][3] = nnp_s4gemm3x4__psimd;
 							#endif
 						}
 						pthreadpool_compute_2d_tiled(threadpool,
@@ -407,9 +430,9 @@ static void compute_convolution_input_gradient(
 				.batch_size = batch_size,
 				.batch_block_max = batch_block_max,
 				.input_size = input_size,
-				.row_offset = kernel_size.height - 1,
+				.row_offset = fourier_transform ? kernel_size.height - 1 : 0,
 				.row_count = min(input_size.height - y, grad_input_tile.height),
-				.column_offset = kernel_size.width - 1,
+				.column_offset = fourier_transform ? kernel_size.width - 1 : 0,
 				.column_count = min(input_size.width - x, grad_input_tile.width),
 			};
 			pthreadpool_compute_2d_tiled(threadpool,
@@ -483,6 +506,10 @@ enum nnp_status nnp_convolution_input_gradient(
 			grad_output_transform_function = nnp_fft8x8_and_stream__avx2;
 			kernel_transform_function = nnp_fft8x8_and_stream__avx2;
 			grad_input_transform_function = nnp_ifft8x8__avx2;
+		#elif NNP_ARCH_PSIMD
+			grad_output_transform_function = nnp_fft8x8__psimd;
+			kernel_transform_function = nnp_fft8x8__psimd;
+			grad_input_transform_function = nnp_ifft8x8__psimd;
 		#endif
 			transform_tile = (struct nnp_size) { .height = 8, .width = 8 };
 			fourier_transform = true;
@@ -492,6 +519,10 @@ enum nnp_status nnp_convolution_input_gradient(
 			grad_output_transform_function = nnp_fft16x16_and_stream__avx2;
 			kernel_transform_function = nnp_fft16x16_and_stream__avx2;
 			grad_input_transform_function = nnp_ifft16x16__avx2;
+		#elif NNP_ARCH_PSIMD
+			grad_output_transform_function = nnp_fft16x16__psimd;
+			kernel_transform_function = nnp_fft16x16__psimd;
+			grad_input_transform_function = nnp_ifft16x16__psimd;
 		#endif
 			transform_tile = (struct nnp_size) { .height = 16, .width = 16 };
 			fourier_transform = true;
@@ -535,13 +566,8 @@ enum nnp_status nnp_convolution_input_gradient(
 	const size_t cache_elements_l2 = nnp_hwinfo.blocking.l2 / (tuple_elements * sizeof(float));
 	const size_t cache_elements_l3 = nnp_hwinfo.blocking.l3 / (tuple_elements * sizeof(float));
 
-	#ifdef __x86_64__
 	const size_t batch_subblock_max = (fourier_transform ? 2 : 3);
 	const size_t input_channels_subblock_max = (fourier_transform ? 2 : 4);
-	#else
-	const size_t batch_subblock_max = (fourier_transform ? 1 : 1);
-	const size_t input_channels_subblock_max = (fourier_transform ? 1 : 1);
-	#endif
 
 	const size_t output_channels_block_max =
 		round_down(cache_elements_l1 / (batch_subblock_max + input_channels_subblock_max), 2);

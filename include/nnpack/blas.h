@@ -67,6 +67,36 @@ void nnp_s8gemm3x3__fma3(size_t k, size_t k_tile, const float* a, const float* b
 void nnp_s8gemm3x4__fma3(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
 
 
+void nnp_c4gemm1x1__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_c4gemm1x2__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_c4gemm2x1__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_c4gemm2x2__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+
+void nnp_s4c2gemm2x1__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_s4c2gemm1x1__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_s4c2gemm1x2__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_s4c2gemm2x2__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+
+void nnp_c4gemmca1x1__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_c4gemmca1x2__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_c4gemmca2x1__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_c4gemmca2x2__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+
+void nnp_s4c2gemmca2x1__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_s4c2gemmca1x1__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_s4c2gemmca1x2__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_s4c2gemmca2x2__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+
+void nnp_c4gemmcb1x1__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_c4gemmcb1x2__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_c4gemmcb2x1__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_c4gemmcb2x2__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+
+void nnp_s4c2gemmcb2x1__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_s4c2gemmcb1x1__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_s4c2gemmcb1x2__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+void nnp_s4c2gemmcb2x2__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
+
 void nnp_s4gemm1x1__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
 void nnp_s4gemm1x2__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);
 void nnp_s4gemm1x3__psimd(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);

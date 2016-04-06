@@ -91,6 +91,12 @@ enum nnp_status nnp_convolution_inference(
 			kernel_winograd_transform_and_mac_function = nnp_kwt8x8_3x3_and_mac__avx2;
 			macc_function = nnp_s8x8gemm__fma3;
 			output_transform_function = nnp_owt8x8_3x3_with_bias__avx2;
+		#elif NNP_ARCH_PSIMD
+			input_transform_function = nnp_iwt8x8_3x3__psimd;
+			kernel_transform_function = nnp_kwt8x8_3x3__psimd;
+			// kernel_winograd_transform_and_mac_function = nnp_kwt8x8_3x3_and_mac__psimd;
+			// macc_function = nnp_s8x8gemm__psimd;
+			output_transform_function = nnp_owt8x8_3x3_with_bias__psimd;
 		#endif
 			fourier_transform = false;
 			break;

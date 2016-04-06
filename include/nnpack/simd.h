@@ -62,6 +62,10 @@ static inline v4f v4f_splat(float c) {
 	return (v4f) { c, c, c, c };
 }
 
+static inline v4f v4f_andi(v4f v, v4i mask) {
+	return (v4f) (((v4i) v) & mask);
+}
+
 /*
  * return (mask ? a : b)
  */
