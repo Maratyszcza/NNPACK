@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>NNPACK Benchmark</title>
+		<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css" />
+		<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap-theme.min.css" />
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/js/bootstrap.min.js"></script>
+		<script>
+			var hasPNaCl = function() {
+				return navigator.mimeTypes["application/x-pnacl"] !== void(0);
+			}
+			var hasNaCl = function() {
+				return navigator.mimeTypes["application/x-nacl"] !== void(0);
+			}
+
+			var formatLoadProgress = function(event) {
+				if (event.lengthComputable) {
+					return (event.loaded / event.total * 100.0).toFixed(1) + "%";
+				} else if (event.loaded > 1048576) {
+					return (event.loaded / 1048576.0).toFixed(1) + " MB";
+				} else if (event.loaded > 1024) {
+					return (event.loaded / 1024).toFixed(1) + " KB";
+				} else {
+					return event.loaded + " bytes";
+				}
+			}
+
+			var module = null;
+			$(document).ready(function() {
+				$("#preset").change(function() {
+					var layer = $(this).find("option:selected").data("layer");
+					$("#batchSize").val(layer.batchSize);
+					$("#inputChannels").val(layer.inputChannels);
+					$("#outputChannels").val(layer.outputChannels);
+					$("#inputSize").val(layer.inputSize);
+					$("#inputPadding").val(layer.padding);
+					$("#kernelSize").val(layer.kernelSize);
+				});
+
+				$("#benchmark").click(function() {
+					$("#ft8x8 input").val("");
+					$("#ft16x16 input").val("");
+					$("#wt8x8 input").val("");
+
+					var iterations = $("#iterations").val()|0;
+					var batchSize = $("#batchSize").val()|0;
+					var inputChannels = $("#inputChannels").val()|0;
+					var outputChannels = $("#outputChannels").val()|0;
+					var inputPadding = $("#inputPadding").val()|0;
+					var inputHeight = $("#inputSize").val().split("x")[0]|0;
+					var inputWidth = $("#inputSize").val().split("x")[1]|0;
+					var kernelHeight = $("#kernelSize").val().split("x")[0]|0;
+					var kernelWidth = $("#kernelSize").val().split("x")[1]|0;
+					var request = {
+						"benchmark": "convolution-forward",
+						"iterations": 3,
+						"batch-size": batchSize,
+						"input-channels": inputChannels,
+						"output-channels": outputChannels,
+						"input-height": inputHeight,
+						"input-width": inputWidth,
+						"input-padding": inputPadding,
+						"kernel-height": kernelHeight,
+						"kernel-width": kernelWidth,
+					};
+					if ((kernelWidth <= 8) && (kernelHeight <= 8)) {
+						request["algorithm"] = "ft-8x8";
+						module.postMessage(request);
+					}
+					if ((kernelWidth <= 16) && (kernelHeight <= 16)) {
+						request["algorithm"] = "ft-16x16";
+						module.postMessage(request);
+					}
+					if ((kernelWidth === 3) && (kernelHeight === 3)) {
+						request["algorithm"] = "wt-8x8";
+						module.postMessage(request);
+					}
+				})
+
+				var usePNaCl = hasPNaCl();
+				if (usePNaCl) {
+					module = document.createElement("object");
+					module.width = 0;
+					module.height = 0;
+					module.data = "nnpack.nmf";
+					module.type = "application/x-pnacl";
+					document.body.appendChild(module);
+					module.addEventListener("load", function() {
+						$("#benchmark").prop("disabled", false).text("Benchmark!");
+					}, false);
+					module.addEventListener("progress", function(e) {
+						$("#benchmark").text("Native Client module: loaded " + formatLoadProgress(e))
+					});
+					module.addEventListener("message", function(e) {
+						var response = e.data;
+						var algorithmSuffix = {"ft-8x8": "FFT8x8", "ft-16x16": "FFT16x16", "wt-8x8": "WT8x8"}[response.algorithm];
+						$("#totalTime" + algorithmSuffix).val((response["total-time"] * 1000.0).toFixed(3));
+						$("#inputTransformTime" + algorithmSuffix).val((response["input-transform-time"] * 1000.0).toFixed(3));
+						$("#kernelTransformTime" + algorithmSuffix).val((response["kernel-transform-time"] * 1000.0).toFixed(3));
+						$("#outputTransformTime" + algorithmSuffix).val((response["output-transform-time"] * 1000.0).toFixed(3));
+						$("#blockMultiplicationTime" + algorithmSuffix).val((response["block-multiplication-time"] * 1000.0).toFixed(3));
+					});
+				} else {
+					$("#benchmark").text("Native Client not available");
+				}
+			});
+		</script>
+	</head>
+	<body>
+		<div class="container">
+			<div class="panel panel-default">
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-md-3">
+							<form>
+								<div class="form-group">
+									<label for="preset">Preset</label>
+									<select class="form-control" id="preset">
+										<option>Custom</option>
+										<optgroup label="VGG (Model A)">
+											<option data-layer='{"batchSize":64,"inputChannels":3,"outputChannels":64,"inputSize":"224x224","padding":1,"kernelSize":"3x3"}'>
+												VGG (Model A): conv1
+											</option>
+											<option data-layer='{"batchSize":64,"inputChannels":64,"outputChannels":128,"inputSize":"112x112","padding":1,"kernelSize":"3x3"}'>
+												VGG (Model A): conv2
+											</option>
+											<option data-layer='{"batchSize":64,"inputChannels":128,"outputChannels":256,"inputSize":"56x56","padding":1,"kernelSize":"3x3"}'>
+												VGG (Model A): conv3.1
+											</option>
+											<option data-layer='{"batchSize":64,"inputChannels":256,"outputChannels":256,"inputSize":"56x56","padding":1,"kernelSize":"3x3"}'>
+												VGG (Model A): conv3.2
+											</option>
+											<option data-layer='{"batchSize":64,"inputChannels":256,"outputChannels":512,"inputSize":"28x28","padding":1,"kernelSize":"3x3"}'>
+												VGG (Model A): conv4.1
+											</option>
+											<option data-layer='{"batchSize":64,"inputChannels":512,"outputChannels":512,"inputSize":"28x28","padding":1,"kernelSize":"3x3"}'>
+												VGG (Model A): conv4.2
+											</option>
+											<option data-layer='{"batchSize":64,"inputChannels":512,"outputChannels":512,"inputSize":"14x14","padding":1,"kernelSize":"3x3"}'>
+												VGG (Model A): conv5
+											</option>
+										</optgroup>
+										<optgroup label="AlexNet">
+											<option data-layer='{"batchSize":128,"inputChannels":64,"outputChannels":192,"inputSize":"27x27","padding":2,"kernelSize":"5x5"}'>
+												AlexNet: conv2
+											</option>
+											<option data-layer='{"batchSize":128,"inputChannels":192,"outputChannels":384,"inputSize":"13x13","padding":1,"kernelSize":"3x3"}'>
+												AlexNet: conv3
+											</option>
+											<option data-layer='{"batchSize":128,"inputChannels":384,"outputChannels":256,"inputSize":"13x13","padding":1,"kernelSize":"3x3"}'>
+												AlexNet: conv4
+											</option>
+											<option data-layer='{"batchSize":128,"inputChannels":256,"outputChannels":256,"inputSize":"13x13","padding":1,"kernelSize":"3x3"}'>
+												AlexNet: conv5
+											</option>
+										</optgroup>
+										<optgroup label="Overfeat (Fast model)">
+											<option data-layer='{"batchSize":128,"inputChannels":96,"outputChannels":256,"inputSize":"24x24","padding":0,"kernelSize":"5x5"}'>
+												Overfeat (Fast): conv2
+											</option>
+											<option data-layer='{"batchSize":128,"inputChannels":256,"outputChannels":512,"inputSize":"12x12","padding":1,"kernelSize":"3x3"}'>
+												Overfeat (Fast): conv3
+											</option>
+											<option data-layer='{"batchSize":128,"inputChannels":512,"outputChannels":1024,"inputSize":"12x12","padding":1,"kernelSize":"3x3"}'>
+												Overfeat (Fast): conv4
+											</option>
+											<option data-layer='{"batchSize":128,"inputChannels":1024,"outputChannels":1024,"inputSize":"12x12","padding":1,"kernelSize":"3x3"}'>
+												Overfeat (Fast): conv5
+											</option>
+										</optgroup>
+									</select>
+								</div>
+								<div class="form-group">
+									<label for="iterations">Iterations</label>
+									<div class="input-group">
+										<div class="input-group-addon">N</div>
+										<input type="text" class="form-control" id="iterations" placeholder="Iterations" value="5">
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="batchSize">Batch size</label>
+									<div class="input-group">
+										<div class="input-group-addon">B</div>
+										<input type="text" class="form-control" id="batchSize" placeholder="Batch size">
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="inputChannels">Input channels</label>
+									<div class="input-group">
+										<div class="input-group-addon">C<sub>in</sub></div>
+										<input type="text" class="form-control" id="inputChannels" placeholder="Input channels">
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="outputChannels">Output channels</label>
+									<div class="input-group">
+										<div class="input-group-addon">C<sub>out</sub></div>
+										<input type="text" class="form-control" id="outputChannels" placeholder="Output channels">
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="inputSize">Input size</label>
+									<div class="input-group">
+										<div class="input-group-addon">I<sub>h</sub>&nbsp;&#10005;&nbsp;I<sub>w</sub></div>
+										<input type="text" class="form-control" id="inputSize" placeholder="Input size">
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="inputPadding">Input padding</label>
+									<div class="input-group">
+										<div class="input-group-addon">I<sub>pad</sub></div>
+										<input type="text" class="form-control" id="inputPadding" placeholder="Input padding">
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="kernelSize">Kernel size</label>
+									<div class="input-group">
+										<div class="input-group-addon">K<sub>h</sub>&nbsp;&#10005;&nbsp;K<sub>w</sub></div>
+										<input type="text" class="form-control" id="kernelSize" placeholder="Kernel size">
+									</div>
+								</div>
+								<p class="text-center">
+									<button type="button" class="btn btn-default" id="benchmark" disabled="disabled">Waiting for NNPACK module!</button>
+								</p>
+							</form>
+						</div>
+						<div class="col-md-3">
+							<h3 class="text-center"> <span class="label label-default">FFT 8x8</span></h3>
+							<form id="ft8x8">
+								<div class="form-group">
+									<label for="totalTimeFFT8x8">Total time</label>
+									<div class="input-group">
+										<input type="text" class="form-control" readonly disabled id="totalTimeFFT8x8" placeholder="Total time">
+										<div class="input-group-addon">ms</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="inputTransformTimeFFT8x8">Input transform time</label>
+									<div class="input-group">
+										<input type="text" class="form-control" readonly disabled id="inputTransformTimeFFT8x8" placeholder="Input transform time">
+										<div class="input-group-addon">ms</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="kernelTransformTimeFFT8x8">Kernel transform time</label>
+									<div class="input-group">
+										<input type="text" class="form-control" readonly disabled id="kernelTransformTimeFFT8x8" placeholder="Kernel transform time">
+										<div class="input-group-addon">ms</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="outputTransformTimeFFT8x8">Output transform time</label>
+									<div class="input-group">
+										<input type="text" class="form-control" readonly disabled id="outputTransformTimeFFT8x8" placeholder="Output transform time">
+										<div class="input-group-addon">ms</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="blockMultiplicationTimeFFT8x8">Block multiplication time</label>
+									<div class="input-group">
+										<input type="text" class="form-control" readonly disabled id="blockMultiplicationTimeFFT8x8" placeholder="Block multiplication time">
+										<div class="input-group-addon">ms</div>
+									</div>
+								</div>
+							</form>
+						</div>
+						<div class="col-md-3">
+							<h3 class="text-center"> <span class="label label-default">FFT 16x16</span></h3>
+							<form id="ft16x16">
+								<div class="form-group">
+									<label for="totalTimeFFT16x16">Total time</label>
+									<div class="input-group">
+										<input type="text" class="form-control" readonly disabled id="totalTimeFFT16x16" placeholder="Total time">
+										<div class="input-group-addon">ms</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="inputTransformTimeFFT16x16">Input transform time</label>
+									<div class="input-group">
+										<input type="text" class="form-control" readonly disabled id="inputTransformTimeFFT16x16" placeholder="Input transform time">
+										<div class="input-group-addon">ms</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="kernelTransformTimeFFT16x16">Kernel transform time</label>
+									<div class="input-group">
+										<input type="text" class="form-control" readonly disabled id="kernelTransformTimeFFT16x16" placeholder="Kernel transform time">
+										<div class="input-group-addon">ms</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="outputTransformTimeFFT16x16">Output transform time</label>
+									<div class="input-group">
+										<input type="text" class="form-control" readonly disabled id="outputTransformTimeFFT16x16" placeholder="Output transform time">
+										<div class="input-group-addon">ms</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="blockMultiplicationTimeFFT16x16">Block multiplication time</label>
+									<div class="input-group">
+										<input type="text" class="form-control" readonly disabled id="blockMultiplicationTimeFFT16x16" placeholder="Block multiplication time">
+										<div class="input-group-addon">ms</div>
+									</div>
+								</div>
+							</form>
+						</div>
+						<div class="col-md-3">
+							<h3 class="text-center"> <span class="label label-default">WT 8x8</span></h3>
+							<form id="wt8x8">
+								<div class="form-group">
+									<label for="totalTimeWT8x8">Total time</label>
+									<div class="input-group">
+										<input type="text" class="form-control" readonly disabled id="totalTimeWT8x8" placeholder="Total time">
+										<div class="input-group-addon">ms</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="inputTransformTimeWT8x8">Input transform time</label>
+									<div class="input-group">
+										<input type="text" class="form-control" readonly disabled id="inputTransformTimeWT8x8" placeholder="Input transform time">
+										<div class="input-group-addon">ms</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="kernelTransformTimeWT8x8">Kernel transform time</label>
+									<div class="input-group">
+										<input type="text" class="form-control" readonly disabled id="kernelTransformTimeWT8x8" placeholder="Kernel transform time">
+										<div class="input-group-addon">ms</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="outputTransformTimeWT8x8">Output transform time</label>
+									<div class="input-group">
+										<input type="text" class="form-control" readonly disabled id="outputTransformTimeWT8x8" placeholder="Output transform time">
+										<div class="input-group-addon">ms</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="blockMultiplicationTimeWT8x8">Block multiplication time</label>
+									<div class="input-group">
+										<input type="text" class="form-control" readonly disabled id="blockMultiplicationTimeWT8x8" placeholder="Block multiplication time">
+										<div class="input-group-addon">ms</div>
+									</div>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
