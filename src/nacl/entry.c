@@ -8,6 +8,8 @@
 #include <nacl/interfaces.h>
 #include <nacl/stringvars.h>
 
+#include <nnpack.h>
+
 PP_EXPORT int32_t PPP_InitializeModule(PP_Module module, PPB_GetInterface get_browser_interface) {
 	core_interface = get_browser_interface(PPB_CORE_INTERFACE_1_0);
 	if (core_interface == NULL) {
@@ -31,10 +33,17 @@ PP_EXPORT int32_t PPP_InitializeModule(PP_Module module, PPB_GetInterface get_br
 	}
 	init_string_vars();
 
+	enum nnp_status status = nnp_initialize();
+	if (status != nnp_status_success) {
+		return PP_ERROR_FAILED;
+	}
+
 	return PP_OK;
 }
 
 PP_EXPORT void PPP_ShutdownModule(void) {
+	nnp_deinitialize();
+
 	release_string_vars();
 }
 

@@ -24,7 +24,7 @@ static void handle_message(PP_Instance instance, struct PP_Var message_var) {
 	struct PP_Var kernel_height_var = PP_MakeUndefined();
 	pthreadpool_t threadpool = NULL;
 
-	/* Check that message is a dictionary  */
+	/* Check that message is a dictionary */
 	if (message_var.type != PP_VARTYPE_DICTIONARY) {
 		console_interface->Log(instance, PP_LOGLEVEL_WARNING, string_var_error_message_type);
 		goto cleanup;
