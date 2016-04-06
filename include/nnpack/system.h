@@ -4,12 +4,10 @@
 #include <stdbool.h>
 #include <assert.h>
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__native_client__)
 	#include <time.h>
 	#include <unistd.h>
 	#include <sys/mman.h>
-#elif defined(__native_client__)
-	#include <sys/time.h>
 #else
 	#if defined(__MACH__)
 		#include <mach/mach.h>
@@ -18,7 +16,7 @@
 #endif
 
 inline static double read_timer() {
-#if defined(__linux__)
+#if defined(__linux__) || defined(__native_client__)
 	struct timespec ts;
 	int result = clock_gettime(CLOCK_MONOTONIC, &ts);
 	assert(result == 0);
@@ -30,11 +28,6 @@ inline static double read_timer() {
 	}
 
 	return ((double) (mach_absolute_time() * timebase_info.numer / timebase_info.denom)) * 1.0e-9;
-#elif defined(__native_client__)
-	struct timeval walltime;
-	int result = gettimeofday(&walltime, NULL);
-	assert(result == 0);
-	return ((double) walltime.tv_sec) + ((double) walltime.tv_usec) * 1.0e-6;
 #else
 	#error No implementation available
 #endif
@@ -43,6 +36,7 @@ inline static double read_timer() {
 #define NNP_TOTAL_START(profile_ptr) \
 	double total_start; \
 	if (profile_ptr != NULL) { \
+		*profile_ptr = (struct nnp_profile) { 0 }; \
 		total_start = read_timer(); \
 	}
 
