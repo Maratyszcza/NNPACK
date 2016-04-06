@@ -1,7 +1,9 @@
 {
 	"program": {
-		"x86-64": {
-			"url": "nnpack.x86_64.nexe"
+		"portable": {
+			"pnacl-translate": {
+				"url": "nnpack.pexe"
+			}
 		}
 	}
 }

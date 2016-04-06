@@ -79,13 +79,13 @@
 					}
 				})
 
-				var useNaCl = hasNaCl();
-				if (useNaCl) {
+				var usePNaCl = hasPNaCl();
+				if (usePNaCl) {
 					module = document.createElement("object");
 					module.width = 0;
 					module.height = 0;
 					module.data = "nnpack.nmf";
-					module.type = "application/x-nacl";
+					module.type = "application/x-pnacl";
 					document.body.appendChild(module);
 					module.addEventListener("load", function() {
 						$("#benchmark").prop("disabled", false).text("Benchmark!");
