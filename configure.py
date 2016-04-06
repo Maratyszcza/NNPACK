@@ -18,13 +18,22 @@ class Configuration:
         self.build_dir = None
         self.artifact_dir = None
         self.include_dirs = []
-        self.object_ext = ".o"
 
         # Variables
         self.build, self.host = Configuration.detect_system(options.host)
 
+        if self.host == "pnacl-nacl-newlib":
+            self.object_ext = ".bc"
+            self.executable_ext = ".pexe"
+        elif self.host in ["x86_64-nacl-glibc", "x86_64-nacl-newlib"]:
+            self.object_ext = ".o"
+            self.executable_ext = ".nexe"
+        else:
+            self.object_ext = ".o"
+            self.executable_ext = ""
+
         cflags = ["-g", "-std=gnu11"]
-        if options.use_psimd or config.host == "pnacl-nacl-newlib":
+        if options.use_psimd or self.host == "pnacl-nacl-newlib":
             cflags += ["-DNNP_ARCH_PSIMD"]
         cxxflags = ["-g", "-std=gnu++11"]
         ldflags = ["-g"]
@@ -122,6 +131,8 @@ class Configuration:
                 deps="gcc", depfile="$object.d",
                 description="PEACHPY[x86-64] $descpath")
         if self.host == "pnacl-nacl-newlib":
+            self.writer.rule("finalize", "$finalize --compress -o $out $in",
+                description="FINALIZE $descpath")
             self.writer.rule("translate", "$translate --allow-llvm-bitcode-input -O3 -threads=auto -arch x86-64 $in -o $out",
                 description="TRANSLATE $descpath")
         if self.host in ["x86_64-nacl-newlib", "x86_64-nacl-glibc", "pnacl-nacl-newlib"]:
@@ -208,27 +219,39 @@ class Configuration:
         return binary_file
 
 
-    def ccld(self, object_files, binary_file, lib_dirs=[], libs=[], extra_ldflags=[]):
+    def ccld_executable(self, object_files, binary_file, lib_dirs=[], libs=[], extra_ldflags=[]):
         if self.host == "pnacl-nacl-newlib":
-            return self.translate(
-                self._link("ccld", object_files, binary_file + ".bc", self.build_dir, lib_dirs, libs, extra_ldflags),
-                binary_file)
+            bytecode_file = self._link("ccld", object_files, binary_file + ".bc", self.build_dir, lib_dirs, libs, extra_ldflags)
+            portable_file = self.finalize(bytecode_file, os.path.join(self.build_dir, binary_file + ".pexe"))
+            native_file = self.translate(portable_file, os.path.join(self.artifact_dir, binary_file + ".nexe"))
+            return native_file
         else:
             return self._link("ccld", object_files, binary_file, self.artifact_dir, lib_dirs, libs, extra_ldflags)
 
-    def cxxld(self, object_files, binary_file, lib_dirs=[], libs=[], extra_ldflags=[]):
+    def module(self, object_files, module_file, lib_dirs=[], libs=[], extra_ldflags=[]):
+        assert self.host in ["pnacl-nacl-newlib", "x86_64-nacl-newlib", "x86_64-nacl-glibc"]
+
         if self.host == "pnacl-nacl-newlib":
-            return self.translate(
-                self._link("cxxld", object_files, binary_file + ".bc", self.build_dir, lib_dirs, libs, extra_ldflags),
-                binary_file)
+            bytecode_file = self._link("ccld", object_files, module_file + ".bc", self.build_dir, lib_dirs, libs, extra_ldflags)
+            portable_file = self.finalize(bytecode_file, os.path.join(self.artifact_dir, module_file + ".pexe"))
+            return portable_file
         else:
-            return self._link("cxxld", object_files, binary_file, self.artifact_dir, lib_dirs, libs, extra_ldflags)
+            return self._link("ccld", object_files, module_file + ".x86_64.nexe", self.artifact_dir, lib_dirs, libs, extra_ldflags)
+
+    def unittest(self, object_files, test_name):
+        if self.host == "pnacl-nacl-newlib":
+            bytecode_file = self._link("cxxld", object_files, test_name + ".bc", self.build_dir, lib_dirs=[], libs=["m"], extra_ldflags=[])
+            native_file = self.translate(bytecode_file, os.path.join(self.artifact_dir, test_name + ".nexe"))
+        else:
+            native_file = self._link("cxxld", object_files, test_name + self.executable_ext, self.artifact_dir, lib_dirs=[], libs=["m"], extra_ldflags=[])
+        self.run(native_file, test_name)
+        self.default(native_file)
+        return test_name
 
     def translate(self, portable_file, native_file):
         assert self.host == "pnacl-nacl-newlib"
 
-        if not os.path.isabs(portable_file):
-            portable_file = os.path.join(self.build_dir, portable_file)
+        assert os.path.isabs(portable_file)
         if not os.path.isabs(native_file):
             native_file = os.path.join(self.artifact_dir, native_file)
         variables = {
@@ -236,6 +259,19 @@ class Configuration:
         }
         self.writer.build(native_file, "translate", portable_file, variables=variables)
         return native_file
+
+    def finalize(self, bytecode_file, portable_file):
+        assert self.host == "pnacl-nacl-newlib"
+
+        if not os.path.isabs(portable_file):
+            portable_file = os.path.join(self.build_dir, portable_file)
+        if os.path.splitext(portable_file)[1] != ".pexe":
+            portable_file = portable_file + ".pexe"
+        variables = {
+            "descpath": os.path.relpath(portable_file, self.artifact_dir)
+        }
+        self.writer.build(portable_file, "finalize", bytecode_file, variables=variables)
+        return portable_file
 
     def lib(self, object_files, library_file):
         library_basename = os.path.basename(library_file)
@@ -415,7 +451,7 @@ def main():
     config.default(config.lib(nnpack_objects, "nnpack"))
 
     # Build Native Client module
-    if config.host in ["x86_64-nacl-glibc", "x86_64-nacl-newlib"]:
+    if config.host in ["x86_64-nacl-glibc", "x86_64-nacl-newlib", "pnacl-nacl-newlib"]:
         config.source_dir = os.path.join(root_dir, "src")
         config.build_dir = os.path.join(root_dir, "build")
         config.include_dirs = [os.path.join(root_dir, "include"), os.path.join(root_dir, "src"), os.path.join(pthreadpool_dir, "include")]
@@ -424,7 +460,7 @@ def main():
         module_source_files = ["nacl/entry.c", "nacl/instance.c", "nacl/interfaces.c", "nacl/messaging.c", "nacl/stringvars.c", "nacl/benchmark.c"]
         nacl_module_objects = [config.cc(source_file, extra_cflags="-I$pepper_include_dir") for source_file in module_source_files]
         nacl_module_binary = \
-            config.ccld(nnpack_objects + nacl_module_objects, "nnpack.x86_64.nexe", lib_dirs=["$pepper_lib_dir"], libs=["m", "ppapi"])
+            config.module(nnpack_objects + nacl_module_objects, "nnpack", lib_dirs=["$pepper_lib_dir"], libs=["m", "ppapi"])
         config.default(nacl_module_binary)
 
     # Build unit tests
@@ -433,193 +469,151 @@ def main():
         config.build_dir = os.path.join(root_dir, "build", "test")
         config.artifact_dir = os.path.join(root_dir, "bin")
         config.include_dirs = [os.path.join(root_dir, "include"), os.path.join(pthreadpool_dir, "include"), os.path.join(root_dir, "test"), os.path.join(gtest_dir, "include")]
-        unittest_libs = ["m"]
 
-        fourier_reference_test_binary = \
-            config.cxxld(reference_fft_objects + [config.cxx("fourier/reference.cc")] + gtest_objects,
-                "fourier-reference-test", libs=unittest_libs)
-        config.run(fourier_reference_test_binary, "fourier-reference-test")
+        fourier_reference_test = \
+            config.unittest(reference_fft_objects + [config.cxx("fourier/reference.cc")] + gtest_objects,
+                "fourier-reference-test")
 
         if config.host.startswith("x86_64-") and not options.use_psimd:
-            fourier_x86_64_avx2_test_binary = \
-                config.cxxld(reference_fft_objects + arch_fft_stub_objects + [config.cxx("fourier/x86_64-avx2.cc")] + gtest_objects,
-                    "fourier-x86_64-avx2-test", libs=unittest_libs)
-            config.run(fourier_x86_64_avx2_test_binary, "fourier-x86_64-avx2-test")
+            fourier_x86_64_avx2_test = \
+                config.unittest(reference_fft_objects + arch_fft_stub_objects + [config.cxx("fourier/x86_64-avx2.cc")] + gtest_objects,
+                    "fourier-x86_64-avx2-test")
 
-            winograd_x86_64_fma3_test_binary = \
-                config.cxxld(arch_winograd_stub_objects + nnpack_objects + [config.cxx("winograd/x86_64-fma3.cc")] + gtest_objects,
-                    "winograd-x86_64-fma3-test", libs=unittest_libs)
-            config.run(winograd_x86_64_fma3_test_binary, "winograd-x86_64-fma3-test")
-
-            config.default([fourier_x86_64_avx2_test_binary, winograd_x86_64_fma3_test_binary])
+            winograd_x86_64_fma3_test = \
+                config.unittest(arch_winograd_stub_objects + nnpack_objects + [config.cxx("winograd/x86_64-fma3.cc")] + gtest_objects,
+                    "winograd-x86_64-fma3-test")
 
         if config.host.startswith("pnacl-") or options.use_psimd:
-            fourier_psimd_test_binary = \
-                config.cxxld(reference_fft_objects + arch_fft_stub_objects + [config.cxx("fourier/psimd.cc")] + gtest_objects,
-                    "fourier-psimd-test", libs=unittest_libs)
-            config.run(fourier_psimd_test_binary, "fourier-psimd-test")
+            fourier_psimd_test = \
+                config.unittest(reference_fft_objects + arch_fft_stub_objects + [config.cxx("fourier/psimd.cc")] + gtest_objects,
+                    "fourier-psimd-test")
 
-            winograd_psimd_test_binary = \
-                config.cxxld(arch_winograd_stub_objects + nnpack_objects + [config.cxx("winograd/psimd.cc")] + gtest_objects,
-                    "winograd-psimd-test", libs=unittest_libs)
-            config.run(winograd_psimd_test_binary, "winograd-psimd-test")
+            winograd_psimd_test = \
+                config.unittest(arch_winograd_stub_objects + nnpack_objects + [config.cxx("winograd/psimd.cc")] + gtest_objects,
+                    "winograd-psimd-test")
 
-            config.default([fourier_psimd_test_binary, winograd_psimd_test_binary])
-
-        convolution_output_smoke_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/smoke.cc")] + gtest_objects,
-                "convolution-output-smoketest", libs=unittest_libs)
-        convolution_output_alexnet_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/alexnet.cc")] + gtest_objects,
-                "convolution-output-alexnet-test", libs=unittest_libs)
-        convolution_output_vgg_a_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/vgg-a.cc")] + gtest_objects,
-                "convolution-output-vgg-a-test", libs=unittest_libs)
-        convolution_output_overfeat_fast_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/overfeat-fast.cc")] + gtest_objects,
-                "convolution-output-overfeat-fast-test", libs=unittest_libs)
-        config.run(convolution_output_smoke_test_binary, "convolution-output-smoketest")
-        config.run(convolution_output_alexnet_test_binary, "convolution-output-alexnet-test")
-        config.run(convolution_output_vgg_a_test_binary, "convolution-output-vgg-a-test")
-        config.run(convolution_output_overfeat_fast_test_binary, "convolution-output-overfeat-fast-test")
+        convolution_output_smoke_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/smoke.cc")] + gtest_objects,
+                "convolution-output-smoketest")
+        convolution_output_alexnet_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/alexnet.cc")] + gtest_objects,
+                "convolution-output-alexnet-test")
+        convolution_output_vgg_a_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/vgg-a.cc")] + gtest_objects,
+                "convolution-output-vgg-a-test")
+        convolution_output_overfeat_fast_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/overfeat-fast.cc")] + gtest_objects,
+                "convolution-output-overfeat-fast-test")
         config.phony("convolution-output-test",
-            ["convolution-output-smoketest", "convolution-output-alexnet-test", "convolution-output-vgg-a-test", "convolution-output-overfeat-fast-test"])
+            [convolution_output_smoke_test, convolution_output_alexnet_test, convolution_output_vgg_a_test, convolution_output_overfeat_fast_test])
 
-        convolution_input_gradient_smoke_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("convolution-input-gradient/smoke.cc")] + gtest_objects,
-                "convolution-input-gradient-smoketest", libs=unittest_libs)
-        convolution_input_gradient_alexnet_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("convolution-input-gradient/alexnet.cc")] + gtest_objects,
-                "convolution-input-gradient-alexnet-test", libs=unittest_libs)
-        convolution_input_gradient_vgg_a_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("convolution-input-gradient/vgg-a.cc")] + gtest_objects,
-                "convolution-input-gradient-vgg-a-test", libs=unittest_libs)
-        convolution_input_gradient_overfeat_fast_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("convolution-input-gradient/overfeat-fast.cc")] + gtest_objects,
-                "convolution-input-gradient-overfeat-fast-test", libs=unittest_libs)
-        config.run(convolution_input_gradient_smoke_test_binary, "convolution-input-gradient-smoketest")
-        config.run(convolution_input_gradient_alexnet_test_binary, "convolution-input-gradient-alexnet-test")
-        config.run(convolution_input_gradient_vgg_a_test_binary, "convolution-input-gradient-vgg-a-test")
-        config.run(convolution_input_gradient_overfeat_fast_test_binary, "convolution-input-gradient-overfeat-fast-test")
+        convolution_input_gradient_smoke_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-input-gradient/smoke.cc")] + gtest_objects,
+                "convolution-input-gradient-smoketest")
+        convolution_input_gradient_alexnet_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-input-gradient/alexnet.cc")] + gtest_objects,
+                "convolution-input-gradient-alexnet-test")
+        convolution_input_gradient_vgg_a_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-input-gradient/vgg-a.cc")] + gtest_objects,
+                "convolution-input-gradient-vgg-a-test")
+        convolution_input_gradient_overfeat_fast_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-input-gradient/overfeat-fast.cc")] + gtest_objects,
+                "convolution-input-gradient-overfeat-fast-test")
         config.phony("convolution-input-gradient-test",
-            ["convolution-input-gradient-smoketest", "convolution-input-gradient-alexnet-test", "convolution-input-gradient-vgg-a-test", "convolution-input-gradient-overfeat-fast-test"])
+            [convolution_input_gradient_smoke_test, convolution_input_gradient_alexnet_test, convolution_input_gradient_vgg_a_test, convolution_input_gradient_overfeat_fast_test])
 
-        convolution_kernel_gradient_smoke_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("convolution-kernel-gradient/smoke.cc")] + gtest_objects,
-                "convolution-kernel-gradient-smoketest", libs=unittest_libs)
-        convolution_kernel_gradient_alexnet_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("convolution-kernel-gradient/alexnet.cc")] + gtest_objects,
-                "convolution-kernel-gradient-alexnet-test", libs=unittest_libs)
-        convolution_kernel_gradient_vgg_a_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("convolution-kernel-gradient/vgg-a.cc")] + gtest_objects,
-                "convolution-kernel-gradient-vgg-a-test", libs=unittest_libs)
-        convolution_kernel_gradient_overfeat_fast_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("convolution-kernel-gradient/overfeat-fast.cc")] + gtest_objects,
-                "convolution-kernel-gradient-overfeat-fast-test", libs=unittest_libs)
-        config.run(convolution_kernel_gradient_smoke_test_binary, "convolution-kernel-gradient-smoketest")
-        config.run(convolution_kernel_gradient_alexnet_test_binary, "convolution-kernel-gradient-alexnet-test")
-        config.run(convolution_kernel_gradient_vgg_a_test_binary, "convolution-kernel-gradient-vgg-a-test")
-        config.run(convolution_kernel_gradient_overfeat_fast_test_binary, "convolution-kernel-gradient-overfeat-fast-test")
+        convolution_kernel_gradient_smoke_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-kernel-gradient/smoke.cc")] + gtest_objects,
+                "convolution-kernel-gradient-smoketest")
+        convolution_kernel_gradient_alexnet_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-kernel-gradient/alexnet.cc")] + gtest_objects,
+                "convolution-kernel-gradient-alexnet-test")
+        convolution_kernel_gradient_vgg_a_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-kernel-gradient/vgg-a.cc")] + gtest_objects,
+                "convolution-kernel-gradient-vgg-a-test")
+        convolution_kernel_gradient_overfeat_fast_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-kernel-gradient/overfeat-fast.cc")] + gtest_objects,
+                "convolution-kernel-gradient-overfeat-fast-test")
         config.phony("convolution-kernel-gradient-test",
-            ["convolution-kernel-gradient-smoketest", "convolution-kernel-gradient-alexnet-test", "convolution-kernel-gradient-vgg-a-test", "convolution-kernel-gradient-overfeat-fast-test"])
+            [convolution_kernel_gradient_smoke_test, convolution_kernel_gradient_alexnet_test, convolution_kernel_gradient_vgg_a_test, convolution_kernel_gradient_overfeat_fast_test])
 
-        convolution_inference_smoke_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("convolution-inference/smoke.cc")] + gtest_objects,
-                "convolution-inference-smoketest", libs=unittest_libs)
-        convolution_inference_alexnet_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("convolution-inference/alexnet.cc")] + gtest_objects,
-                "convolution-inference-alexnet-test", libs=unittest_libs)
-        convolution_inference_vgg_a_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("convolution-inference/vgg-a.cc")] + gtest_objects,
-                "convolution-inference-vgg-a-test", libs=unittest_libs)
-        convolution_inference_overfeat_fast_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("convolution-inference/overfeat-fast.cc")] + gtest_objects,
-                "convolution-inference-overfeat-fast-test", libs=unittest_libs)
-        config.run(convolution_inference_smoke_test_binary, "convolution-inference-smoketest")
-        config.run(convolution_inference_alexnet_test_binary, "convolution-inference-alexnet-test")
-        config.run(convolution_inference_vgg_a_test_binary, "convolution-inference-vgg-a-test")
-        config.run(convolution_inference_overfeat_fast_test_binary, "convolution-inference-overfeat-fast-test")
+        convolution_inference_smoke_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-inference/smoke.cc")] + gtest_objects,
+                "convolution-inference-smoketest")
+        convolution_inference_alexnet_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-inference/alexnet.cc")] + gtest_objects,
+                "convolution-inference-alexnet-test")
+        convolution_inference_vgg_a_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-inference/vgg-a.cc")] + gtest_objects,
+                "convolution-inference-vgg-a-test")
+        convolution_inference_overfeat_fast_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-inference/overfeat-fast.cc")] + gtest_objects,
+                "convolution-inference-overfeat-fast-test")
         config.phony("convolution-inference-test",
-            ["convolution-inference-smoketest", "convolution-inference-alexnet-test", "convolution-inference-vgg-a-test", "convolution-inference-overfeat-fast-test"])
+            [convolution_inference_smoke_test, convolution_inference_alexnet_test, convolution_inference_vgg_a_test, convolution_inference_overfeat_fast_test])
 
-        fully_connected_output_smoke_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("fully-connected-output/smoke.cc")] + gtest_objects,
-                "fully-connected-output-smoketest", libs=unittest_libs)
-        fully_connected_output_alexnet_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("fully-connected-output/alexnet.cc")] + gtest_objects,
-                "fully-connected-output-alexnet-test", libs=unittest_libs)
-        fully_connected_output_vgg_a_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("fully-connected-output/vgg-a.cc")] + gtest_objects,
-                "fully-connected-output-vgg-a-test", libs=unittest_libs)
-        fully_connected_output_overfeat_fast_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("fully-connected-output/overfeat-fast.cc")] + gtest_objects,
-                "fully-connected-output-overfeat-fast-test", libs=unittest_libs)
-        config.run(fully_connected_output_smoke_test_binary, "fully-connected-output-smoketest")
-        config.run(fully_connected_output_alexnet_test_binary, "fully-connected-output-alexnet-test")
-        config.run(fully_connected_output_vgg_a_test_binary, "fully-connected-output-vgg-a-test")
-        config.run(fully_connected_output_overfeat_fast_test_binary, "fully-connected-output-overfeat-fast-test")
+        fully_connected_output_smoke_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("fully-connected-output/smoke.cc")] + gtest_objects,
+                "fully-connected-output-smoketest")
+        fully_connected_output_alexnet_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("fully-connected-output/alexnet.cc")] + gtest_objects,
+                "fully-connected-output-alexnet-test")
+        fully_connected_output_vgg_a_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("fully-connected-output/vgg-a.cc")] + gtest_objects,
+                "fully-connected-output-vgg-a-test")
+        fully_connected_output_overfeat_fast_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("fully-connected-output/overfeat-fast.cc")] + gtest_objects,
+                "fully-connected-output-overfeat-fast-test")
         config.phony("fully-connected-output-test",
-            ["fully-connected-output-smoketest", "fully-connected-output-alexnet-test", "fully-connected-output-vgg-a-test", "fully-connected-output-overfeat-fast-test"])
+            [fully_connected_output_smoke_test, fully_connected_output_alexnet_test, fully_connected_output_vgg_a_test, fully_connected_output_overfeat_fast_test])
 
-        fully_connected_inference_alexnet_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("fully-connected-inference/alexnet.cc")] + gtest_objects, "fully-connected-inference-alexnet-test", libs=unittest_libs)
-        fully_connected_inference_vgg_a_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("fully-connected-inference/vgg-a.cc")] + gtest_objects, "fully-connected-inference-vgg-a-test", libs=unittest_libs)
-        fully_connected_inference_overfeat_fast_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("fully-connected-inference/overfeat-fast.cc")] + gtest_objects, "fully-connected-inference-overfeat-fast-test", libs=unittest_libs)
-        config.run(fully_connected_inference_alexnet_test_binary, "fully-connected-inference-alexnet-test")
-        config.run(fully_connected_inference_vgg_a_test_binary, "fully-connected-inference-vgg-a-test")
-        config.run(fully_connected_inference_overfeat_fast_test_binary, "fully-connected-inference-overfeat-fast-test")
+        fully_connected_inference_alexnet_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("fully-connected-inference/alexnet.cc")] + gtest_objects,
+                "fully-connected-inference-alexnet-test")
+        fully_connected_inference_vgg_a_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("fully-connected-inference/vgg-a.cc")] + gtest_objects,
+                "fully-connected-inference-vgg-a-test")
+        fully_connected_inference_overfeat_fast_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("fully-connected-inference/overfeat-fast.cc")] + gtest_objects,
+                "fully-connected-inference-overfeat-fast-test")
         config.phony("fully-connected-inference-test",
-            ["fully-connected-inference-alexnet-test", "fully-connected-inference-vgg-a-test", "fully-connected-inference-overfeat-fast-test"])
+            [fully_connected_inference_alexnet_test, fully_connected_inference_vgg_a_test, fully_connected_inference_overfeat_fast_test])
 
-        pooling_output_smoke_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("pooling-output/smoke.cc")] + gtest_objects, "pooling-output-smoketest", libs=unittest_libs)
-        pooling_output_vgg_a_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("pooling-output/vgg-a.cc")] + gtest_objects, "pooling-output-vgg-a-test", libs=unittest_libs)
-        pooling_output_overfeat_fast_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("pooling-output/overfeat-fast.cc")] + gtest_objects, "pooling-output-overfeat-fast", libs=unittest_libs)
-        config.run(pooling_output_smoke_test_binary, "pooling-output-smoketest")
-        config.run(pooling_output_vgg_a_test_binary, "pooling-output-vgg-a-test")
-        config.run(pooling_output_overfeat_fast_test_binary, "pooling-output-overfeat-fast-test")
+        pooling_output_smoke_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("pooling-output/smoke.cc")] + gtest_objects,
+                "pooling-output-smoketest")
+        pooling_output_vgg_a_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("pooling-output/vgg-a.cc")] + gtest_objects,
+                "pooling-output-vgg-a-test")
+        pooling_output_overfeat_fast_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("pooling-output/overfeat-fast.cc")] + gtest_objects,
+                "pooling-output-overfeat-fast")
         config.phony("pooling-output-test",
-            ["pooling-output-smoketest", "pooling-output-vgg-a-test", "pooling-output-overfeat-fast-test"])
+            [pooling_output_smoke_test, pooling_output_vgg_a_test, pooling_output_overfeat_fast_test])
 
-        relu_output_alexnet_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("relu-output/alexnet.cc")] + gtest_objects, "relu-output-alexnet-test", libs=unittest_libs)
-        relu_output_vgg_a_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("relu-output/vgg-a.cc")] + gtest_objects, "relu-output-vgg-a-test", libs=unittest_libs)
-        relu_output_overfeat_fast_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("relu-output/overfeat-fast.cc")] + gtest_objects, "relu-output-overfeat-fast-test", libs=unittest_libs)
-        config.run(relu_output_alexnet_test_binary, "relu-output-alexnet-test")
-        config.run(relu_output_vgg_a_test_binary, "relu-output-vgg-a-test")
-        config.run(relu_output_overfeat_fast_test_binary, "relu-output-overfeat-fast-test")
+        relu_output_alexnet_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("relu-output/alexnet.cc")] + gtest_objects,
+                "relu-output-alexnet-test")
+        relu_output_vgg_a_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("relu-output/vgg-a.cc")] + gtest_objects,
+                "relu-output-vgg-a-test")
+        relu_output_overfeat_fast_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("relu-output/overfeat-fast.cc")] + gtest_objects,
+                "relu-output-overfeat-fast-test")
         config.phony("relu-output-test",
-            ["relu-output-alexnet-test", "relu-output-vgg-a-test", "relu-output-overfeat-fast-test"])
+            [relu_output_alexnet_test, relu_output_vgg_a_test, relu_output_overfeat_fast_test])
 
-        relu_input_gradient_alexnet_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("relu-input-gradient/alexnet.cc")] + gtest_objects, "relu-input-gradient-alexnet-test", libs=unittest_libs)
-        relu_input_gradient_vgg_a_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("relu-input-gradient/vgg-a.cc")] + gtest_objects, "relu-input-gradient-vgg-a-test", libs=unittest_libs)
-        relu_input_gradient_overfeat_fast_test_binary = \
-            config.cxxld(nnpack_objects + reference_layer_objects + [config.cxx("relu-input-gradient/overfeat-fast.cc")] + gtest_objects, "relu-input-gradient-overfeat-fast-test", libs=unittest_libs)
-        config.run(relu_input_gradient_alexnet_test_binary, "relu-input-gradient-alexnet-test")
-        config.run(relu_input_gradient_vgg_a_test_binary, "relu-input-gradient-vgg-a-test")
-        config.run(relu_input_gradient_overfeat_fast_test_binary, "relu-input-gradient-overfeat-fast-test")
+        relu_input_gradient_alexnet_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("relu-input-gradient/alexnet.cc")] + gtest_objects,
+                "relu-input-gradient-alexnet-test")
+        relu_input_gradient_vgg_a_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("relu-input-gradient/vgg-a.cc")] + gtest_objects,
+                "relu-input-gradient-vgg-a-test")
+        relu_input_gradient_overfeat_fast_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("relu-input-gradient/overfeat-fast.cc")] + gtest_objects,
+                "relu-input-gradient-overfeat-fast-test")
         config.phony("relu-input-gradient-test",
-            ["relu-input-gradient-alexnet-test", "relu-input-gradient-vgg-a-test", "relu-input-gradient-overfeat-fast-test"])
-
-        config.writer.default([
-            fourier_reference_test_binary,
-            convolution_output_smoke_test_binary, convolution_output_alexnet_test_binary, convolution_output_vgg_a_test_binary, convolution_output_overfeat_fast_test_binary,
-            convolution_input_gradient_smoke_test_binary, convolution_input_gradient_alexnet_test_binary, convolution_input_gradient_vgg_a_test_binary, convolution_input_gradient_overfeat_fast_test_binary,
-            convolution_kernel_gradient_smoke_test_binary, convolution_kernel_gradient_alexnet_test_binary, convolution_kernel_gradient_vgg_a_test_binary, convolution_kernel_gradient_overfeat_fast_test_binary,
-            convolution_inference_smoke_test_binary, convolution_inference_alexnet_test_binary, convolution_inference_vgg_a_test_binary, convolution_inference_overfeat_fast_test_binary,
-            fully_connected_output_smoke_test_binary, fully_connected_output_alexnet_test_binary, fully_connected_output_vgg_a_test_binary, fully_connected_output_overfeat_fast_test_binary,
-            fully_connected_inference_alexnet_test_binary, fully_connected_inference_vgg_a_test_binary, fully_connected_inference_overfeat_fast_test_binary,
-            pooling_output_smoke_test_binary, pooling_output_vgg_a_test_binary, pooling_output_overfeat_fast_test_binary,
-            relu_output_alexnet_test_binary, relu_output_vgg_a_test_binary, relu_output_overfeat_fast_test_binary,
-            relu_input_gradient_alexnet_test_binary, relu_input_gradient_vgg_a_test_binary, relu_input_gradient_overfeat_fast_test_binary])
+            [relu_input_gradient_alexnet_test, relu_input_gradient_vgg_a_test, relu_input_gradient_overfeat_fast_test])
 
         config.phony("test", [
             "convolution-output-test", "convolution-input-gradient-test", "convolution-kernel-gradient-test", "convolution-inference-test",
@@ -627,9 +621,9 @@ def main():
             "pooling-output-test",
             "relu-output-test", "relu-input-gradient-test"])
         config.phony("smoketest", [
-            "convolution-output-smoketest", "convolution-input-gradient-smoketest", "convolution-kernel-gradient-smoketest", "convolution-inference-smoketest",
-            "fully-connected-output-smoketest",
-            "pooling-output-smoketest"])
+            convolution_output_smoke_test, convolution_input_gradient_smoke_test, convolution_kernel_gradient_smoke_test, convolution_inference_smoke_test,
+            fully_connected_output_smoke_test,
+            pooling_output_smoke_test])
 
     # Build benchmarks
     config.source_dir = os.path.join(root_dir, "bench")
@@ -652,46 +646,46 @@ def main():
         extra_lib_dirs.append("/opt/intel/mkl/lib/intel64")
         extra_libs = ["mkl_intel_lp64", "mkl_core", "mkl_sequential", "m"]
         extra_ldflags.append("-Wl,--no-as-needed")
-    transform_bench_binary = config.ccld([config.cc("transform.c", extra_cflags=extra_cflags)] + nnpack_objects + bench_support_objects, "transform-bench",
+    transform_bench_binary = config.ccld_executable([config.cc("transform.c", extra_cflags=extra_cflags)] + nnpack_objects + bench_support_objects, "transform-bench",
         lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
     config.phony("transform-bench", transform_bench_binary)
     config.default(transform_bench_binary)
 
-    convolution_bench_binary = config.ccld([config.cc("convolution.c")] + nnpack_objects + bench_support_objects,
+    convolution_bench_binary = config.ccld_executable([config.cc("convolution.c")] + nnpack_objects + bench_support_objects,
         "convolution-benchmark", libs=["m"])
     config.phony("convolution-bench", convolution_bench_binary)
-    fully_connected_bench_binary = config.ccld([config.cc("fully-connected.c")] + nnpack_objects + bench_support_objects,
+    fully_connected_bench_binary = config.ccld_executable([config.cc("fully-connected.c")] + nnpack_objects + bench_support_objects,
         "fully-connected-benchmark", libs=["m"])
     config.phony("fully-connected-bench", fully_connected_bench_binary)
-    pooling_bench_binary = config.ccld([config.cc("pooling.c")] + nnpack_objects + bench_support_objects,
+    pooling_bench_binary = config.ccld_executable([config.cc("pooling.c")] + nnpack_objects + bench_support_objects,
         "pooling-benchmark", libs=["m"])
     config.phony("pooling-bench", pooling_bench_binary)
-    relu_bench_binary = config.ccld([config.cc("relu.c")] + nnpack_objects + bench_support_objects,
+    relu_bench_binary = config.ccld_executable([config.cc("relu.c")] + nnpack_objects + bench_support_objects,
         "relu-benchmark", libs=["m"])
     config.phony("relu-bench", relu_bench_binary)
     config.default([convolution_bench_binary, fully_connected_bench_binary, pooling_bench_binary, relu_bench_binary])
 
     if config.host.startswith("x86_64-") and not options.use_psimd:
-        ugemm_bench_binary = config.ccld([config.cc("ugemm.c")] + arch_nnpack_objects + bench_support_objects, "ugemm-bench", libs=["m"])
+        ugemm_bench_binary = config.ccld_executable([config.cc("ugemm.c")] + arch_nnpack_objects + bench_support_objects, "ugemm-bench", libs=["m"])
         if options.use_mkl:
             extra_cflags = ["-DUSE_MKL", "-I/opt/intel/mkl/include", "-pthread"]
             extra_lib_dirs = ["/opt/intel/mkl/lib/intel64"]
             extra_libs = ["mkl_intel_lp64", "mkl_core", "mkl_gnu_thread", "m", "pthread"]
             extra_ldflags = ["-Wl,--no-as-needed", "-pthread", "-fopenmp"]
-            mkl_gemm_bench_binary = config.ccld([config.cc("gemm.c", "mkl-gemm.o", extra_cflags=extra_cflags)] + bench_support_objects, "mkl-gemm-bench", lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
+            mkl_gemm_bench_binary = config.ccld_executable([config.cc("gemm.c", "mkl-gemm.o", extra_cflags=extra_cflags)] + bench_support_objects, "mkl-gemm-bench", lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
             config.default(mkl_gemm_bench_binary)
         if options.use_openblas:
             extra_cflags = ["-DUSE_OPENBLAS", "-I/opt/OpenBLAS/include", "-pthread"]
             extra_lib_dirs = ["/opt/OpenBLAS/lib"]
             extra_libs = ["openblas", "m", "pthread"]
             extra_ldflags = []
-            openblas_gemm_bench_binary = config.ccld([config.cc("gemm.c", "openblas-gemm.o", extra_cflags=extra_cflags)] + bench_support_objects, "openblas-gemm-bench", lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
+            openblas_gemm_bench_binary = config.ccld_executable([config.cc("gemm.c", "openblas-gemm.o", extra_cflags=extra_cflags)] + bench_support_objects, "openblas-gemm-bench", lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
             config.default(openblas_gemm_bench_binary)
         if options.use_blis:
             extra_cflags = ["-DUSE_BLIS", "-I/opt/BLIS/include", "-pthread", "-fopenmp"]
             extra_libs = ["m", "pthread"]
             extra_ldflags = ["-fopenmp"]
-            blis_gemm_bench_binary = config.ccld([config.cc("gemm.c", "blis-gemm.o", extra_cflags=extra_cflags), "/opt/BLIS/lib/libblis.a"] + bench_support_objects, "blis-gemm-bench", lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
+            blis_gemm_bench_binary = config.ccld_executable([config.cc("gemm.c", "blis-gemm.o", extra_cflags=extra_cflags), "/opt/BLIS/lib/libblis.a"] + bench_support_objects, "blis-gemm-bench", lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
             config.default(blis_gemm_bench_binary)
         config.default(ugemm_bench_binary)
 
