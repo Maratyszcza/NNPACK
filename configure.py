@@ -390,6 +390,7 @@ def main():
             config.cc("psimd/blas/s4c2gemmcb.c"),
             config.cc("psimd/blas/c4gemmca.c"),
             config.cc("psimd/blas/s4c2gemmca.c"),
+            config.cc("psimd/blas/sdotxf.c"),
         ]
 
     reference_layer_objects = [

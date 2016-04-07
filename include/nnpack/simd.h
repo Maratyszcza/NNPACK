@@ -81,6 +81,11 @@ static inline v4f v4f_signblend(v4f x, v4f a, v4f b) {
 	return (v4f) ((mask & ((v4i) a)) | (~mask & ((v4i) b)));
 }
 
+static inline float v4f_reduce_sum(v4f v) {
+	v = v + __builtin_shufflevector(v, v, 2, 3, -1, -1);
+	return v[0] + v[1];
+}
+
 static inline void v4f_swap(v4f a[restrict static 1], v4f b[restrict static 1]) {
     const v4f new_a = *b;
     const v4f new_b = *a;

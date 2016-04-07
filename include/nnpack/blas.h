@@ -121,6 +121,15 @@ void nnp_sdotxf6__avx2(const float* x, const float* y, size_t stride_y, float* s
 void nnp_sdotxf7__avx2(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
 void nnp_sdotxf8__avx2(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
 
+void nnp_sdotxf1__psimd(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
+void nnp_sdotxf2__psimd(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
+void nnp_sdotxf3__psimd(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
+void nnp_sdotxf4__psimd(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
+void nnp_sdotxf5__psimd(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
+void nnp_sdotxf6__psimd(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
+void nnp_sdotxf7__psimd(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
+void nnp_sdotxf8__psimd(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

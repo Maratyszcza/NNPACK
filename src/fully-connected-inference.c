@@ -65,6 +65,15 @@ enum nnp_status nnp_fully_connected_inference(
 			[5] = nnp_sdotxf6__avx2,
 			[6] = nnp_sdotxf7__avx2,
 			[7] = nnp_sdotxf8__avx2,
+#elif NNP_ARCH_PSIMD
+			[0] = nnp_sdotxf1__psimd,
+			[1] = nnp_sdotxf2__psimd,
+			[2] = nnp_sdotxf3__psimd,
+			[3] = nnp_sdotxf4__psimd,
+			[4] = nnp_sdotxf5__psimd,
+			[5] = nnp_sdotxf6__psimd,
+			[6] = nnp_sdotxf7__psimd,
+			[7] = nnp_sdotxf8__psimd,
 #endif
 		},
 	};
