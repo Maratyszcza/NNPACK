@@ -390,6 +390,8 @@ def main():
             config.cc("psimd/blas/s4c2gemmcb.c"),
             config.cc("psimd/blas/c4gemmca.c"),
             config.cc("psimd/blas/s4c2gemmca.c"),
+            # BLAS microkernels
+            config.cc("psimd/blas/sgemm.c"),
             config.cc("psimd/blas/sdotxf.c"),
         ]
 
@@ -496,6 +498,10 @@ def main():
             winograd_psimd_test = \
                 config.unittest(arch_winograd_stub_objects + nnpack_objects + [config.cxx("winograd/psimd.cc")] + gtest_objects,
                     "winograd-psimd-test")
+
+            sgemm_psimd_test = \
+                config.unittest(nnpack_objects + [config.cxx("sgemm/psimd.cc")] + gtest_objects,
+                    "sgemm-psimd-test")
 
         convolution_output_smoke_test = \
             config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/smoke.cc")] + gtest_objects,

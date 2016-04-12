@@ -13,6 +13,9 @@ typedef void (*nnp_full_sgemm_function)(uint32_t, uint32_t, size_t, size_t, cons
 void nnp_sgemm_only_4x24__fma3(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 void nnp_sgemm_upto_4x24__fma3(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 
+void nnp_sgemm_only_4x8__psimd(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+void nnp_sgemm_upto_4x8__psimd(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+
 typedef void (*nnp_tuple_gemm_function)(size_t, size_t, const float*, const float*, float*, size_t, size_t);
 
 void nnp_c8gemm1x1__fma3(size_t k, size_t k_tile, const float* a, const float* b, float* c, size_t row_stride, size_t column_stride);

@@ -185,6 +185,9 @@ static void compute_fully_connected_output(
 #if NNP_ARCH_X86_64
 		.fast_sgemm_function = nnp_sgemm_only_4x24__fma3,
 		.full_sgemm_function = nnp_sgemm_upto_4x24__fma3,
+#elif NNP_ARCH_PSIMD
+		.fast_sgemm_function = nnp_sgemm_only_4x8__psimd,
+		.full_sgemm_function = nnp_sgemm_upto_4x8__psimd,
 #endif
 	};
 	for (size_t input_channels_block_start = 0; input_channels_block_start < input_channels; input_channels_block_start += input_channels_block_max) {
@@ -249,7 +252,11 @@ enum nnp_status nnp_fully_connected_output(
 
 	const size_t simd_width = nnp_hwinfo.simd_width;
 	const size_t batch_subblock_max = 4;
+#if NNP_ARCH_X86_64
 	const size_t output_channels_subblock_max = 24;
+#elif NNP_ARCH_PSIMD
+	const size_t output_channels_subblock_max = 8;
+#endif
 
 	const size_t input_channels_block_max = cache_elements_l1 / (batch_subblock_max + output_channels_subblock_max);
 	const size_t batch_block_max = round_down(cache_elements_l3 / input_channels_block_max, batch_subblock_max);
