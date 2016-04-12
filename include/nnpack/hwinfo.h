@@ -55,7 +55,8 @@ struct transforms {
 struct sgemm {
 	uint32_t mr;
 	uint32_t nr;
-	nnp_sgemm_function functions;
+	nnp_fast_sgemm_function fast_sgemm_function;
+	nnp_full_sgemm_function full_sgemm_function;
 };
 
 struct sxgemm {

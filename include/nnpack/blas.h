@@ -7,19 +7,11 @@
 extern "C" {
 #endif
 
-typedef void (*nnp_sgemm_function)(size_t, size_t, const float*, const float*, float*, size_t, const void*);
-void nnp_sgemm_1x8__fma3(size_t k, size_t k_block_number, const float* a, const float* b, float* c, size_t row_stride_c, const void* col_mask);
-void nnp_sgemm_2x8__fma3(size_t k, size_t k_block_number, const float* a, const float* b, float* c, size_t row_stride_c, const void* col_mask);
-void nnp_sgemm_3x8__fma3(size_t k, size_t k_block_number, const float* a, const float* b, float* c, size_t row_stride_c, const void* col_mask);
-void nnp_sgemm_4x8__fma3(size_t k, size_t k_block_number, const float* a, const float* b, float* c, size_t row_stride_c, const void* col_mask);
-void nnp_sgemm_1x16__fma3(size_t k, size_t k_block_number, const float* a, const float* b, float* c, size_t row_stride_c, const void* col_mask);
-void nnp_sgemm_2x16__fma3(size_t k, size_t k_block_number, const float* a, const float* b, float* c, size_t row_stride_c, const void* col_mask);
-void nnp_sgemm_3x16__fma3(size_t k, size_t k_block_number, const float* a, const float* b, float* c, size_t row_stride_c, const void* col_mask);
-void nnp_sgemm_4x16__fma3(size_t k, size_t k_block_number, const float* a, const float* b, float* c, size_t row_stride_c, const void* col_mask);
-void nnp_sgemm_1x24__fma3(size_t k, size_t k_block_number, const float* a, const float* b, float* c, size_t row_stride_c, const void* col_mask);
-void nnp_sgemm_2x24__fma3(size_t k, size_t k_block_number, const float* a, const float* b, float* c, size_t row_stride_c, const void* col_mask);
-void nnp_sgemm_3x24__fma3(size_t k, size_t k_block_number, const float* a, const float* b, float* c, size_t row_stride_c, const void* col_mask);
-void nnp_sgemm_4x24__fma3(size_t k, size_t k_block_number, const float* a, const float* b, float* c, size_t row_stride_c, const void* col_mask);
+typedef void (*nnp_fast_sgemm_function)(size_t, size_t, const float*, const float*, float*, size_t);
+typedef void (*nnp_full_sgemm_function)(uint32_t, uint32_t, size_t, size_t, const float*, const float*, float*, size_t);
+
+void nnp_sgemm_only_4x24__fma3(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+void nnp_sgemm_upto_4x24__fma3(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 
 typedef void (*nnp_tuple_gemm_function)(size_t, size_t, const float*, const float*, float*, size_t, size_t);
 

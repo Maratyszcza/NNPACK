@@ -484,6 +484,10 @@ def main():
                 config.unittest(arch_winograd_stub_objects + nnpack_objects + [config.cxx("winograd/x86_64-fma3.cc")] + gtest_objects,
                     "winograd-x86_64-fma3-test")
 
+            sgemm_x86_64_fma3_test = \
+                config.unittest(nnpack_objects + [config.cxx("sgemm/x86_64-fma3.cc")] + gtest_objects,
+                    "sgemm-x86_64-fma3-test")
+
         if config.host.startswith("pnacl-") or options.use_psimd:
             fourier_psimd_test = \
                 config.unittest(reference_fft_objects + arch_fft_stub_objects + [config.cxx("fourier/psimd.cc")] + gtest_objects,

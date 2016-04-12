@@ -31,7 +31,7 @@ static void pack_input_matrix(
 	const size_t input_channels     = context->input_channels;
 	const size_t outer_subblock_max = context->outer_subblock_max;
 
-	const size_t outer_block_stride = round_up(outer_block_size, outer_subblock_max);
+	const size_t outer_block_stride = outer_block_size;
 
 	for (size_t outer_subblock_start = 0; outer_subblock_start < outer_block_size; outer_subblock_start += outer_subblock_max) {
 		const size_t outer_subblock_size = min(outer_block_size - outer_subblock_start, outer_subblock_max);
@@ -55,6 +55,7 @@ struct NNP_CACHE_ALIGN kernel_packing_context {
 	size_t outer_subblock_max;
 	size_t input_channels_block_start;
 	size_t input_channels_block_size;
+	size_t simd_width;
 };
 
 static void pack_kernel_matrix(
@@ -67,8 +68,9 @@ static void pack_kernel_matrix(
 	const size_t outer_subblock_max        = context->outer_subblock_max;
 	const size_t input_channels_block_start = context->input_channels_block_start;
 	const size_t input_channels_block_size  = context->input_channels_block_size;
+	const size_t simd_width                = context->simd_width;
 
-	const size_t outer_block_stride = round_up(outer_block_size, outer_subblock_max);
+	const size_t outer_block_stride = round_up(outer_block_size, simd_width);
 
 	for (size_t outer_subblock_start = 0; outer_subblock_start < outer_block_size; outer_subblock_start += outer_subblock_max) {
 		const size_t outer_subblock_size = min(outer_block_size - outer_subblock_start, outer_subblock_max);
@@ -98,7 +100,8 @@ struct NNP_CACHE_ALIGN matrix_multiplication_context {
 	size_t batch_subblock_max;
 	size_t simd_width;
 	const uint32_t* column_mask;
-	nnp_sgemm_function sgemm_functions[4][3];
+	nnp_fast_sgemm_function fast_sgemm_function;
+	nnp_full_sgemm_function full_sgemm_function;
 };
 
 static void compute_matrix_multiplication(
@@ -119,20 +122,21 @@ static void compute_matrix_multiplication(
 	const size_t batch_subblock_max          = context->batch_subblock_max;
 	const size_t simd_width                  = context->simd_width;
 	const uint32_t* column_mask              = context->column_mask;
-	const nnp_sgemm_function* sgemms         = context->sgemm_functions[batch_subblock_size - 1];
+	const nnp_fast_sgemm_function fast_sgemm = context->fast_sgemm_function;
+	const nnp_full_sgemm_function full_sgemm = context->full_sgemm_function;
 
 	const size_t batch_block_stride          = round_up(batch_block_size, batch_subblock_max);
 	const size_t output_channels_block_stride = round_up(output_channels_block_size, output_channels_subblock_max);
 
 	for (size_t output_channels_subblock_start = 0; output_channels_subblock_start < output_channels_block_size; output_channels_subblock_start += output_channels_subblock_max) {
 		const size_t output_channels_subblock_size = min(output_channels_block_size - output_channels_subblock_start, output_channels_subblock_max);
-		sgemms[(output_channels_subblock_size - 1) / simd_width](
+		full_sgemm(
+			batch_block_size, output_channels_subblock_size,
 			input_channels_block_size, input_channels_block_start,
 			&input[batch_block_start * input_channels + input_channels_block_start * batch_block_stride + batch_subblock_start * input_channels_block_size],
 			&kernel[(output_channels_block_start + output_channels_subblock_start) * input_channels_block_size],
 			&output[(batch_block_start + batch_subblock_start) * output_channels + (output_channels_block_start + output_channels_subblock_start)],
-			output_channels,
-			column_mask + ((-output_channels_subblock_size) & (simd_width - 1)));
+			output_channels);
 	}
 }
 
@@ -176,30 +180,10 @@ static void compute_fully_connected_output(
 		.batch_subblock_max = batch_subblock_max,
 		.simd_width = simd_width,
 		.column_mask = column_mask,
-		.sgemm_functions = {
 #if NNP_ARCH_X86_64
-			[0] = {
-				[0] = nnp_sgemm_1x8__fma3,
-				[1] = nnp_sgemm_1x16__fma3,
-				[2] = nnp_sgemm_1x24__fma3,
-			},
-			[1] = {
-				[0] = nnp_sgemm_2x8__fma3,
-				[1] = nnp_sgemm_2x16__fma3,
-				[2] = nnp_sgemm_2x24__fma3,
-			},
-			[2] = {
-				[0] = nnp_sgemm_3x8__fma3,
-				[1] = nnp_sgemm_3x16__fma3,
-				[2] = nnp_sgemm_3x24__fma3,
-			},
-			[3] = {
-				[0] = nnp_sgemm_4x8__fma3,
-				[1] = nnp_sgemm_4x16__fma3,
-				[2] = nnp_sgemm_4x24__fma3,
-			},
+		.fast_sgemm_function = nnp_sgemm_only_4x24__fma3,
+		.full_sgemm_function = nnp_sgemm_upto_4x24__fma3,
 #endif
-		},
 	};
 	for (size_t input_channels_block_start = 0; input_channels_block_start < input_channels; input_channels_block_start += input_channels_block_max) {
 		const size_t input_channels_block_size = min(input_channels - input_channels_block_start, input_channels_block_max);
@@ -212,6 +196,7 @@ static void compute_fully_connected_output(
 			.outer_subblock_max = output_channels_subblock_max,
 			.input_channels_block_start = input_channels_block_start,
 			.input_channels_block_size = input_channels_block_size,
+			.simd_width = simd_width,
 		};
 		pthreadpool_compute_1d_tiled(threadpool,
 			(pthreadpool_function_1d_tiled_t) pack_kernel_matrix,
