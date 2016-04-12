@@ -189,8 +189,8 @@ with Function("nnp_sgemm_upto_{mr}x{nr}__fma3".format(mr=mr, nr=nr),
 			# Important: ymm_c_mn is the content of the register and [reg_c_mn] is the address of the tuple of C
 			ymm_temp = YMMRegister()
 			VMASKMOVPS(ymm_temp, ymm_mask, [reg_c_mn])
-			VADDPS(ymm_c[m][n], ymm_c[m][n], ymm_temp)
-			VMASKMOVPS([reg_c_mn], ymm_mask, ymm_c[m][n])
+			VADDPS(ymm_c_mn, ymm_c_mn, ymm_temp)
+			VMASKMOVPS([reg_c_mn], ymm_mask, ymm_c_mn)
 
 			if m + 1 != mr:
 				CMP(reg_mr, m + 1)

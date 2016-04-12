@@ -31,15 +31,13 @@ static void pack_input_matrix(
 	const size_t input_channels     = context->input_channels;
 	const size_t outer_subblock_max = context->outer_subblock_max;
 
-	const size_t outer_block_stride = outer_block_size;
-
 	for (size_t outer_subblock_start = 0; outer_subblock_start < outer_block_size; outer_subblock_start += outer_subblock_max) {
 		const size_t outer_subblock_size = min(outer_block_size - outer_subblock_start, outer_subblock_max);
 		for (size_t input_channels_block_offset = 0; input_channels_block_offset < input_channels_block_size; input_channels_block_offset += 1) {
 			const size_t input_channel = input_channels_block_start + input_channels_block_offset;
 			for (size_t outer_subblock_offset = 0; outer_subblock_offset < outer_subblock_size; outer_subblock_offset += 1) {
 				const size_t index = (outer_block_start + outer_subblock_start + outer_subblock_offset) * input_channels + input_channel;
-				const size_t packed_index = outer_block_start * input_channels + input_channels_block_start * outer_block_stride +
+				const size_t packed_index = outer_block_start * input_channels + input_channels_block_start * outer_block_size +
 					outer_subblock_start * input_channels_block_size + input_channels_block_offset * outer_subblock_max + outer_subblock_offset;
 				packed_matrix[packed_index] = matrix[index];
 			}
@@ -51,35 +49,34 @@ struct NNP_CACHE_ALIGN kernel_packing_context {
 	const float* matrix;
 	float* packed_matrix;
 
+	size_t simd_width;
 	size_t input_channels;
 	size_t outer_subblock_max;
 	size_t input_channels_block_start;
 	size_t input_channels_block_size;
-	size_t simd_width;
 };
 
 static void pack_kernel_matrix(
 	const struct kernel_packing_context context[restrict static 1],
 	size_t outer_block_start, size_t outer_block_size)
 {
-	const float* matrix                    = context->matrix;
-	float* packed_matrix                   = context->packed_matrix;
-	const size_t input_channels            = context->input_channels;
-	const size_t outer_subblock_max        = context->outer_subblock_max;
+	const float* matrix                     = context->matrix;
+	float* packed_matrix                    = context->packed_matrix;
+	const size_t input_channels             = context->input_channels;
+	const size_t outer_subblock_max         = context->outer_subblock_max;
 	const size_t input_channels_block_start = context->input_channels_block_start;
 	const size_t input_channels_block_size  = context->input_channels_block_size;
-	const size_t simd_width                = context->simd_width;
-
-	const size_t outer_block_stride = round_up(outer_block_size, simd_width);
+	const size_t simd_width                 = context->simd_width;
 
 	for (size_t outer_subblock_start = 0; outer_subblock_start < outer_block_size; outer_subblock_start += outer_subblock_max) {
-		const size_t outer_subblock_size = min(outer_block_size - outer_subblock_start, outer_subblock_max);
+		const size_t outer_subblock_size   = min(outer_block_size - outer_subblock_start, outer_subblock_max);
+		const size_t outer_subblock_stride = round_up(outer_subblock_size, simd_width);
 		for (size_t input_channels_block_offset = 0; input_channels_block_offset < input_channels_block_size; input_channels_block_offset += 1) {
 			const size_t input_channel = input_channels_block_start + input_channels_block_offset;
 			for (size_t outer_subblock_offset = 0; outer_subblock_offset < outer_subblock_size; outer_subblock_offset += 1) {
 				const size_t index = (outer_block_start + outer_subblock_start + outer_subblock_offset) * input_channels + input_channel;
 				const size_t packed_index = (outer_block_start + outer_subblock_start) * input_channels_block_size +
-					input_channels_block_offset * outer_subblock_max + outer_subblock_offset;
+					input_channels_block_offset * outer_subblock_stride + outer_subblock_offset;
 				packed_matrix[packed_index] = matrix[index];
 			}
 		}
@@ -99,7 +96,6 @@ struct NNP_CACHE_ALIGN matrix_multiplication_context {
 	size_t output_channels_subblock_max;
 	size_t batch_subblock_max;
 	size_t simd_width;
-	const uint32_t* column_mask;
 	nnp_fast_sgemm_function fast_sgemm_function;
 	nnp_full_sgemm_function full_sgemm_function;
 };
@@ -121,9 +117,8 @@ static void compute_matrix_multiplication(
 	const size_t output_channels_subblock_max = context->output_channels_subblock_max;
 	const size_t batch_subblock_max          = context->batch_subblock_max;
 	const size_t simd_width                  = context->simd_width;
-	const uint32_t* column_mask              = context->column_mask;
-	const nnp_fast_sgemm_function fast_sgemm = context->fast_sgemm_function;
 	const nnp_full_sgemm_function full_sgemm = context->full_sgemm_function;
+	// const nnp_sgemm_function* sgemms         = context->sgemm_functions[batch_subblock_size - 1];
 
 	const size_t batch_block_stride          = round_up(batch_block_size, batch_subblock_max);
 	const size_t output_channels_block_stride = round_up(output_channels_block_size, output_channels_subblock_max);
@@ -131,12 +126,19 @@ static void compute_matrix_multiplication(
 	for (size_t output_channels_subblock_start = 0; output_channels_subblock_start < output_channels_block_size; output_channels_subblock_start += output_channels_subblock_max) {
 		const size_t output_channels_subblock_size = min(output_channels_block_size - output_channels_subblock_start, output_channels_subblock_max);
 		full_sgemm(
-			batch_block_size, output_channels_subblock_size,
+			batch_subblock_size, output_channels_subblock_size,
 			input_channels_block_size, input_channels_block_start,
 			&input[batch_block_start * input_channels + input_channels_block_start * batch_block_stride + batch_subblock_start * input_channels_block_size],
 			&kernel[(output_channels_block_start + output_channels_subblock_start) * input_channels_block_size],
 			&output[(batch_block_start + batch_subblock_start) * output_channels + (output_channels_block_start + output_channels_subblock_start)],
 			output_channels);
+		// sgemms[(output_channels_subblock_size - 1) / simd_width](
+		// 	input_channels_block_size, input_channels_block_start,
+		// 	&input[batch_block_start * input_channels + input_channels_block_start * batch_block_stride + batch_subblock_start * input_channels_block_size],
+		// 	&kernel[(output_channels_block_start + output_channels_subblock_start) * input_channels_block_size],
+		// 	&output[(batch_block_start + batch_subblock_start) * output_channels + (output_channels_block_start + output_channels_subblock_start)],
+		// 	output_channels,
+		// 	column_mask + ((-output_channels_subblock_size) & (simd_width - 1)));
 	}
 }
 
@@ -169,7 +171,6 @@ static void compute_fully_connected_output(
 		batch_block_max, input_channels_block_max);
 	NNP_INPUT_TRANSFORM_END(profile)
 
-	NNP_SIMD_ALIGN const uint32_t column_mask[16] = { UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, 0, 0, 0, 0, 0, 0, 0, 0 };
 	struct matrix_multiplication_context matrix_multiplication_context = {
 		.input = packed_input,
 		.kernel = packed_kernel,
@@ -179,7 +180,6 @@ static void compute_fully_connected_output(
 		.output_channels_subblock_max = output_channels_subblock_max,
 		.batch_subblock_max = batch_subblock_max,
 		.simd_width = simd_width,
-		.column_mask = column_mask,
 #if NNP_ARCH_X86_64
 		.fast_sgemm_function = nnp_sgemm_only_4x24__fma3,
 		.full_sgemm_function = nnp_sgemm_upto_4x24__fma3,
@@ -192,11 +192,11 @@ static void compute_fully_connected_output(
 		struct kernel_packing_context kernel_packing_context = {
 			.matrix = kernel,
 			.packed_matrix = packed_kernel,
+			.simd_width = simd_width,
 			.input_channels = input_channels,
 			.outer_subblock_max = output_channels_subblock_max,
 			.input_channels_block_start = input_channels_block_start,
 			.input_channels_block_size = input_channels_block_size,
-			.simd_width = simd_width,
 		};
 		pthreadpool_compute_1d_tiled(threadpool,
 			(pthreadpool_function_1d_tiled_t) pack_kernel_matrix,
