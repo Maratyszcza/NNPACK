@@ -117,28 +117,30 @@ static void compute_matrix_multiplication(
 	const size_t output_channels_subblock_max = context->output_channels_subblock_max;
 	const size_t batch_subblock_max          = context->batch_subblock_max;
 	const size_t simd_width                  = context->simd_width;
+	const nnp_fast_sgemm_function fast_sgemm = context->fast_sgemm_function;
 	const nnp_full_sgemm_function full_sgemm = context->full_sgemm_function;
-	// const nnp_sgemm_function* sgemms         = context->sgemm_functions[batch_subblock_size - 1];
 
 	const size_t batch_block_stride          = round_up(batch_block_size, batch_subblock_max);
 	const size_t output_channels_block_stride = round_up(output_channels_block_size, output_channels_subblock_max);
 
 	for (size_t output_channels_subblock_start = 0; output_channels_subblock_start < output_channels_block_size; output_channels_subblock_start += output_channels_subblock_max) {
 		const size_t output_channels_subblock_size = min(output_channels_block_size - output_channels_subblock_start, output_channels_subblock_max);
-		full_sgemm(
-			batch_subblock_size, output_channels_subblock_size,
-			input_channels_block_size, input_channels_block_start,
-			&input[batch_block_start * input_channels + input_channels_block_start * batch_block_stride + batch_subblock_start * input_channels_block_size],
-			&kernel[(output_channels_block_start + output_channels_subblock_start) * input_channels_block_size],
-			&output[(batch_block_start + batch_subblock_start) * output_channels + (output_channels_block_start + output_channels_subblock_start)],
-			output_channels);
-		// sgemms[(output_channels_subblock_size - 1) / simd_width](
-		// 	input_channels_block_size, input_channels_block_start,
-		// 	&input[batch_block_start * input_channels + input_channels_block_start * batch_block_stride + batch_subblock_start * input_channels_block_size],
-		// 	&kernel[(output_channels_block_start + output_channels_subblock_start) * input_channels_block_size],
-		// 	&output[(batch_block_start + batch_subblock_start) * output_channels + (output_channels_block_start + output_channels_subblock_start)],
-		// 	output_channels,
-		// 	column_mask + ((-output_channels_subblock_size) & (simd_width - 1)));
+		if ((batch_subblock_size == 4) && (output_channels_subblock_size == 24)) {
+			fast_sgemm(
+				input_channels_block_size, input_channels_block_start,
+				&input[batch_block_start * input_channels + input_channels_block_start * batch_block_stride + batch_subblock_start * input_channels_block_size],
+				&kernel[(output_channels_block_start + output_channels_subblock_start) * input_channels_block_size],
+				&output[(batch_block_start + batch_subblock_start) * output_channels + (output_channels_block_start + output_channels_subblock_start)],
+				output_channels);
+		} else {
+			full_sgemm(
+				batch_subblock_size, output_channels_subblock_size,
+				input_channels_block_size, input_channels_block_start,
+				&input[batch_block_start * input_channels + input_channels_block_start * batch_block_stride + batch_subblock_start * input_channels_block_size],
+				&kernel[(output_channels_block_start + output_channels_subblock_start) * input_channels_block_size],
+				&output[(batch_block_start + batch_subblock_start) * output_channels + (output_channels_block_start + output_channels_subblock_start)],
+				output_channels);
+		}
 	}
 }
 
