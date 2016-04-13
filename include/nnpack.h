@@ -419,6 +419,17 @@ enum nnp_status nnp_max_pooling_output(
 	float output[],
 	pthreadpool_t threadpool);
 
+/**
+ * @brief Computes output of a softmax layer for an input matrix.
+ * @details This function targets both prediction and training of convolutional neural networks and performs forward
+ *          propagation. Is is optimized for both large and small minibatch sizes.
+ * @param batch_size The number of vectors on the input and output of the softmax layer.
+ * @param channels   The number of channels (AKA features, dimensions) in both input and output vectors.
+ * @param[in]  input  A 2D matrix input[batch_size][channels].
+ * @param[out] output A 2D matrix output[batch_size][channels].
+ * @param threadpool A thread pool for parallelization of the computation.
+ *                   If threadpool is NULL, the computation would run on the caller thread without parallelization.
+ */
 enum nnp_status nnp_softmax_output(
     size_t batch_size,
     size_t channels,

@@ -135,3 +135,25 @@ static inline enum nnp_status validate_relu_arguments(
 
 	return nnp_status_success;
 }
+
+static inline enum nnp_status validate_softmax_arguments(
+	size_t batch_size, size_t channels)
+{
+	if (!nnp_hwinfo.initialized) {
+		return nnp_status_uninitialized;
+	}
+
+	if (!nnp_hwinfo.supported) {
+		return nnp_status_unsupported_hardware;
+	}
+
+	if (batch_size == 0) {
+		return nnp_status_invalid_batch_size;
+	}
+
+	if (channels == 0) {
+		return nnp_status_invalid_channels;
+	}
+
+	return nnp_status_success;
+}

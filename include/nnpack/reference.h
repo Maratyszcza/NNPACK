@@ -95,6 +95,13 @@ void nnp_relu_input_gradient__reference(
 	float negative_slope,
 	pthreadpool_t threadpool);
 
+void nnp_softmax_output__reference(
+    size_t batch_size,
+    size_t channels,
+    const float input[],
+    float output[],
+    pthreadpool_t threadpool);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

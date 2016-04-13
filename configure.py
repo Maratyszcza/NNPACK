@@ -351,6 +351,7 @@ def main():
         config.cc("fully-connected-output.c"),
         config.cc("fully-connected-inference.c"),
         config.cc("pooling-output.c"),
+        config.cc("softmax-output.c"),
         config.cc("relu-output.c"),
         config.cc("relu-input-gradient.c"),
     ]
@@ -363,7 +364,7 @@ def main():
             config.peachpy("x86_64-fma/2d-wt-8x8-3x3.py"),
             # Pooling
             config.peachpy("x86_64-fma/max-pooling.py"),
-            # ReLU
+            # ReLU and Softmax
             config.peachpy("x86_64-fma/relu.py"),
             # FFT block accumulation
             config.peachpy("x86_64-fma/fft-block-mac.py"),
@@ -380,8 +381,9 @@ def main():
             config.cc("psimd/2d-fourier-8x8.c"),
             config.cc("psimd/2d-fourier-16x16.c"),
             config.cc("psimd/2d-wt-8x8-3x3.c"),
-            # ReLU
+            # ReLU and Softmax
             config.cc("psimd/relu.c"),
+            config.cc("psimd/softmax.c"),
             # Tuple GEMM
             config.cc("psimd/blas/s4gemm.c"),
             config.cc("psimd/blas/c4gemm.c"),
@@ -424,6 +426,13 @@ def main():
             config.peachpy("x86_64-fma/fft-real.py"),
             config.peachpy("x86_64-fma/ifft-real.py"),
         ]
+
+        arch_winograd_stub_objects = [
+            config.peachpy("x86_64-fma/winograd-f6k3.py"),
+        ]
+
+        arch_math_stub_objects = [
+        ]
     else:
         arch_fft_stub_objects = [
             config.cc("psimd/fft-aos.c"),
@@ -432,13 +441,12 @@ def main():
             config.cc("psimd/fft-dualreal.c"),
         ]
 
-    if config.host.startswith("x86_64-") and not options.use_psimd:
-        arch_winograd_stub_objects = [
-            config.peachpy("x86_64-fma/winograd-f6k3.py"),
-        ]
-    else:
         arch_winograd_stub_objects = [
             config.cc("psimd/winograd-f6k3.c"),
+        ]
+
+        arch_math_stub_objects = [
+            config.cc("psimd/exp.c"),
         ]
 
     fft_objects = reference_fft_objects + arch_fft_stub_objects
@@ -625,6 +633,10 @@ def main():
                 "relu-input-gradient-overfeat-fast-test")
         config.phony("relu-input-gradient-test",
             [relu_input_gradient_alexnet_test, relu_input_gradient_vgg_a_test, relu_input_gradient_overfeat_fast_test])
+
+        softmax_output_imagenet_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("softmax-output/imagenet.cc")] + gtest_objects,
+                "softmax-output-imagenet-test")
 
         config.phony("test", [
             "convolution-output-test", "convolution-input-gradient-test", "convolution-kernel-gradient-test", "convolution-inference-test",
