@@ -21,25 +21,45 @@ static inline float vector_sum_expf_minus_c(size_t length, const float array[res
     return sum;
 }
 
-static inline void vector_softmax(size_t length, const float input[restrict static length], float output[restrict static length]) {
-    const float max_element = vector_maxf(length, input);
-    const float sum_exp = vector_sum_expf_minus_c(length, input, max_element);
+struct softmax_output_context {
+    size_t channels;
+    const float* input;
+    float* output;
+};
+
+static void compute_softmax_output(
+    const struct softmax_output_context context[restrict static 1],
+    size_t sample)
+{
+    const size_t channels = context->channels;
+
+    const float (*input)[channels] =
+        (const float(*)[channels]) context->input;
+    float (*output)[channels] =
+        (float(*)[channels]) context->output;
+
+    const float max_element = vector_maxf(channels, input[sample]);
+    const float sum_exp = vector_sum_expf_minus_c(channels, input[sample], max_element);
     const float norm_factor = 1.0f / sum_exp;
-    for (size_t i = 0; i < length; i++) {
-        output[i] = norm_factor * expf(input[i] - max_element);
+    for (size_t channel = 0; channel < channels; channel++) {
+        output[sample][channel] = norm_factor * expf(input[sample][channel] - max_element);
     }
 }
 
 void nnp_softmax_output__reference(
     size_t batch_size,
     size_t channels,
-    const float* input_pointer,
-    float* output_pointer,
+    const float* input,
+    float* output,
     pthreadpool_t threadpool)
 {
-    const float (*input)[channels] = (const float(*)[channels]) input_pointer;
-    float (*output)[channels] = (float(*)[channels]) output_pointer;
-    for (size_t sample = 0; sample < batch_size; sample++) {
-        vector_softmax(channels, input[sample], output[sample]);
-    }
+    struct softmax_output_context softmax_output_context = {
+        .channels = channels,
+        .input = input,
+        .output = output,
+    };
+    pthreadpool_compute_1d(threadpool,
+        (pthreadpool_function_1d_t) compute_softmax_output,
+        &softmax_output_context,
+        batch_size);
 }
