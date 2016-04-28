@@ -22,15 +22,32 @@ class Configuration:
         # Variables
         self.build, self.host = Configuration.detect_system(options.host)
 
+        self.build_static = options.build_static
+        self.build_shared = options.build_shared and self.host in ["x86_64-linux-gnu", "x86_64-osx"]
         if self.host == "pnacl-nacl-newlib":
             self.object_ext = ".bc"
+            self.pic_object_ext = None
             self.executable_ext = ".pexe"
+            self.static_library_ext = ".a"
+            self.dynamic_library_ext = None
         elif self.host in ["x86_64-nacl-glibc", "x86_64-nacl-newlib"]:
             self.object_ext = ".o"
+            self.pic_object_ext = None
             self.executable_ext = ".nexe"
+            self.static_library_ext = ".a"
+            self.dynamic_library_ext = None
+        elif self.host == "x86_64-osx":
+            self.object_ext = ".o"
+            self.pic_object_ext = ".lo"
+            self.executable_ext = ""
+            self.static_library_ext = ".a"
+            self.dynamic_library_ext = ".dylib"
         else:
             self.object_ext = ".o"
+            self.pic_object_ext = ".lo"
             self.executable_ext = ""
+            self.static_library_ext = ".a"
+            self.dynamic_library_ext = ".so"
 
         cflags = ["-g", "-std=gnu11"]
         if options.use_psimd or self.host == "pnacl-nacl-newlib":
@@ -162,13 +179,15 @@ class Configuration:
             return build, build
 
 
-    def _compile(self, rule, source_file, object_file, header_file=None, extra_flags={}):
+    def _compile(self, rule, source_file, object_file, pic=False, header_file=None, extra_flags={}):
         if not os.path.isabs(source_file):
             source_file = os.path.join(self.source_dir, source_file)
         if object_file is None:
-            object_file = os.path.join(self.build_dir, os.path.relpath(source_file, self.source_dir)) + self.object_ext
+            object_file = os.path.join(self.build_dir, os.path.relpath(source_file, self.source_dir)) + (self.object_ext if not pic else self.pic_object_ext)
         elif not os.path.isabs(object_file):
-            object_file = os.path.join(self.build_dir, object_file)
+            object_file = os.path.join(self.build_dir, object_file) + (self.object_ext if not pic else self.pic_object_ext)
+        else:
+            object_file = object_file + (self.object_ext if not pic else self.pic_object_ext)
         variables = {
             "descpath": os.path.relpath(source_file, self.source_dir)
         }
@@ -190,15 +209,24 @@ class Configuration:
 
 
     def cc(self, source_file, object_file=None, extra_cflags=[]):
-        return self._compile("cc", source_file, object_file, extra_flags={"cflags": extra_cflags})
+        if self.build_static:
+            nonpic_object_file = self._compile("cc", source_file, object_file, extra_flags={"cflags": extra_cflags})
+        else:
+            nonpic_object_file = None
+        if self.build_shared:
+            pic_object_file = self._compile("cc", source_file, object_file, pic=True, extra_flags={"cflags": extra_cflags})
+        else:
+            pic_object_file = None
+        return nonpic_object_file, pic_object_file
 
 
     def peachpy(self, source_file, object_file=None, header_file=None):
-        return self._compile("peachpy", source_file, object_file)
+        object_file = self._compile("peachpy", source_file, object_file)
+        return object_file, object_file
 
 
     def cxx(self, source_file, object_file=None, extra_cxxflags=[]):
-        return self._compile("cxx", source_file, object_file, extra_flags={"cxxflags": extra_cxxflags})
+        return self._compile("cxx", source_file, object_file, extra_flags={"cxxflags": extra_cxxflags}), None
 
 
     def _link(self, rule, object_files, binary_file, binary_dir, lib_dirs, libs, extra_ldflags):
@@ -220,6 +248,7 @@ class Configuration:
 
 
     def ccld_executable(self, object_files, binary_file, lib_dirs=[], libs=[], extra_ldflags=[]):
+        object_files = [nonpic_object for nonpic_object, pic_object in object_files]
         if self.host == "pnacl-nacl-newlib":
             bytecode_file = self._link("ccld", object_files, binary_file + ".bc", self.build_dir, lib_dirs, libs, extra_ldflags)
             portable_file = self.finalize(bytecode_file, os.path.join(self.build_dir, binary_file + ".pexe"))
@@ -228,8 +257,32 @@ class Configuration:
         else:
             return self._link("ccld", object_files, binary_file, self.artifact_dir, lib_dirs, libs, extra_ldflags)
 
+    @staticmethod
+    def _prepare_library_path(library_file, library_dir, library_ext):
+        library_basename = os.path.basename(library_file)
+        if not library_basename.startswith("lib"):
+            library_basename = "lib" + library_basename
+        if not library_basename.endswith(library_ext):
+            library_basename = library_basename + library_ext
+        library_file = os.path.join(os.path.dirname(library_file), library_basename)
+        if not os.path.isabs(library_file):
+            library_file = os.path.join(library_dir, library_file)
+        return library_file
+
+    def ccld_library(self, object_files, library_file, lib_dirs=[], libs=[], extra_ldflags=[]):
+        assert self.dynamic_library_ext is not None
+
+        library_file = Configuration._prepare_library_path(library_file, self.artifact_dir, self.dynamic_library_ext)
+
+        if self.host == "x86_64-osx":
+            extra_ldflags.insert(0, "-dynamiclib")
+        else:
+            extra_ldflags.insert(0, "-shared")
+        return self._link("ccld", object_files, library_file, self.artifact_dir, lib_dirs, libs, extra_ldflags)
+
     def module(self, object_files, module_file, lib_dirs=[], libs=[], extra_ldflags=[]):
         assert self.host in ["pnacl-nacl-newlib", "x86_64-nacl-newlib", "x86_64-nacl-glibc"]
+        object_files = [nonpic_object for nonpic_object, pic_object in object_files]
 
         if self.host == "pnacl-nacl-newlib":
             bytecode_file = self._link("ccld", object_files, module_file + ".bc", self.build_dir, lib_dirs, libs, extra_ldflags)
@@ -239,6 +292,7 @@ class Configuration:
             return self._link("ccld", object_files, module_file + ".x86_64.nexe", self.artifact_dir, lib_dirs, libs, extra_ldflags)
 
     def unittest(self, object_files, test_name):
+        object_files = [nonpic_object for nonpic_object, pic_object in object_files]
         if self.host == "pnacl-nacl-newlib":
             bytecode_file = self._link("cxxld", object_files, test_name + ".bc", self.build_dir, lib_dirs=[], libs=["m"], extra_ldflags=[])
             native_file = self.translate(bytecode_file, os.path.join(self.artifact_dir, test_name + ".nexe"))
@@ -274,20 +328,23 @@ class Configuration:
         return portable_file
 
     def lib(self, object_files, library_file):
-        library_basename = os.path.basename(library_file)
-        if not library_basename.startswith("lib"):
-            library_basename = "lib" + library_basename
-        if not library_basename.endswith(".a"):
-            library_basename = library_basename + ".a"
-        library_file = os.path.join(os.path.dirname(library_file), library_basename)
-        if not os.path.isabs(library_file):
-            library_file = os.path.join(self.artifact_dir, library_file)
+        library_file = Configuration._prepare_library_path(library_file, self.artifact_dir, self.static_library_ext)
         variables = {
             "descpath": os.path.relpath(library_file, self.artifact_dir)
         }
         self.writer.build(library_file, "lib", object_files, variables=variables)
         return library_file
 
+    def library(self, object_files, library_file):
+        if self.build_static:
+            static_library_file = self.lib([nonpic_object for nonpic_object, pic_object in object_files], library_file)
+        else:
+            static_library_file = None
+        if self.build_shared:
+            shared_library_file = self.ccld_library([pic_object for nonpic_object, pic_object in object_files], library_file)
+        else:
+            shared_library_file = None
+        return static_library_file, shared_library_file
 
     def run(self, executable_file, target, args=""):
         variables = {
@@ -298,9 +355,11 @@ class Configuration:
         self.writer.build(target, "run", executable_file, variables=variables)
 
     def default(self, targets):
-        if not isinstance(targets, list):
+        if isinstance(targets, tuple):
+            targets = list(targets)
+        elif not isinstance(targets, list):
             targets = [targets]
-        self.writer.default([ninja_syntax.escape(target).replace(":", "$:") for target in targets])
+        self.writer.default([ninja_syntax.escape(target).replace(":", "$:") for target in targets if target is not None])
 
     def phony(self, target, deps):
         self.writer.build(target, "phony", deps)
@@ -312,6 +371,8 @@ parser.add_argument("--enable-mkl", dest="use_mkl", action="store_true")
 parser.add_argument("--enable-openblas", dest="use_openblas", action="store_true")
 parser.add_argument("--enable-blis", dest="use_blis", action="store_true")
 parser.add_argument("--enable-psimd", dest="use_psimd", action="store_true")
+parser.add_argument("--disable-static", dest="build_static", action="store_false", default=True)
+parser.add_argument("--enable-shared", dest="build_shared", action="store_true", default=False)
 
 
 def main():
@@ -459,7 +520,7 @@ def main():
 
     # Build the library
     config.artifact_dir = os.path.join(root_dir, "lib")
-    config.default(config.lib(nnpack_objects, "nnpack"))
+    config.default(config.library(nnpack_objects, "nnpack"))
 
     # Build Native Client module
     if config.host in ["x86_64-nacl-glibc", "x86_64-nacl-newlib", "pnacl-nacl-newlib"]:
@@ -695,20 +756,20 @@ def main():
             extra_lib_dirs = ["/opt/intel/mkl/lib/intel64"]
             extra_libs = ["mkl_intel_lp64", "mkl_core", "mkl_gnu_thread", "m", "pthread"]
             extra_ldflags = ["-Wl,--no-as-needed", "-pthread", "-fopenmp"]
-            mkl_gemm_bench_binary = config.ccld_executable([config.cc("gemm.c", "mkl-gemm.o", extra_cflags=extra_cflags)] + bench_support_objects, "mkl-gemm-bench", lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
+            mkl_gemm_bench_binary = config.ccld_executable([config.cc("gemm.c", "mkl-gemm", extra_cflags=extra_cflags)] + bench_support_objects, "mkl-gemm-bench", lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
             config.default(mkl_gemm_bench_binary)
         if options.use_openblas:
             extra_cflags = ["-DUSE_OPENBLAS", "-I/opt/OpenBLAS/include", "-pthread"]
             extra_lib_dirs = ["/opt/OpenBLAS/lib"]
             extra_libs = ["openblas", "m", "pthread"]
             extra_ldflags = []
-            openblas_gemm_bench_binary = config.ccld_executable([config.cc("gemm.c", "openblas-gemm.o", extra_cflags=extra_cflags)] + bench_support_objects, "openblas-gemm-bench", lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
+            openblas_gemm_bench_binary = config.ccld_executable([config.cc("gemm.c", "openblas-gemm", extra_cflags=extra_cflags)] + bench_support_objects, "openblas-gemm-bench", lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
             config.default(openblas_gemm_bench_binary)
         if options.use_blis:
             extra_cflags = ["-DUSE_BLIS", "-I/opt/BLIS/include", "-pthread", "-fopenmp"]
             extra_libs = ["m", "pthread"]
             extra_ldflags = ["-fopenmp"]
-            blis_gemm_bench_binary = config.ccld_executable([config.cc("gemm.c", "blis-gemm.o", extra_cflags=extra_cflags), "/opt/BLIS/lib/libblis.a"] + bench_support_objects, "blis-gemm-bench", lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
+            blis_gemm_bench_binary = config.ccld_executable([config.cc("gemm.c", "blis-gemm", extra_cflags=extra_cflags), "/opt/BLIS/lib/libblis.a"] + bench_support_objects, "blis-gemm-bench", lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
             config.default(blis_gemm_bench_binary)
         config.default(ugemm_bench_binary)
 
