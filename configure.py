@@ -179,7 +179,7 @@ class Configuration:
             return build, build
 
 
-    def _compile(self, rule, source_file, object_file, pic=False, header_file=None, extra_flags={}):
+    def _compile(self, rule, source_file, object_file, pic=False, header_file=None, extra_flags=None):
         if not os.path.isabs(source_file):
             source_file = os.path.join(self.source_dir, source_file)
         if object_file is None:
@@ -191,6 +191,13 @@ class Configuration:
         variables = {
             "descpath": os.path.relpath(source_file, self.source_dir)
         }
+        if extra_flags is None:
+            extra_flags = {}
+        if pic:
+            if "cflags" in extra_flags:
+                extra_flags["cflags"] = ["-fPIC"] + extra_flags["cflags"]
+            else:
+                extra_flags["cflags"] = ["-fPIC"]
         for key, values in extra_flags.items():
             if values:
                 if isinstance(values, str):
