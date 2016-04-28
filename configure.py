@@ -284,7 +284,7 @@ class Configuration:
         if self.host == "x86_64-osx":
             extra_ldflags.insert(0, "-dynamiclib")
         else:
-            extra_ldflags.insert(0, "-shared")
+            extra_ldflags = ["-shared", "-Wl,-soname," + os.path.basename(library_file)] + extra_ldflags
         return self._link("ccld", object_files, library_file, self.artifact_dir, lib_dirs, libs, extra_ldflags)
 
     def module(self, object_files, module_file, lib_dirs=[], libs=[], extra_ldflags=[]):
