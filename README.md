@@ -93,6 +93,8 @@ python ./configure.py
 ninja
 ```
 
+You can optionally add `--enable-shared` argument for `configure.py` to additionally build NNPACK as shared library (**.so** or **.dylib**). Shared library configuration is not recommended unless you need to load and use NNPACK through some FFI interface (e.g. Lua's `ffi` module or Python's `ctypes` module).
+
 ### Cross-compilation for Native Client
 
 - Download and setup Native Client SDK
@@ -107,7 +109,7 @@ After configuration type `ninja -t targets` and choose the unit test that matche
 
 ## Packaging
 
-Binary packages need to distribute two files: `include/nnpack.h` and `lib/libnnpack.a`.
+Binary packages need to distribute two files: `include/nnpack.h` and `lib/libnnpack.a` (also `lib/libnnpack.so` or `lib/libnnpack.dylib` if NNPACK was configured with shared library support).
 
 ## Bindings
 
