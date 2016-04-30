@@ -228,7 +228,7 @@ static void compute_convolution_kernel_gradient(
 	struct nnp_profile* profile)
 {
 	const size_t tuple_count = (transform_tile.height * transform_tile.width) / tuple_elements;
-	const float (*input)[input_channels][input_size.height][input_size.height] =
+	const float (*input)[input_channels][input_size.height][input_size.width] =
 		(const float(*)[input_channels][input_size.height][input_size.width]) input_pointer;
 	const float (*grad_output)[output_channels][output_size.height][output_size.width] =
 		(const float(*)[output_channels][output_size.height][output_size.width]) grad_output_pointer;
