@@ -230,6 +230,51 @@ TEST(WT8x8, few_output_channels) {
 	}
 }
 
+/*
+ * Test that the implementation can handle non-square kernels
+ */
+
+TEST(FT8x8, non_square_kernel) {
+	ConvolutionTester tester;
+	tester.inputSize(8, 8)
+		.kernelSize(2, 3)
+		.errorLimit(1.0e-5)
+		.testOutput(nnp_convolution_algorithm_ft8x8);
+}
+
+TEST(FT16x16, non_square_kernel) {
+	ConvolutionTester tester;
+	tester.inputSize(16, 16)
+		.kernelSize(2, 3)
+		.errorLimit(1.0e-5)
+		.testOutput(nnp_convolution_algorithm_ft16x16);
+}
+
+/*
+ * Test that the implementation can handle non-square images
+ */
+
+TEST(FT8x8, non_square_image) {
+	ConvolutionTester tester;
+	tester.inputSize(9, 10)
+		.errorLimit(1.0e-5)
+		.testOutput(nnp_convolution_algorithm_ft8x8);
+}
+
+TEST(FT16x16, non_square_image) {
+	ConvolutionTester tester;
+	tester.inputSize(17, 19)
+		.errorLimit(1.0e-5)
+		.testOutput(nnp_convolution_algorithm_ft16x16);
+}
+
+TEST(WT8x8, non_square_image) {
+	ConvolutionTester tester;
+	tester.inputSize(9, 10)
+		.errorLimit(1.0e-3)
+		.testOutput(nnp_convolution_algorithm_wt8x8);
+}
+
 int main(int argc, char* argv[]) {
 	const enum nnp_status init_status = nnp_initialize();
 	assert(init_status == nnp_status_success);

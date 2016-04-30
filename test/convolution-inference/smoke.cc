@@ -382,6 +382,88 @@ TEST(WT8x8_REUSE, few_output_channels) {
 	}
 }
 
+/*
+ * Test that the implementation can handle non-square kernels
+ */
+
+TEST(FT8x8_RECOMPUTE, non_square_kernel) {
+	ConvolutionTester tester;
+	tester.inputSize(8, 8)
+		.kernelSize(2, 3)
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_ft8x8, nnp_convolution_kernel_transform_strategy_recompute);
+}
+
+TEST(FT8x8_REUSE, non_square_kernel) {
+	ConvolutionTester tester;
+	tester.inputSize(8, 8)
+		.kernelSize(2, 3)
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_ft8x8, nnp_convolution_kernel_transform_strategy_reuse);
+}
+
+TEST(FT16x16_RECOMPUTE, non_square_kernel) {
+	ConvolutionTester tester;
+	tester.inputSize(16, 16)
+		.kernelSize(2, 3)
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_ft16x16, nnp_convolution_kernel_transform_strategy_recompute);
+}
+
+TEST(FT16x16_REUSE, non_square_kernel) {
+	ConvolutionTester tester;
+	tester.inputSize(16, 16)
+		.kernelSize(2, 3)
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_ft16x16, nnp_convolution_kernel_transform_strategy_reuse);
+}
+
+/*
+ * Test that the implementation can handle non-square images
+ */
+
+TEST(FT8x8_RECOMPUTE, non_square_image) {
+	ConvolutionTester tester;
+	tester.inputSize(9, 10)
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_ft8x8, nnp_convolution_kernel_transform_strategy_recompute);
+}
+
+TEST(FT8x8_REUSE, non_square_image) {
+	ConvolutionTester tester;
+	tester.inputSize(9, 10)
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_ft8x8, nnp_convolution_kernel_transform_strategy_reuse);
+}
+
+TEST(FT16x16_RECOMPUTE, non_square_image) {
+	ConvolutionTester tester;
+	tester.inputSize(17, 19)
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_ft16x16, nnp_convolution_kernel_transform_strategy_recompute);
+}
+
+TEST(FT16x16_REUSE, non_square_image) {
+	ConvolutionTester tester;
+	tester.inputSize(17, 19)
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_ft16x16, nnp_convolution_kernel_transform_strategy_reuse);
+}
+
+TEST(WT8x8_RECOMPUTE, non_square_image) {
+	ConvolutionTester tester;
+	tester.inputSize(9, 10)
+		.errorLimit(1.0e-3)
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_recompute);
+}
+
+TEST(WT8x8_REUSE, non_square_image) {
+	ConvolutionTester tester;
+	tester.inputSize(9, 10)
+		.errorLimit(1.0e-3)
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_kernel_transform_strategy_reuse);
+}
+
 int main(int argc, char* argv[]) {
 	const enum nnp_status init_status = nnp_initialize();
 	assert(init_status == nnp_status_success);
