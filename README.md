@@ -65,6 +65,8 @@ NNPACK is not intended to be directly used by machine learning researchers; inst
 - ReLU layer (with parametrized negative slope)
   - Forward propagation, both for training and inference, optionally in-place, (`nnp_relu_output`)
   - Backward input gradient update (`nnp_relu_input_gradient`)
+- Softmax layer
+  - Forward propagation, both for training and inference, optionally in-place (`nnp_softmax_output`)
 
 ## Building
 
