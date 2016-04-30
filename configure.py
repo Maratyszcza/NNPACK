@@ -434,6 +434,8 @@ def main():
             config.peachpy("x86_64-fma/max-pooling.py"),
             # ReLU and Softmax
             config.peachpy("x86_64-fma/relu.py"),
+            config.peachpy("x86_64-fma/softmax.py"),
+            config.cc("x86_64-fma/softmax.c"),
             # FFT block accumulation
             config.peachpy("x86_64-fma/fft-block-mac.py"),
             # Tuple GEMM

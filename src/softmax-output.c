@@ -66,7 +66,9 @@ enum nnp_status nnp_softmax_output(
     if (input == output) {
         /* In-place softmax */
         struct inplace_softmax_context inplace_softmax_context = {
-        #if NNP_ARCH_PSIMD
+        #if NNP_ARCH_X86_64
+            .softmax_function = nnp_inplace_softmax__avx2,
+        #elif NNP_ARCH_PSIMD
             .softmax_function = nnp_inplace_softmax__psimd,
         #endif
             .channels = channels,
@@ -79,7 +81,9 @@ enum nnp_status nnp_softmax_output(
     } else {
         /* Out-of-place softmax */
         struct outplace_softmax_context outplace_softmax_context = {
-        #if NNP_ARCH_PSIMD
+        #if NNP_ARCH_X86_64
+            .softmax_function = nnp_outplace_softmax__avx2,
+        #elif NNP_ARCH_PSIMD
             .softmax_function = nnp_outplace_softmax__psimd,
         #endif
             .channels = channels,
