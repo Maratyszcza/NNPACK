@@ -702,19 +702,26 @@ def main():
         config.phony("relu-input-gradient-test",
             [relu_input_gradient_alexnet_test, relu_input_gradient_vgg_a_test, relu_input_gradient_overfeat_fast_test])
 
+        softmax_output_smoke_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("softmax-output/smoke.cc")] + gtest_objects,
+                "softmax-output-smoketest")
         softmax_output_imagenet_test = \
             config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("softmax-output/imagenet.cc")] + gtest_objects,
                 "softmax-output-imagenet-test")
+        config.phony("softmax-output-test",
+            [softmax_output_smoke_test, softmax_output_imagenet_test])
 
         config.phony("test", [
             "convolution-output-test", "convolution-input-gradient-test", "convolution-kernel-gradient-test", "convolution-inference-test",
             "fully-connected-output-test", "fully-connected-inference-test",
             "pooling-output-test",
-            "relu-output-test", "relu-input-gradient-test"])
+            "relu-output-test", "relu-input-gradient-test",
+            "softmax-output-test"])
         config.phony("smoketest", [
             convolution_output_smoke_test, convolution_input_gradient_smoke_test, convolution_kernel_gradient_smoke_test, convolution_inference_smoke_test,
             fully_connected_output_smoke_test,
-            pooling_output_smoke_test])
+            pooling_output_smoke_test,
+            softmax_output_smoke_test])
 
     # Build benchmarks
     config.source_dir = os.path.join(root_dir, "bench")
