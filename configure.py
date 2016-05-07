@@ -765,6 +765,11 @@ def main():
     config.phony("relu-bench", relu_bench_binary)
     config.default([convolution_bench_binary, fully_connected_bench_binary, pooling_bench_binary, relu_bench_binary])
 
+    vgg_bench_binary = config.ccld_executable([config.cc("vgg.c")] + nnpack_objects + bench_support_objects,
+        "vgg-benchmark", libs=["m"])
+    config.phony("vgg-bench", vgg_bench_binary)
+    config.default([vgg_bench_binary])
+
     if config.host.startswith("x86_64-") and not options.use_psimd:
         ugemm_bench_binary = config.ccld_executable([config.cc("ugemm.c")] + arch_nnpack_objects + bench_support_objects, "ugemm-bench", libs=["m"])
         if options.use_mkl:
