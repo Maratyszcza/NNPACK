@@ -24,6 +24,42 @@ struct NNP_CACHE_ALIGN pooling_context {
 	struct nnp_size pooling_stride;
 };
 
+static void compute_max_pooling_forward__generic(
+	const float *restrict input_pointer,
+	float *restrict output_pointer,
+	size_t input_height,
+	size_t input_width,
+	size_t padding_top,
+	size_t padding_left,
+	size_t output_height,
+	size_t output_width,
+	uint32_t stride_height,
+	uint32_t stride_width,
+	uint32_t pooling_height,
+	uint32_t pooling_width)
+{
+	const float (*input)[input_width] = (const float(*)[input_width]) input_pointer;
+	float (*output)[output_width] = (float(*)[output_width]) output_pointer;
+
+	for (size_t y = 0; y < output_height; y++) {
+		for (size_t x = 0; x < output_width; x++) {
+			float v = -__builtin_inff();
+			for (size_t i = 0; i < pooling_height; i++) {
+				const size_t s = y * stride_height + i - padding_top;
+				if (s < input_height) {
+					for (size_t j = 0; j < pooling_width; j++) {
+						const size_t t = x * pooling_width + j - padding_left;
+						if (t < input_width) {
+							v = maxf(input[s][t], v);
+						}
+					}
+				}
+			}
+			output[y][x] = v;
+		}
+	}
+}
+
 #if NNP_ARCH_X86_64
 static void compute_max_pooling_forward_2x2_2x2__avx2(
 	const float *restrict input_pointer,
@@ -134,26 +170,14 @@ enum nnp_status nnp_max_pooling_output(
 		.output_size = output_size,
 		.pooling_size = pooling_size,
 		.pooling_stride = pooling_stride,
+		.pooling_function = compute_max_pooling_forward__generic,
 	};
 
-	if ((pooling_stride.height != 2) || (pooling_stride.width != 2)) {
-		return nnp_status_unsupported_pooling_stride;
+	#if NNP_ARCH_X86_64
+	if ((pooling_stride.height == 2) && (pooling_stride.width == 2) && (pooling_size.height == 2) && (pooling_size.width == 2)) {
+		pooling_context.pooling_function = compute_max_pooling_forward_2x2_2x2__avx2;
 	}
-
-	if (pooling_size.width != pooling_size.height) {
-		return nnp_status_unsupported_pooling_size;
-	}
-	switch (pooling_size.width) {
-#if NNP_ARCH_X86_64
-		case 2:
-			pooling_context.pooling_function = compute_max_pooling_forward_2x2_2x2__avx2;
-			break;
-#endif
-		case 3:
-			return nnp_status_unsupported_pooling_size;
-		default:
-			return nnp_status_unsupported_pooling_size;
-	}
+	#endif
 
 	pthreadpool_compute_2d(threadpool,
 		(pthreadpool_function_2d_t) compute_pooling_output,
