@@ -60,7 +60,6 @@ NNPACK is not intended to be directly used by machine learning researchers; inst
   - Training-optimized forward propagation (`nnp_fully_connected_output`)
   - Inference-optimized forward propagation (`nnp_fully_connected_inference`)
 - Max pooling layer
-  - **Only 2x2 pooling is currently supported**
   - Forward propagation, both for training and inference, (`nnp_max_pooling_output`)
 - ReLU layer (with parametrized negative slope)
   - Forward propagation, both for training and inference, optionally in-place, (`nnp_relu_output`)
