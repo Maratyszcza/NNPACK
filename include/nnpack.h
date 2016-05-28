@@ -274,21 +274,6 @@ enum nnp_status nnp_convolution_kernel_gradient(
 	pthreadpool_t threadpool,
 	struct nnp_profile* profile);
 
-enum nnp_status nnp_convolution_kernel_update(
-	enum nnp_convolution_algorithm algorithm,
-	size_t batch_size,
-	size_t input_channels,
-	size_t output_channels,
-	struct nnp_size input_size,
-	struct nnp_padding input_padding,
-	struct nnp_size kernel_size,
-	const float input[],
-	const float grad_output[],
-	float kernel[],
-	float scale,
-	pthreadpool_t threadpool,
-	struct nnp_profile* profile);
-
 /**
  * @brief Computes output of a 2D convolutional layer for a single input image and a kernel tensor.
  * @details This function targets prediction with convolutional neural networks and performs forward propagation.
