@@ -76,11 +76,7 @@ enum nnp_status nnp_relu_input_gradient(
 	elements -= epilogue_elements;
 
 	struct relu_context relu_context = {
-	#if NNP_ARCH_X86_64
-		.relu_function = nnp_relu_backward__avx2,
-	#elif NNP_ARCH_PSIMD
-		.relu_function = nnp_relu_backward__psimd,
-	#endif
+		.relu_function = nnp_hwinfo.activations.outplace_grad_relu,
 		.grad_output = grad_output,
 		.input = input,
 		.grad_input = grad_input,

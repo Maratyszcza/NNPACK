@@ -281,6 +281,9 @@ static void init_hwinfo(void) {
 				nnp_hwinfo.blockmac.fourier8x8_mac_with_conj = nnp_ft8x8gemmc__fma3;
 				nnp_hwinfo.blockmac.fourier16x16_mac_with_conj = nnp_ft16x16gemmc__fma3;
 				nnp_hwinfo.blockmac.winograd8x8_mac = nnp_s8x8gemm__fma3;
+				nnp_hwinfo.activations.inplace_relu = nnp_inplace_relu_forward__avx2;
+				nnp_hwinfo.activations.outplace_relu = nnp_outplace_relu_forward__avx2;
+				nnp_hwinfo.activations.outplace_grad_relu = nnp_relu_backward__avx2;
 				nnp_hwinfo.supported = true;
 			}
 		#elif NNP_ARCH_PSIMD
@@ -305,6 +308,9 @@ static void init_hwinfo(void) {
 			nnp_hwinfo.blockmac.fourier8x8_mac_with_conj = nnp_ft8x8gemmc__psimd;
 			nnp_hwinfo.blockmac.fourier16x16_mac_with_conj = nnp_ft16x16gemmc__psimd;
 			nnp_hwinfo.blockmac.winograd8x8_mac = nnp_s8x8gemm__psimd;
+			nnp_hwinfo.activations.inplace_relu = nnp_inplace_relu_forward__psimd;
+			nnp_hwinfo.activations.outplace_relu = nnp_outplace_relu_forward__psimd;
+			nnp_hwinfo.activations.outplace_grad_relu = nnp_relu_backward__psimd;
 			nnp_hwinfo.supported = true;
 		#else
 			#error Unsupported host architecture

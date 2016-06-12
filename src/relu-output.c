@@ -87,11 +87,7 @@ enum nnp_status nnp_relu_output(
 	if (input == output) {
 		/* In-place transformation */
 		struct inplace_relu_context inplace_relu_context = {
-		#if NNP_ARCH_X86_64
-			.relu_function = nnp_inplace_relu_forward__avx2,
-		#elif NNP_ARCH_PSIMD
-			.relu_function = nnp_inplace_relu_forward__psimd,
-		#endif
+			.relu_function = nnp_hwinfo.activations.inplace_relu,
 			.data = output,
 			.negative_slope = negative_slope,
 		};
@@ -103,11 +99,7 @@ enum nnp_status nnp_relu_output(
 	} else {
 		/* Out-of-place transformation */
 		struct outplace_relu_context outplace_relu_context = {
-		#if NNP_ARCH_X86_64
-			.relu_function = nnp_outplace_relu_forward__avx2,
-		#elif NNP_ARCH_PSIMD
-			.relu_function = nnp_outplace_relu_forward__psimd,
-		#endif
+			.relu_function = nnp_hwinfo.activations.outplace_relu,
 			.input = input,
 			.output = output,
 			.negative_slope = negative_slope,

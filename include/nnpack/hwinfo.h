@@ -6,6 +6,7 @@
 #include <nnpack/macros.h>
 #include <nnpack/transform.h>
 #include <nnpack/blas.h>
+#include <nnpack/relu.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -64,6 +65,12 @@ struct blockmac {
 	nnp_blockmac winograd8x8_mac;
 };
 
+struct activations {
+	nnp_inplace_relu_function inplace_relu;
+	nnp_outplace_relu_function outplace_relu;
+	nnp_gradient_relu_function outplace_grad_relu;
+};
+
 struct sgemm {
 	uint32_t mr;
 	uint32_t nr;
@@ -98,6 +105,7 @@ struct hardware_info {
 
 	struct transforms transforms;
 	struct blockmac blockmac;
+	struct activations activations;
 	struct sgemm sgemm;
 	struct sxgemm sxgemm;
 	struct cxgemm cxgemm;
