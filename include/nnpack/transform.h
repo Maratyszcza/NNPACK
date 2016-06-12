@@ -9,6 +9,8 @@ extern "C" {
 
 typedef void (*nnp_transform_2d)(const float*, float*, size_t, size_t, uint32_t, uint32_t, uint32_t, uint32_t);
 typedef void (*nnp_transform_2d_with_bias)(const float*, float*, const float*, size_t, size_t, uint32_t, uint32_t);
+typedef void (*nnp_fourier_transform_2d_and_mac)(const float*, float*, const float*, size_t, uint32_t, uint32_t, uint32_t, uint32_t);
+typedef void (*nnp_kernel_winograd_transform_2d_and_mac)(const float*, float*, const float*, size_t);
 
 void nnp_fft8x8_and_store__avx2(const float t[], float f[], size_t stride_t, size_t stride_f, uint32_t row_count, uint32_t column_count, uint32_t row_offset, uint32_t column_offset);
 void nnp_fft8x8_and_stream__avx2(const float t[], float f[], size_t stride_t, size_t stride_f, uint32_t row_count, uint32_t column_count, uint32_t row_offset, uint32_t column_offset);
@@ -53,9 +55,15 @@ void nnp_owt8x8_3x3_with_bias__psimd(const float m[], float s[], const float bia
 
 /* Convolution */
 
+typedef void (*nnp_blockmac)(float*, const float*, const float*);
+
 void nnp_ft8x8gemmc__fma3(float acc[], const float x[], const float y[]);
 void nnp_ft16x16gemmc__fma3(float acc[], const float x[], const float y[]);
 void nnp_s8x8gemm__fma3(float acc[], const float x[], const float y[]);
+
+void nnp_ft8x8gemmc__psimd(float acc[], const float x[], const float y[]);
+void nnp_ft16x16gemmc__psimd(float acc[], const float x[], const float y[]);
+void nnp_s8x8gemm__psimd(float acc[], const float x[], const float y[]);
 
 #ifdef __cplusplus
 } /* extern "C" */

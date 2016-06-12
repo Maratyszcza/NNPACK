@@ -425,27 +425,15 @@ enum nnp_status nnp_convolution_kernel_gradient(
 	nnp_transform_2d grad_kernel_transform_function;
 	switch (algorithm) {
 		case nnp_convolution_algorithm_ft8x8:
-			#if NNP_ARCH_X86_64
-				input_transform_function = nnp_fft8x8_and_stream__avx2;
-				grad_output_transform_function = nnp_fft8x8_and_stream__avx2;
-				grad_kernel_transform_function = nnp_ifft8x8__avx2;
-			#elif NNP_ARCH_PSIMD
-				input_transform_function = nnp_fft8x8__psimd;
-				grad_output_transform_function = nnp_fft8x8__psimd;
-				grad_kernel_transform_function = nnp_ifft8x8__psimd;
-			#endif
+			input_transform_function = nnp_hwinfo.transforms.fft8x8_and_stream;
+			grad_output_transform_function = nnp_hwinfo.transforms.fft8x8_and_stream;
+			grad_kernel_transform_function = nnp_hwinfo.transforms.ifft8x8;
 			transform_tile = (struct nnp_size) { .height = 8, .width = 8 };
 			break;
 		case nnp_convolution_algorithm_ft16x16:
-			#if NNP_ARCH_X86_64
-				input_transform_function = nnp_fft16x16_and_stream__avx2;
-				grad_output_transform_function = nnp_fft16x16_and_stream__avx2;
-				grad_kernel_transform_function = nnp_ifft16x16__avx2;
-			#elif NNP_ARCH_PSIMD
-				input_transform_function = nnp_fft16x16__psimd;
-				grad_output_transform_function = nnp_fft16x16__psimd;
-				grad_kernel_transform_function = nnp_ifft16x16__psimd;
-			#endif
+			input_transform_function = nnp_hwinfo.transforms.fft16x16_and_stream;
+			grad_output_transform_function = nnp_hwinfo.transforms.fft16x16_and_stream;
+			grad_kernel_transform_function = nnp_hwinfo.transforms.ifft16x16;
 			transform_tile = (struct nnp_size) { .height = 16, .width = 16 };
 			break;
 		case nnp_convolution_algorithm_wt8x8:

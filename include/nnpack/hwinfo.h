@@ -39,17 +39,29 @@ struct cache_blocking_info {
 };
 
 struct transforms {
-	nnp_transform_2d fft8x8;
+	nnp_transform_2d fft8x8_and_store;
+	nnp_transform_2d fft8x8_and_stream;
+	nnp_fourier_transform_2d_and_mac fft8x8_and_mac_by_conj;
 	nnp_transform_2d ifft8x8;
 	nnp_transform_2d_with_bias ifft8x8_with_bias;
-	nnp_transform_2d fft16x16;
+	nnp_transform_2d fft16x16_and_store;
+	nnp_transform_2d fft16x16_and_stream;
+	nnp_fourier_transform_2d_and_mac fft16x16_and_mac_by_conj;
 	nnp_transform_2d ifft16x16;
 	nnp_transform_2d_with_bias ifft16x16_with_bias;
-	nnp_transform_2d iwt_f6x6_3x3;
+	nnp_transform_2d iwt_f6x6_3x3_and_store;
+	nnp_transform_2d iwt_f6x6_3x3_and_stream;
 	nnp_transform_2d kwt_f6x6_3x3;
 	nnp_transform_2d kwt_f6x6_3Rx3R;
+	nnp_kernel_winograd_transform_2d_and_mac kwt_f6x6_3x3_and_mac;
 	nnp_transform_2d owt_f6x6_3x3;
 	nnp_transform_2d_with_bias owt_f6x6_3x3_with_bias;
+};
+
+struct blockmac {
+	nnp_blockmac fourier8x8_mac_with_conj;
+	nnp_blockmac fourier16x16_mac_with_conj;
+	nnp_blockmac winograd8x8_mac;
 };
 
 struct sgemm {
@@ -85,6 +97,7 @@ struct hardware_info {
 	struct cache_blocking_info blocking;
 
 	struct transforms transforms;
+	struct blockmac blockmac;
 	struct sgemm sgemm;
 	struct sxgemm sxgemm;
 	struct cxgemm cxgemm;

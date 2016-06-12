@@ -512,28 +512,16 @@ enum nnp_status nnp_convolution_output(
 	nnp_transform_2d_with_bias output_transform_function;
 	switch (algorithm) {
 		case nnp_convolution_algorithm_ft8x8:
-			#if NNP_ARCH_X86_64
-				kernel_transform_function = nnp_fft8x8_and_stream__avx2;
-				input_transform_function = nnp_fft8x8_and_stream__avx2;
-				output_transform_function = nnp_ifft8x8_with_bias__avx2;
-			#elif NNP_ARCH_PSIMD
-				kernel_transform_function = nnp_fft8x8__psimd;
-				input_transform_function = nnp_fft8x8__psimd;
-				output_transform_function = nnp_ifft8x8_with_bias__psimd;
-			#endif
+			input_transform_function = nnp_hwinfo.transforms.fft8x8_and_stream;
+			kernel_transform_function = nnp_hwinfo.transforms.fft8x8_and_stream;
+			output_transform_function = nnp_hwinfo.transforms.ifft8x8_with_bias;
 			transform_tile = (struct nnp_size) { .height = 8, .width = 8 };
 			fourier_transform = true;
 			break;
 		case nnp_convolution_algorithm_ft16x16:
-			#if NNP_ARCH_X86_64
-				kernel_transform_function = nnp_fft16x16_and_stream__avx2;
-				input_transform_function = nnp_fft16x16_and_stream__avx2;
-				output_transform_function = nnp_ifft16x16_with_bias__avx2;
-			#elif NNP_ARCH_PSIMD
-				kernel_transform_function = nnp_fft16x16__psimd;
-				input_transform_function = nnp_fft16x16__psimd;
-				output_transform_function = nnp_ifft16x16_with_bias__psimd;
-			#endif
+			input_transform_function = nnp_hwinfo.transforms.fft16x16_and_stream;
+			kernel_transform_function = nnp_hwinfo.transforms.fft16x16_and_stream;
+			output_transform_function = nnp_hwinfo.transforms.ifft16x16_with_bias;
 			transform_tile = (struct nnp_size) { .height = 16, .width = 16 };
 			fourier_transform = true;
 			break;
@@ -542,15 +530,9 @@ enum nnp_status nnp_convolution_output(
 				status = nnp_status_unsupported_algorithm;
 				goto cleanup;
 			}
-			#if NNP_ARCH_X86_64
-				kernel_transform_function = nnp_kwt8x8_3x3_and_stream__avx2;
-				input_transform_function = nnp_iwt8x8_3x3_and_stream__avx2;
-				output_transform_function = nnp_owt8x8_3x3_with_bias__avx2;
-			#elif NNP_ARCH_PSIMD
-				kernel_transform_function = nnp_kwt8x8_3x3__psimd;
-				input_transform_function = nnp_iwt8x8_3x3__psimd;
-				output_transform_function = nnp_owt8x8_3x3_with_bias__psimd;
-			#endif
+			input_transform_function = nnp_hwinfo.transforms.iwt_f6x6_3x3_and_stream;
+			kernel_transform_function = nnp_hwinfo.transforms.kwt_f6x6_3x3;
+			output_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias;
 			transform_tile = (struct nnp_size) { .height = 8, .width = 8 };
 			fourier_transform = false;
 			break;

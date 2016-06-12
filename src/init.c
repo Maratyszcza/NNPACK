@@ -261,10 +261,50 @@ static void init_hwinfo(void) {
 		#if NNP_ARCH_X86_64
 			if (nnp_hwinfo.isa.has_avx2 && nnp_hwinfo.isa.has_fma3) {
 				nnp_hwinfo.simd_width = 8;
+				nnp_hwinfo.transforms.fft8x8_and_store = nnp_fft8x8_and_store__avx2;
+				nnp_hwinfo.transforms.fft8x8_and_stream = nnp_fft8x8_and_stream__avx2;
+				nnp_hwinfo.transforms.fft8x8_and_mac_by_conj = nnp_fft8x8_and_macc__avx2;
+				nnp_hwinfo.transforms.ifft8x8 = nnp_ifft8x8__avx2;
+				nnp_hwinfo.transforms.ifft8x8_with_bias = nnp_ifft8x8_with_bias__avx2;
+				nnp_hwinfo.transforms.fft16x16_and_store = nnp_fft16x16_and_store__avx2;
+				nnp_hwinfo.transforms.fft16x16_and_stream = nnp_fft16x16_and_stream__avx2;
+				nnp_hwinfo.transforms.fft16x16_and_mac_by_conj = nnp_fft16x16_and_macc__avx2;
+				nnp_hwinfo.transforms.ifft16x16 = nnp_ifft16x16__avx2;
+				nnp_hwinfo.transforms.ifft16x16_with_bias = nnp_ifft16x16_with_bias__avx2;
+				nnp_hwinfo.transforms.iwt_f6x6_3x3_and_store = nnp_iwt8x8_3x3_and_store__avx2;
+				nnp_hwinfo.transforms.iwt_f6x6_3x3_and_stream = nnp_iwt8x8_3x3_and_stream__avx2;
+				nnp_hwinfo.transforms.kwt_f6x6_3x3 = nnp_kwt8x8_3x3_and_stream__avx2;
+				nnp_hwinfo.transforms.kwt_f6x6_3Rx3R = nnp_kwt8x8_3Rx3R_and_stream__avx2;
+				nnp_hwinfo.transforms.kwt_f6x6_3x3_and_mac = nnp_kwt8x8_3x3_and_mac__avx2;
+				nnp_hwinfo.transforms.owt_f6x6_3x3 = nnp_owt8x8_3x3__avx2;
+				nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias = nnp_owt8x8_3x3_with_bias__avx2;
+				nnp_hwinfo.blockmac.fourier8x8_mac_with_conj = nnp_ft8x8gemmc__fma3;
+				nnp_hwinfo.blockmac.fourier16x16_mac_with_conj = nnp_ft16x16gemmc__fma3;
+				nnp_hwinfo.blockmac.winograd8x8_mac = nnp_s8x8gemm__fma3;
 				nnp_hwinfo.supported = true;
 			}
 		#elif NNP_ARCH_PSIMD
 			nnp_hwinfo.simd_width = 4;
+			nnp_hwinfo.transforms.fft8x8_and_store = nnp_fft8x8__psimd;
+			nnp_hwinfo.transforms.fft8x8_and_stream = nnp_fft8x8__psimd;
+			nnp_hwinfo.transforms.fft8x8_and_mac_by_conj = NULL;
+			nnp_hwinfo.transforms.ifft8x8 = nnp_ifft8x8__psimd;
+			nnp_hwinfo.transforms.ifft8x8_with_bias = nnp_ifft8x8_with_bias__psimd;
+			nnp_hwinfo.transforms.fft16x16_and_store = nnp_fft16x16__psimd;
+			nnp_hwinfo.transforms.fft16x16_and_stream = nnp_fft16x16__psimd;
+			nnp_hwinfo.transforms.fft16x16_and_mac_by_conj = NULL;
+			nnp_hwinfo.transforms.ifft16x16 = nnp_ifft16x16__psimd;
+			nnp_hwinfo.transforms.ifft16x16_with_bias = nnp_ifft16x16_with_bias__psimd;
+			nnp_hwinfo.transforms.iwt_f6x6_3x3_and_store = nnp_iwt8x8_3x3__psimd;
+			nnp_hwinfo.transforms.iwt_f6x6_3x3_and_stream = nnp_iwt8x8_3x3__psimd;
+			nnp_hwinfo.transforms.kwt_f6x6_3x3 = nnp_kwt8x8_3x3__psimd;
+			nnp_hwinfo.transforms.kwt_f6x6_3Rx3R = nnp_kwt8x8_3Rx3R__psimd;
+			nnp_hwinfo.transforms.kwt_f6x6_3x3_and_mac = NULL;
+			nnp_hwinfo.transforms.owt_f6x6_3x3 = nnp_owt8x8_3x3__psimd;
+			nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias = nnp_owt8x8_3x3_with_bias__psimd;
+			nnp_hwinfo.blockmac.fourier8x8_mac_with_conj = nnp_ft8x8gemmc__psimd;
+			nnp_hwinfo.blockmac.fourier16x16_mac_with_conj = nnp_ft16x16gemmc__psimd;
+			nnp_hwinfo.blockmac.winograd8x8_mac = nnp_s8x8gemm__psimd;
 			nnp_hwinfo.supported = true;
 		#else
 			#error Unsupported host architecture

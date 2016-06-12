@@ -454,6 +454,8 @@ def main():
             # ReLU and Softmax
             config.cc("psimd/relu.c"),
             config.cc("psimd/softmax.c"),
+            # FFT block accumulation
+            config.cc("psimd/fft-block-mac.c"),
             # Tuple GEMM
             config.cc("psimd/blas/s4gemm.c"),
             config.cc("psimd/blas/c4gemm.c"),
