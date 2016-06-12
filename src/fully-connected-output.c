@@ -125,7 +125,7 @@ static void compute_matrix_multiplication(
 
 	for (size_t output_channels_subblock_start = 0; output_channels_subblock_start < output_channels_block_size; output_channels_subblock_start += output_channels_subblock_max) {
 		const size_t output_channels_subblock_size = min(output_channels_block_size - output_channels_subblock_start, output_channels_subblock_max);
-		if ((batch_subblock_size == 4) && (output_channels_subblock_size == 24)) {
+		if ((batch_subblock_size == batch_subblock_max) && (output_channels_subblock_size == output_channels_subblock_max)) {
 			fast_sgemm(
 				input_channels_block_size, input_channels_block_start,
 				&input[batch_block_start * input_channels + input_channels_block_start * batch_block_stride + batch_subblock_start * input_channels_block_size],
@@ -182,13 +182,8 @@ static void compute_fully_connected_output(
 		.output_channels_subblock_max = output_channels_subblock_max,
 		.batch_subblock_max = batch_subblock_max,
 		.simd_width = simd_width,
-#if NNP_ARCH_X86_64
-		.fast_sgemm_function = nnp_sgemm_only_4x24__fma3,
-		.full_sgemm_function = nnp_sgemm_upto_4x24__fma3,
-#elif NNP_ARCH_PSIMD
-		.fast_sgemm_function = nnp_sgemm_only_4x8__psimd,
-		.full_sgemm_function = nnp_sgemm_upto_4x8__psimd,
-#endif
+		.fast_sgemm_function = nnp_hwinfo.sgemm.only_mr_x_nr,
+		.full_sgemm_function = nnp_hwinfo.sgemm.upto_mr_x_nr,
 	};
 	for (size_t input_channels_block_start = 0; input_channels_block_start < input_channels; input_channels_block_start += input_channels_block_max) {
 		const size_t input_channels_block_size = min(input_channels - input_channels_block_start, input_channels_block_max);
@@ -220,7 +215,7 @@ static void compute_fully_connected_output(
 			pthreadpool_compute_2d_tiled(threadpool,
 				(pthreadpool_function_2d_tiled_t) compute_matrix_multiplication,
 				&matrix_multiplication_context,
-				output_channels,          batch_block_size,
+				output_channels,           batch_block_size,
 				output_channels_block_max, batch_subblock_max);
 		}
 		NNP_BLOCK_MULTIPLICATION_END(profile)
@@ -251,12 +246,8 @@ enum nnp_status nnp_fully_connected_output(
 	const size_t cache_elements_l3 = nnp_hwinfo.blocking.l3 / sizeof(float);
 
 	const size_t simd_width = nnp_hwinfo.simd_width;
-	const size_t batch_subblock_max = 4;
-#if NNP_ARCH_X86_64
-	const size_t output_channels_subblock_max = 24;
-#elif NNP_ARCH_PSIMD
-	const size_t output_channels_subblock_max = 8;
-#endif
+	const size_t batch_subblock_max = nnp_hwinfo.sgemm.mr;
+	const size_t output_channels_subblock_max = nnp_hwinfo.sgemm.nr;
 
 	const size_t input_channels_block_max = cache_elements_l1 / (batch_subblock_max + output_channels_subblock_max);
 	const size_t batch_block_max = round_down(cache_elements_l3 / input_channels_block_max, batch_subblock_max);

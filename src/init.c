@@ -308,8 +308,16 @@ static void init_hwinfo(void) {
 				nnp_hwinfo.activations.inplace_relu = nnp_inplace_relu_forward__avx2;
 				nnp_hwinfo.activations.outplace_relu = nnp_outplace_relu_forward__avx2;
 				nnp_hwinfo.activations.outplace_grad_relu = nnp_relu_backward__avx2;
-				nnp_hwinfo.sdotxf.functions = sdotxf;
-				nnp_hwinfo.sdotxf.fusion = NNP_COUNT_OF(sdotxf);
+				nnp_hwinfo.sdotxf = (struct sdotxf) {
+					.functions = sdotxf,
+					.fusion = NNP_COUNT_OF(sdotxf),
+				};
+				nnp_hwinfo.sgemm = (struct sgemm) {
+					.mr = 4,
+					.nr = 24,
+					.only_mr_x_nr = nnp_sgemm_only_4x24__fma3,
+					.upto_mr_x_nr = nnp_sgemm_upto_4x24__fma3,
+				};
 				nnp_hwinfo.supported = true;
 			}
 		#elif NNP_ARCH_PSIMD
@@ -337,8 +345,16 @@ static void init_hwinfo(void) {
 			nnp_hwinfo.activations.inplace_relu = nnp_inplace_relu_forward__psimd;
 			nnp_hwinfo.activations.outplace_relu = nnp_outplace_relu_forward__psimd;
 			nnp_hwinfo.activations.outplace_grad_relu = nnp_relu_backward__psimd;
-			nnp_hwinfo.sdotxf.functions = sdotxf;
-			nnp_hwinfo.sdotxf.fusion = NNP_COUNT_OF(sdotxf);
+			nnp_hwinfo.sdotxf = (struct sdotxf) {
+				.functions = sdotxf,
+				.fusion = NNP_COUNT_OF(sdotxf),
+			};
+			nnp_hwinfo.sgemm = (struct sgemm) {
+				.mr = 4,
+				.nr = 8,
+				.only_mr_x_nr = nnp_sgemm_only_4x8__psimd,
+				.upto_mr_x_nr = nnp_sgemm_upto_4x8__psimd,
+			};
 			nnp_hwinfo.supported = true;
 		#else
 			#error Unsupported host architecture

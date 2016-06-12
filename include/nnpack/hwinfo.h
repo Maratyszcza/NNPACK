@@ -72,10 +72,10 @@ struct activations {
 };
 
 struct sgemm {
+	nnp_fast_sgemm_function only_mr_x_nr;
+	nnp_full_sgemm_function upto_mr_x_nr;
 	uint32_t mr;
 	uint32_t nr;
-	nnp_fast_sgemm_function fast_sgemm_function;
-	nnp_full_sgemm_function full_sgemm_function;
 };
 
 struct sxgemm {
