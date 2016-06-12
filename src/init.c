@@ -226,6 +226,30 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 	}
 #endif
 
+#if NNP_ARCH_X86_64
+	static const nnp_sdotxf_function sdotxf[8] = {
+		[0] = nnp_sdotxf1__avx2,
+		[1] = nnp_sdotxf2__avx2,
+		[2] = nnp_sdotxf3__avx2,
+		[3] = nnp_sdotxf4__avx2,
+		[4] = nnp_sdotxf5__avx2,
+		[5] = nnp_sdotxf6__avx2,
+		[6] = nnp_sdotxf7__avx2,
+		[7] = nnp_sdotxf8__avx2,
+	};
+#elif NNP_ARCH_PSIMD
+	static const nnp_sdotxf_function sdotxf[8] = {
+		[0] = nnp_sdotxf1__psimd,
+		[1] = nnp_sdotxf2__psimd,
+		[2] = nnp_sdotxf3__psimd,
+		[3] = nnp_sdotxf4__psimd,
+		[4] = nnp_sdotxf5__psimd,
+		[5] = nnp_sdotxf6__psimd,
+		[6] = nnp_sdotxf7__psimd,
+		[7] = nnp_sdotxf8__psimd,
+	};
+#endif
+
 static void init_hwinfo(void) {
 	#if defined(__x86_64__)
 		init_x86_hwinfo();
@@ -284,6 +308,8 @@ static void init_hwinfo(void) {
 				nnp_hwinfo.activations.inplace_relu = nnp_inplace_relu_forward__avx2;
 				nnp_hwinfo.activations.outplace_relu = nnp_outplace_relu_forward__avx2;
 				nnp_hwinfo.activations.outplace_grad_relu = nnp_relu_backward__avx2;
+				nnp_hwinfo.sdotxf.functions = sdotxf;
+				nnp_hwinfo.sdotxf.fusion = NNP_COUNT_OF(sdotxf);
 				nnp_hwinfo.supported = true;
 			}
 		#elif NNP_ARCH_PSIMD
@@ -311,6 +337,8 @@ static void init_hwinfo(void) {
 			nnp_hwinfo.activations.inplace_relu = nnp_inplace_relu_forward__psimd;
 			nnp_hwinfo.activations.outplace_relu = nnp_outplace_relu_forward__psimd;
 			nnp_hwinfo.activations.outplace_grad_relu = nnp_relu_backward__psimd;
+			nnp_hwinfo.sdotxf.functions = sdotxf;
+			nnp_hwinfo.sdotxf.fusion = NNP_COUNT_OF(sdotxf);
 			nnp_hwinfo.supported = true;
 		#else
 			#error Unsupported host architecture

@@ -79,20 +79,20 @@ struct sgemm {
 };
 
 struct sxgemm {
+	const nnp_tuple_gemm_function* functions;
 	uint32_t mr;
 	uint32_t nr;
-	nnp_tuple_gemm_function* functions;
 };
 
 struct cxgemm {
+	const nnp_tuple_gemm_function* functions;
 	uint32_t mr;
 	uint32_t nr;
-	nnp_tuple_gemm_function* functions;
 };
 
 struct sdotxf {
+	const nnp_sdotxf_function* functions;
 	uint32_t fusion;
-	nnp_sdotxf_function* functions;
 };
 
 struct hardware_info {

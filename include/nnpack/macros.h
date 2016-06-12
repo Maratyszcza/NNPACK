@@ -30,3 +30,5 @@
 #define NNP_ALIGN(alignment) __attribute__((__aligned__(alignment)))
 #define NNP_SIMD_ALIGN NNP_ALIGN(64)
 #define NNP_CACHE_ALIGN NNP_ALIGN(64)
+
+#define NNP_COUNT_OF(array) (sizeof(array) / sizeof(0[array]))

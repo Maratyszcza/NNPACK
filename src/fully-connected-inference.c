@@ -18,7 +18,6 @@ struct NNP_CACHE_ALIGN fully_connected_inference_context {
 	const float* input;
 	const float* kernel;
 	float* output;
-	nnp_sdotxf_function sdotxf[8];
 };
 
 static void compute_fully_connected_inference(
@@ -29,7 +28,7 @@ static void compute_fully_connected_inference(
 	const float* input               = context->input;
 	const float* kernel              = context->kernel;
 	float* output                    = context->output;
-	const nnp_sdotxf_function sdotxf = context->sdotxf[output_channels_subblock_size - 1];
+	const nnp_sdotxf_function sdotxf = nnp_hwinfo.sdotxf.functions[output_channels_subblock_size - 1];
 
 	sdotxf(input, &kernel[output_channels_subblock_start * input_channels], input_channels, &output[output_channels_subblock_start], input_channels);
 }
@@ -49,33 +48,12 @@ enum nnp_status nnp_fully_connected_inference(
 	}
 
 	/* Do the computation */
-	const size_t output_channels_subblock_max = 8;
+	const size_t output_channels_subblock_max = nnp_hwinfo.sdotxf.fusion;
 	struct fully_connected_inference_context fully_connected_inference_context = {
 		.input_channels = input_channels,
 		.input = input,
 		.kernel = kernel,
 		.output = output,
-		.sdotxf = {
-#if NNP_ARCH_X86_64
-			[0] = nnp_sdotxf1__avx2,
-			[1] = nnp_sdotxf2__avx2,
-			[2] = nnp_sdotxf3__avx2,
-			[3] = nnp_sdotxf4__avx2,
-			[4] = nnp_sdotxf5__avx2,
-			[5] = nnp_sdotxf6__avx2,
-			[6] = nnp_sdotxf7__avx2,
-			[7] = nnp_sdotxf8__avx2,
-#elif NNP_ARCH_PSIMD
-			[0] = nnp_sdotxf1__psimd,
-			[1] = nnp_sdotxf2__psimd,
-			[2] = nnp_sdotxf3__psimd,
-			[3] = nnp_sdotxf4__psimd,
-			[4] = nnp_sdotxf5__psimd,
-			[5] = nnp_sdotxf6__psimd,
-			[6] = nnp_sdotxf7__psimd,
-			[7] = nnp_sdotxf8__psimd,
-#endif
-		},
 	};
 	pthreadpool_compute_1d_tiled(threadpool,
 		(pthreadpool_function_1d_tiled_t) compute_fully_connected_inference,
