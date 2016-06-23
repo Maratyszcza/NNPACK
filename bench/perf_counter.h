@@ -25,7 +25,7 @@ struct performance_counter {
 	int file_descriptor;
 };
 
-inline bool enable_perf_counter(int file_descriptor) {
+static inline bool enable_perf_counter(int file_descriptor) {
 #if defined(__linux__)
 	return ioctl(file_descriptor, PERF_EVENT_IOC_ENABLE, 0) == 0;
 #else
@@ -33,7 +33,7 @@ inline bool enable_perf_counter(int file_descriptor) {
 #endif
 }
 
-inline bool disable_perf_counter(int file_descriptor) {
+static inline bool disable_perf_counter(int file_descriptor) {
 #if defined(__linux__)
 	return ioctl(file_descriptor, PERF_EVENT_IOC_DISABLE, 0) == 0;
 #else
@@ -41,7 +41,7 @@ inline bool disable_perf_counter(int file_descriptor) {
 #endif
 }
 
-inline bool read_perf_counter(int file_descriptor, unsigned long long output[restrict static 1]) {
+static inline bool read_perf_counter(int file_descriptor, unsigned long long output[restrict static 1]) {
 #if defined(__linux__)
 	return read(file_descriptor, output, sizeof(*output)) == sizeof(*output);
 #elif defined(__native_client__) && !defined(__x86_64__)
@@ -65,7 +65,7 @@ inline bool read_perf_counter(int file_descriptor, unsigned long long output[res
 #endif
 }
 
-inline static bool read_timer(unsigned long long output[restrict static 1]) {
+static inline bool read_timer(unsigned long long output[restrict static 1]) {
 #if defined(__linux__)
 	struct timespec ts;
 	if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
