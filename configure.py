@@ -398,17 +398,18 @@ def main():
     gtest_objects = [config.cxx("gtest-all.cc")]
 
     # Build pthreadpool
+    fxdiv_dir = os.path.join(root_dir, "third-party", "FXdiv")
     pthreadpool_dir = os.path.join(root_dir, "third-party", "pthreadpool")
     config.source_dir = os.path.join(pthreadpool_dir, "src")
     config.build_dir = os.path.join(pthreadpool_dir, "lib")
-    config.include_dirs = [os.path.join(pthreadpool_dir, "include")]
+    config.include_dirs = [os.path.join(pthreadpool_dir, "include"), os.path.join(fxdiv_dir, "include")]
 
     pthreadpool_objects = [config.cc("pthreadpool.c")]
 
     # Build the library
     config.source_dir = os.path.join(root_dir, "src")
     config.build_dir = os.path.join(root_dir, "build")
-    config.include_dirs = [os.path.join(root_dir, "include"), os.path.join(root_dir, "src"), os.path.join(root_dir, "src", "ref"), os.path.join(pthreadpool_dir, "include")]
+    config.include_dirs = [os.path.join(root_dir, "include"), os.path.join(root_dir, "src"), os.path.join(root_dir, "src", "ref"), os.path.join(pthreadpool_dir, "include"), os.path.join(fxdiv_dir, "include")]
 
     nnpack_objects = [
         config.cc("init.c"),
