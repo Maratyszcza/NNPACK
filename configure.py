@@ -144,7 +144,7 @@ class Configuration:
         self.writer.rule("cxxld", "$cxx $ldflags $libdirs -o $out $in $libs",
             description="CXXLD $descpath")
         if self.host.startswith("x86_64-"):
-            self.writer.rule("peachpy", "$python2 -m peachpy.x86_64 -mabi=$abi -g4 -mimage-format=$imageformat -MMD -MF $object.d -emit-c-header $header -o $object $in",
+            self.writer.rule("peachpy", "$python2 -m peachpy.x86_64 -mabi=$abi -g4 -mimage-format=$imageformat $peachpyincludes -MMD -MF $object.d -emit-c-header $header -o $object $in",
                 deps="gcc", depfile="$object.d",
                 description="PEACHPY[x86-64] $descpath")
         if self.host == "pnacl-nacl-newlib":
@@ -368,6 +368,9 @@ class Configuration:
             targets = [targets]
         self.writer.default([ninja_syntax.escape(target).replace(":", "$:") for target in targets if target is not None])
 
+    def variable(self, name, value):
+        self.writer.variable(name, value)
+
     def phony(self, target, deps):
         self.writer.build(target, "phony", deps)
 
@@ -440,11 +443,12 @@ def main():
             # FFT block accumulation
             config.peachpy("x86_64-fma/fft-block-mac.py"),
             # Tuple GEMM
-            config.peachpy("x86_64-fma/c8gemm.py"),
-            config.peachpy("x86_64-fma/s8gemm.py"),
+            config.peachpy("x86_64-fma/blas/s8gemm.py"),
+            config.peachpy("x86_64-fma/blas/c8gemm.py"),
+            config.peachpy("x86_64-fma/blas/s4c6gemm.py"),
             # BLAS microkernels
-            config.peachpy("x86_64-fma/sgemm.py"),
-            config.peachpy("x86_64-fma/sdotxf.py"),
+            config.peachpy("x86_64-fma/blas/sgemm.py"),
+            config.peachpy("x86_64-fma/blas/sdotxf.py"),
         ]
     else:
         arch_nnpack_objects = [
@@ -461,10 +465,10 @@ def main():
             config.cc("psimd/blas/s4gemm.c"),
             config.cc("psimd/blas/c4gemm.c"),
             config.cc("psimd/blas/s4c2gemm.c"),
-            config.cc("psimd/blas/c4gemmcb.c"),
-            config.cc("psimd/blas/s4c2gemmcb.c"),
-            config.cc("psimd/blas/c4gemmca.c"),
-            config.cc("psimd/blas/s4c2gemmca.c"),
+            config.cc("psimd/blas/c4gemm-conjb.c"),
+            config.cc("psimd/blas/s4c2gemm-conjb.c"),
+            config.cc("psimd/blas/c4gemm-conjb-transc.c"),
+            config.cc("psimd/blas/s4c2gemm-conjb-transc.c"),
             # BLAS microkernels
             config.cc("psimd/blas/sgemm.c"),
             config.cc("psimd/blas/sdotxf.c"),
@@ -531,6 +535,7 @@ def main():
     nnpack_objects = nnpack_objects + arch_nnpack_objects + pthreadpool_objects
 
     # Build the library
+    config.variable("peachpyincludes", "-I" + os.path.join(config.source_dir, "x86_64-fma"))
     config.artifact_dir = os.path.join(root_dir, "lib")
     config.default(config.library(nnpack_objects, "nnpack"))
 
@@ -774,7 +779,8 @@ def main():
     config.default([vgg_bench_binary])
 
     if config.host.startswith("x86_64-") and not options.use_psimd:
-        ugemm_bench_binary = config.ccld_executable([config.cc("ugemm.c")] + arch_nnpack_objects + bench_support_objects, "ugemm-bench", libs=["m"])
+        #ugemm_bench_binary = config.ccld_executable([config.cc("ugemm.c")] + arch_nnpack_objects + bench_support_objects, "ugemm-bench", libs=["m"])
+        #config.default(ugemm_bench_binary)
         if options.use_mkl:
             extra_cflags = ["-DUSE_MKL", "-I/opt/intel/mkl/include", "-pthread"]
             extra_lib_dirs = ["/opt/intel/mkl/lib/intel64"]
@@ -795,7 +801,6 @@ def main():
             extra_ldflags = ["-fopenmp"]
             blis_gemm_bench_binary = config.ccld_executable([config.cc("gemm.c", "blis-gemm", extra_cflags=extra_cflags), "/opt/BLIS/lib/libblis.a"] + bench_support_objects, "blis-gemm-bench", lib_dirs=extra_lib_dirs, libs=extra_libs, extra_ldflags=extra_ldflags)
             config.default(blis_gemm_bench_binary)
-        config.default(ugemm_bench_binary)
 
 if __name__ == "__main__":
     sys.exit(main())

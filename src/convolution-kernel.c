@@ -155,16 +155,18 @@ struct NNP_CACHE_ALIGN matrix_multiplication_context {
 	size_t input_channels;
 	size_t input_channels_block_start;
 	size_t input_channels_block_size;
+	size_t input_channels_subblock_max;
 	size_t output_channels;
 	size_t output_channels_subblock_max;
 	const float* grad_output_transform;
 	const float* input_transform;
 	float* grad_kernel_transform;
 
-	nnp_tuple_gemm_function cgemm[2][2];
+	nnp_fast_tuple_gemm_function fast_gemm;
+	nnp_full_tuple_gemm_function full_gemm;
 };
 
-static void compute_complex_matrix_multiplication(
+static void compute_matrix_multiplication(
 	const struct matrix_multiplication_context context[restrict static 1],
 	size_t output_channels_block_start, size_t input_channels_subblock_start,
 	size_t output_channels_block_size,  size_t input_channels_subblock_size)
@@ -176,26 +178,49 @@ static void compute_complex_matrix_multiplication(
 	const size_t input_channels               = context->input_channels;
 	const size_t input_channels_block_start   = context->input_channels_block_start;
 	const size_t input_channels_block_size    = context->input_channels_block_size;
+	const size_t input_channels_subblock_max  = context->input_channels_subblock_max;
 	const size_t output_channels              = context->output_channels;
 	const size_t output_channels_subblock_max = context->output_channels_subblock_max;
-	const float* grad_output_transform        = context->grad_output_transform;
-	const float* input_transform              = context->input_transform;
-	float* grad_kernel_transform              = context->grad_kernel_transform;
-	const nnp_tuple_gemm_function* cgemms     = context->cgemm[input_channels_subblock_size - 1];
 
-	for (size_t output_channels_subblock_start = 0; output_channels_subblock_start < output_channels_block_size; output_channels_subblock_start += output_channels_subblock_max) {
-		const size_t output_channels_subblock_size = min(output_channels_block_size - output_channels_subblock_start, output_channels_subblock_max);
-		const nnp_tuple_gemm_function cgemm = cgemms[output_channels_subblock_size - 1];
-		cgemm(
+	const float* grad_output_transform        = context->grad_output_transform +
+		output_channels_block_start * batch_block_size * tuple_elements;
+	const float* input_transform              = context->input_transform +
+		(input_channels_block_start + input_channels_subblock_start) * batch_block_size * tuple_elements;
+	float* grad_kernel_transform              = context->grad_kernel_transform +
+		(output_channels_block_start * input_channels + (input_channels_block_start + input_channels_subblock_start) * output_channels_block_size) * tuple_elements;
+
+	if (input_channels_subblock_size == input_channels_subblock_max) {
+		const nnp_fast_tuple_gemm_function fast_gemm = context->fast_gemm;
+		while (output_channels_block_size >= output_channels_subblock_max) {
+			output_channels_block_size -= output_channels_subblock_max;
+
+			fast_gemm(
+				batch_block_size, batch_block_update,
+				input_transform,
+				grad_output_transform,
+				grad_kernel_transform,
+				input_channels_subblock_size * tuple_elements);
+
+			grad_output_transform += output_channels_subblock_max * batch_block_size * tuple_elements;
+			grad_kernel_transform += output_channels_subblock_max * input_channels_subblock_size * tuple_elements;
+		}
+	}
+
+	const nnp_full_tuple_gemm_function full_gemm = context->full_gemm;
+	while (output_channels_block_size != 0) {
+		const size_t output_channels_subblock_size = min(output_channels_block_size, output_channels_subblock_max);
+		output_channels_block_size -= output_channels_subblock_size;
+
+		full_gemm(
+			input_channels_subblock_size, output_channels_subblock_size,
 			batch_block_size, batch_block_update,
-			grad_output_transform +
-				(output_channels_block_start + output_channels_subblock_start) * batch_block_size * tuple_elements,
-			input_transform +
-				(input_channels_block_start + input_channels_subblock_start) * batch_block_size * tuple_elements,
-			grad_kernel_transform +
-				(output_channels_block_start * input_channels + (input_channels_block_start + input_channels_subblock_start) * output_channels_block_size + output_channels_subblock_start * input_channels_subblock_size) * tuple_elements,
-			input_channels_subblock_size * tuple_elements,
-			tuple_elements);
+			input_transform,
+			grad_output_transform,
+			grad_kernel_transform,
+			input_channels_subblock_size * tuple_elements);
+
+		grad_output_transform += output_channels_subblock_max * batch_block_size * tuple_elements;
+		grad_kernel_transform += output_channels_subblock_max * input_channels_subblock_size * tuple_elements;
 	}
 }
 
@@ -300,6 +325,7 @@ static void compute_convolution_kernel_gradient(
 							.input_channels = input_channels,
 							.input_channels_block_start = input_channels_block_start,
 							.input_channels_block_size = input_channels_block_size,
+							.input_channels_subblock_max = input_channels_subblock_max,
 							.output_channels = output_channels,
 							.output_channels_subblock_max = output_channels_subblock_max,
 							.grad_output_transform = grad_output_transform +
@@ -310,34 +336,16 @@ static void compute_convolution_kernel_gradient(
 								tuple_index * tuple_elements * output_channels * input_channels,
 						};
 						if (tuple_index == 0) {
-							#if NNP_ARCH_X86_64
-								matrix_multiplication_context.cgemm[0][0] = nnp_s4c6gemmca1x1__fma3;
-								matrix_multiplication_context.cgemm[0][1] = nnp_s4c6gemmca2x1__fma3;
-								matrix_multiplication_context.cgemm[1][0] = nnp_s4c6gemmca1x2__fma3;
-								matrix_multiplication_context.cgemm[1][1] = nnp_s4c6gemmca2x2__fma3;
-							#elif NNP_ARCH_PSIMD
-								matrix_multiplication_context.cgemm[0][0] = nnp_s4c2gemmca1x1__psimd;
-								matrix_multiplication_context.cgemm[0][1] = nnp_s4c2gemmca2x1__psimd;
-								matrix_multiplication_context.cgemm[1][0] = nnp_s4c2gemmca1x2__psimd;
-								matrix_multiplication_context.cgemm[1][1] = nnp_s4c2gemmca2x2__psimd;
-							#endif
+							matrix_multiplication_context.fast_gemm = nnp_hwinfo.cxgemm.s4cX_conjb_transc_only_mr_x_nr;
+							matrix_multiplication_context.full_gemm = nnp_hwinfo.cxgemm.s4cX_conjb_transc_upto_mr_x_nr;
 						} else {
-							#if NNP_ARCH_X86_64
-								matrix_multiplication_context.cgemm[0][0] = nnp_c8gemmca1x1__fma3;
-								matrix_multiplication_context.cgemm[0][1] = nnp_c8gemmca2x1__fma3;
-								matrix_multiplication_context.cgemm[1][0] = nnp_c8gemmca1x2__fma3;
-								matrix_multiplication_context.cgemm[1][1] = nnp_c8gemmca2x2__fma3;
-							#elif NNP_ARCH_PSIMD
-								matrix_multiplication_context.cgemm[0][0] = nnp_c4gemmca1x1__psimd;
-								matrix_multiplication_context.cgemm[0][1] = nnp_c4gemmca2x1__psimd;
-								matrix_multiplication_context.cgemm[1][0] = nnp_c4gemmca1x2__psimd;
-								matrix_multiplication_context.cgemm[1][1] = nnp_c4gemmca2x2__psimd;
-							#endif
+							matrix_multiplication_context.fast_gemm = nnp_hwinfo.cxgemm.cX_conjb_transc_only_mr_x_nr;
+							matrix_multiplication_context.full_gemm = nnp_hwinfo.cxgemm.cX_conjb_transc_upto_mr_x_nr;
 						}
 						pthreadpool_compute_2d_tiled(threadpool,
-							(pthreadpool_function_2d_tiled_t) compute_complex_matrix_multiplication,
+							(pthreadpool_function_2d_tiled_t) compute_matrix_multiplication,
 							&matrix_multiplication_context,
-							output_channels,          input_channels_block_size,
+							output_channels,           input_channels_block_size,
 							output_channels_block_max, input_channels_subblock_max);
 					}
 				}
@@ -464,8 +472,8 @@ enum nnp_status nnp_convolution_kernel_gradient(
 	const size_t cache_elements_l2 = nnp_hwinfo.blocking.l2 / (tuple_elements * sizeof(float));
 	const size_t cache_elements_l3 = nnp_hwinfo.blocking.l3 / (tuple_elements * sizeof(float));
 
-	const size_t input_channels_subblock_max = 2;
-	const size_t output_channels_subblock_max = 2;
+	const size_t input_channels_subblock_max = nnp_hwinfo.cxgemm.mr;
+	const size_t output_channels_subblock_max = nnp_hwinfo.cxgemm.nr;
 
 	const size_t batch_block_max =
 		round_down(cache_elements_l1 / (input_channels_subblock_max + output_channels_subblock_max), 2);

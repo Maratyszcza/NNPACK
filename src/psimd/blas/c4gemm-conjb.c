@@ -4,7 +4,7 @@
 #include <nnpack/simd.h>
 
 
-void nnp_s4c2gemm_only_2x2__psimd(
+void nnp_c4gemm_conjb_only_2x2__psimd(
 	size_t k, size_t update,
 	const float a[restrict static 1],
 	const float b[restrict static 1],
@@ -21,32 +21,26 @@ void nnp_s4c2gemm_only_2x2__psimd(
 		const v4f a1r = v4f_ld(a +  8);
 		const v4f a1i = v4f_ld(a + 12);
 
-		v4f b0r = v4f_ld(b +  0);
-		v4f b1r = v4f_ld(b +  8);
+		const v4f b0r = v4f_ld(b + 0);
+		const v4f b1r = v4f_ld(b + 8);
 		acc00r += a0r * b0r;
-		acc01r += a0r * b1r;
-		acc10r += a1r * b0r;
-		acc11r += a1r * b1r;
-
-		v4f b0i = v4f_ld(b +  4);
-		v4f b1i = v4f_ld(b + 12);
-		b0r = __builtin_shufflevector(b0i, b0r, 0, 1, 6, 7);
-		b1r = __builtin_shufflevector(b1i, b1r, 0, 1, 6, 7);
 		acc00i += a0i * b0r;
+		acc01r += a0r * b1r;
 		acc01i += a0i * b1r;
+		acc10r += a1r * b0r;
 		acc10i += a1i * b0r;
+		acc11r += a1r * b1r;
 		acc11i += a1i * b1r;
-
-		b0i = v4f_andi(b0i, (v4i) { 0, 0, -1, -1 });
-		acc00r -= a0i * b0i;
-		acc00i += a0r * b0i;
-		acc10r -= a1i * b0i;
-		acc10i += a1r * b0i;
-		b1i = v4f_andi(b1i, (v4i) { 0, 0, -1, -1 });
-		acc01r -= a0i * b1i;
-		acc01i += a0r * b1i;
-		acc11r -= a1i * b1i;
-		acc11i += a1r * b1i;
+		const v4f b0i = v4f_ld(b +  4);
+		const v4f b1i = v4f_ld(b + 12);
+		acc00r += a0i * b0i;
+		acc00i -= a0r * b0i;
+		acc01r += a0i * b1i;
+		acc01i -= a0r * b1i;
+		acc10r += a1i * b0i;
+		acc10i -= a1r * b0i;
+		acc11r += a1i * b1i;
+		acc11i -= a1r * b1i;
 
 		a += 16;
 		b += 16;
@@ -75,7 +69,7 @@ void nnp_s4c2gemm_only_2x2__psimd(
 	}
 }
 
-void nnp_s4c2gemm_upto_2x2__psimd(
+void nnp_c4gemm_conjb_upto_2x2__psimd(
 	uint32_t mr, uint32_t nr,
 	size_t k, size_t update,
 	const float a[restrict static 1],
@@ -89,8 +83,9 @@ void nnp_s4c2gemm_upto_2x2__psimd(
 	v4f acc11r = v4f_zero(), acc11i = v4f_zero();
 	do {
 		v4f a0r, a0i, a1r, a1i;
-		a0r = v4f_ld(a +  0);
-		a0i = v4f_ld(a +  4);
+
+		a0r = v4f_ld(a + 0);
+		a0i = v4f_ld(a + 4);
 		a += 8;
 		if (mr > 1) {
 			a1r = v4f_ld(a + 0);
@@ -98,40 +93,34 @@ void nnp_s4c2gemm_upto_2x2__psimd(
 			a += 8;
 		}
 
-		v4f b0r, b0i, b1r, b1i;
-		
-		b0r = v4f_ld(b + 0);
-		b0i = v4f_ld(b + 4);
+		const v4f b0r = v4f_ld(b + 0);
+		const v4f b0i = v4f_ld(b + 4);
 		b += 8;
 
 		acc00r += a0r * b0r;
-		acc10r += a1r * b0r;
-		b0r = __builtin_shufflevector(b0i, b0r, 0, 1, 6, 7);
 		acc00i += a0i * b0r;
+		acc10r += a1r * b0r;
 		acc10i += a1i * b0r;
 
-		b0i = v4f_andi(b0i, (v4i) { 0, 0, -1, -1 });
-		acc00r -= a0i * b0i;
-		acc00i += a0r * b0i;
-		acc10r -= a1i * b0i;
-		acc10i += a1r * b0i;
+		acc00r += a0i * b0i;
+		acc00i -= a0r * b0i;
+		acc10r += a1i * b0i;
+		acc10i -= a1r * b0i;
 
 		if (nr > 1) {
-			b1r = v4f_ld(b + 0);
-			b1i = v4f_ld(b + 4);
+			const v4f b1r = v4f_ld(b + 0);
+			const v4f b1i = v4f_ld(b + 4);
 			b += 8;
 
 			acc01r += a0r * b1r;
-			acc11r += a1r * b1r;
-			b1r = __builtin_shufflevector(b1i, b1r, 0, 1, 6, 7);
 			acc01i += a0i * b1r;
+			acc11r += a1r * b1r;
 			acc11i += a1i * b1r;
 
-			b1i = v4f_andi(b1i, (v4i) { 0, 0, -1, -1 });
-			acc01r -= a0i * b1i;
-			acc01i += a0r * b1i;
-			acc11r -= a1i * b1i;
-			acc11i += a1r * b1i;
+			acc01r += a0i * b1i;
+			acc01i -= a0r * b1i;
+			acc11r += a1i * b1i;
+			acc11i -= a1r * b1i;
 		}
 	} while (--k);
 
@@ -144,8 +133,8 @@ void nnp_s4c2gemm_upto_2x2__psimd(
 		}
 		if (mr > 1) {
 			c += row_stride_c;
-			v4f_st(c + 0, v4f_ld(c + 0) + acc10r);
-			v4f_st(c + 4, v4f_ld(c + 4) + acc10i);
+			v4f_st(c +  0, v4f_ld(c +  0) + acc10r);
+			v4f_st(c +  4, v4f_ld(c +  4) + acc10i);
 			if (nr > 1) {
 				v4f_st(c +  8, v4f_ld(c +  8) + acc11r);
 				v4f_st(c + 12, v4f_ld(c + 12) + acc11i);

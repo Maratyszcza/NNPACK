@@ -318,6 +318,28 @@ static void init_hwinfo(void) {
 					.only_mr_x_nr = nnp_sgemm_only_4x24__fma3,
 					.upto_mr_x_nr = nnp_sgemm_upto_4x24__fma3,
 				};
+				nnp_hwinfo.sxgemm = (struct sxgemm) {
+					.mr = 3,
+					.nr = 4,
+					.only_mr_x_nr = nnp_s8gemm_only_3x4__fma3,
+					.upto_mr_x_nr = nnp_s8gemm_upto_3x4__fma3,
+				};
+				nnp_hwinfo.cxgemm = (struct cxgemm) {
+					.mr = 2,
+					.nr = 2,
+					.s4cX_only_mr_x_nr = nnp_s4c6gemm_only_2x2__fma3,
+					.s4cX_upto_mr_x_nr = nnp_s4c6gemm_upto_2x2__fma3,
+					.cX_only_mr_x_nr = nnp_c8gemm_only_2x2__fma3,
+					.cX_upto_mr_x_nr = nnp_c8gemm_upto_2x2__fma3,
+					.s4cX_conjb_only_mr_x_nr = nnp_s4c6gemm_conjb_only_2x2__fma3,
+					.s4cX_conjb_upto_mr_x_nr = nnp_s4c6gemm_conjb_upto_2x2__fma3,
+					.cX_conjb_only_mr_x_nr = nnp_c8gemm_conjb_only_2x2__fma3,
+					.cX_conjb_upto_mr_x_nr = nnp_c8gemm_conjb_upto_2x2__fma3,
+					.s4cX_conjb_transc_only_mr_x_nr = nnp_s4c6gemm_conjb_transc_only_2x2__fma3,
+					.s4cX_conjb_transc_upto_mr_x_nr = nnp_s4c6gemm_conjb_transc_upto_2x2__fma3,
+					.cX_conjb_transc_only_mr_x_nr = nnp_c8gemm_conjb_transc_only_2x2__fma3,
+					.cX_conjb_transc_upto_mr_x_nr = nnp_c8gemm_conjb_transc_upto_2x2__fma3,
+				};
 				nnp_hwinfo.supported = true;
 			}
 		#elif NNP_ARCH_PSIMD
@@ -354,6 +376,28 @@ static void init_hwinfo(void) {
 				.nr = 8,
 				.only_mr_x_nr = nnp_sgemm_only_4x8__psimd,
 				.upto_mr_x_nr = nnp_sgemm_upto_4x8__psimd,
+			};
+			nnp_hwinfo.sxgemm = (struct sxgemm) {
+				.mr = 3,
+				.nr = 4,
+				.only_mr_x_nr = nnp_s4gemm_only_3x4__psimd,
+				.upto_mr_x_nr = nnp_s4gemm_upto_3x4__psimd,
+			};
+			nnp_hwinfo.cxgemm = (struct cxgemm) {
+				.mr = 2,
+				.nr = 2,
+				.s4cX_only_mr_x_nr = nnp_s4c2gemm_only_2x2__psimd,
+				.s4cX_upto_mr_x_nr = nnp_s4c2gemm_upto_2x2__psimd,
+				.cX_only_mr_x_nr = nnp_c4gemm_only_2x2__psimd,
+				.cX_upto_mr_x_nr = nnp_c4gemm_upto_2x2__psimd,
+				.s4cX_conjb_only_mr_x_nr = nnp_s4c2gemm_conjb_only_2x2__psimd,
+				.s4cX_conjb_upto_mr_x_nr = nnp_s4c2gemm_conjb_upto_2x2__psimd,
+				.cX_conjb_only_mr_x_nr = nnp_c4gemm_conjb_only_2x2__psimd,
+				.cX_conjb_upto_mr_x_nr = nnp_c4gemm_conjb_upto_2x2__psimd,
+				.s4cX_conjb_transc_only_mr_x_nr = nnp_s4c2gemm_conjb_transc_only_2x2__psimd,
+				.s4cX_conjb_transc_upto_mr_x_nr = nnp_s4c2gemm_conjb_transc_upto_2x2__psimd,
+				.cX_conjb_transc_only_mr_x_nr = nnp_c4gemm_conjb_transc_only_2x2__psimd,
+				.cX_conjb_transc_upto_mr_x_nr = nnp_c4gemm_conjb_transc_upto_2x2__psimd,
 			};
 			nnp_hwinfo.supported = true;
 		#else

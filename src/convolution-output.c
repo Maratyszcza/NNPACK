@@ -28,7 +28,8 @@ struct NNP_CACHE_ALIGN kernel_transform_context {
 	struct nnp_size kernel_size;
 };
 
-static void compute_kernel_transform(const struct kernel_transform_context context[restrict static 1],
+static void compute_kernel_transform(
+	const struct kernel_transform_context context[restrict static 1],
 	size_t input_channel,       size_t output_channels_subblock_start,
 	size_t input_channel_range, size_t output_channels_subblock_size)
 {
@@ -75,7 +76,8 @@ struct NNP_CACHE_ALIGN input_transform_context {
 	size_t column_count;
 };
 
-static void compute_input_transform(const struct input_transform_context context[restrict static 1],
+static void compute_input_transform(
+	const struct input_transform_context context[restrict static 1],
 	size_t input_channel,       size_t batch_subblock_start,
 	size_t input_channel_range, size_t batch_subblock_size)
 {
@@ -127,7 +129,8 @@ struct NNP_CACHE_ALIGN output_transform_context {
 	size_t column_count;
 };
 
-static void compute_output_transform(const struct output_transform_context context[restrict static 1],
+static void compute_output_transform(
+	const struct output_transform_context context[restrict static 1],
 	size_t sample,       size_t output_channels_subblock_start,
 	size_t sample_range, size_t output_channels_subblock_size)
 {
@@ -169,19 +172,19 @@ struct NNP_CACHE_ALIGN matrix_multiplication_context {
 	size_t batch_block_size;
 	size_t input_channels_block_start;
 	size_t input_channels_block_size;
+	size_t batch_subblock_max;
 	size_t output_channels_subblock_max;
 
 	const float* input_transform;
 	const float* kernel_transform;
 	float* output_transform;
 
-	union {
-		nnp_tuple_gemm_function cgemm[2][2];
-		nnp_tuple_gemm_function sgemm[3][4];
-	};
+	nnp_fast_tuple_gemm_function fast_gemm;
+	nnp_full_tuple_gemm_function full_gemm;
 };
 
-static void compute_complex_matrix_multiplication(const struct matrix_multiplication_context context[restrict static 1],
+static void compute_matrix_multiplication(
+	const struct matrix_multiplication_context context[restrict static 1],
 	size_t output_channels_block_start, size_t batch_subblock_start,
 	size_t output_channels_block_size,  size_t batch_subblock_size)
 {
@@ -189,8 +192,8 @@ static void compute_complex_matrix_multiplication(const struct matrix_multiplica
 	const size_t batch_block_size             = context->batch_block_size;
 	const size_t input_channels_block_start   = context->input_channels_block_start;
 	const size_t input_channels_block_size    = context->input_channels_block_size;
+	const size_t batch_subblock_max           = context->batch_subblock_max;
 	const size_t output_channels_subblock_max = context->output_channels_subblock_max;
-	const nnp_tuple_gemm_function* cgemms     = context->cgemm[batch_subblock_size - 1];
 
 	const float* input_transform  = context->input_transform +
 		(batch_subblock_start * input_channels_block_size * tuple_elements);
@@ -199,58 +202,39 @@ static void compute_complex_matrix_multiplication(const struct matrix_multiplica
 	float* output_transform       = context->output_transform +
 		(output_channels_block_start * batch_block_size * tuple_elements);
 
-	size_t output_channels_subblock_start = 0;
-	do {
-		const size_t output_channels_subblock_size = min(output_channels_block_size - output_channels_subblock_start, output_channels_subblock_max);
-		const nnp_tuple_gemm_function cgemm = cgemms[output_channels_subblock_size - 1];
-		cgemm(
+	if (batch_subblock_size == batch_subblock_max) {
+		const nnp_fast_sgemm_function fast_gemm = context->fast_gemm;
+		while (output_channels_block_size >= output_channels_subblock_max) {
+			output_channels_block_size -= output_channels_subblock_max;
+
+			fast_gemm(
+				input_channels_block_size, input_channels_block_start,
+				input_transform,
+				kernel_transform,
+				output_transform + (batch_subblock_start * output_channels_subblock_max * tuple_elements),
+				output_channels_subblock_max * tuple_elements);
+
+			kernel_transform += input_channels_block_size * output_channels_subblock_max * tuple_elements;
+			output_transform += batch_block_size          * output_channels_subblock_max * tuple_elements;
+		}
+	}
+
+	const nnp_full_sgemm_function full_gemm = context->full_gemm;
+	while (output_channels_block_size != 0) {
+		const size_t output_channels_subblock_size = min(output_channels_block_size, output_channels_subblock_max);
+		output_channels_block_size -= output_channels_subblock_size;
+
+		full_gemm(
+			batch_subblock_size, output_channels_subblock_size,
 			input_channels_block_size, input_channels_block_start,
 			input_transform,
 			kernel_transform,
 			output_transform + (batch_subblock_start * output_channels_subblock_size * tuple_elements),
-			output_channels_subblock_size * tuple_elements,
-			tuple_elements);
+			output_channels_subblock_size * tuple_elements);
 
-		output_channels_subblock_start += output_channels_subblock_max;
 		kernel_transform += input_channels_block_size * output_channels_subblock_max * tuple_elements;
-		output_transform += batch_block_size         * output_channels_subblock_max * tuple_elements;
-	} while (output_channels_subblock_start < output_channels_block_size);
-}
-
-static void compute_real_matrix_multiplication(const struct matrix_multiplication_context context[restrict static 1],
-	size_t output_channels_block_start, size_t batch_subblock_start,
-	size_t output_channels_block_size,  size_t batch_subblock_size)
-{
-	const size_t tuple_elements               = context->tuple_elements;
-	const size_t batch_block_size             = context->batch_block_size;
-	const size_t input_channels_block_start   = context->input_channels_block_start;
-	const size_t input_channels_block_size    = context->input_channels_block_size;
-	const size_t output_channels_subblock_max = context->output_channels_subblock_max;
-	const nnp_tuple_gemm_function* sgemms     = context->sgemm[batch_subblock_size - 1];
-
-	const float* input_transform  = context->input_transform +
-		(batch_subblock_start * input_channels_block_size * tuple_elements);
-	const float* kernel_transform = context->kernel_transform +
-		(output_channels_block_start * input_channels_block_size * tuple_elements);
-	float* output_transform       = context->output_transform +
-		(output_channels_block_start * batch_block_size * tuple_elements);
-
-	size_t output_channels_subblock_start = 0;
-	do {
-		const size_t output_channels_subblock_size = min(output_channels_block_size - output_channels_subblock_start, output_channels_subblock_max);
-		const nnp_tuple_gemm_function sgemm = sgemms[output_channels_subblock_size - 1];
-		sgemm(
-			input_channels_block_size, input_channels_block_start,
-			input_transform,
-			kernel_transform,
-			output_transform + (batch_subblock_start * output_channels_subblock_size * tuple_elements),
-			output_channels_subblock_size * tuple_elements,
-			tuple_elements);
-
-		output_channels_subblock_start += output_channels_subblock_max;
-		kernel_transform += input_channels_block_size * output_channels_subblock_max * tuple_elements;
-		output_transform += batch_block_size         * output_channels_subblock_max * tuple_elements;
-	} while (output_channels_subblock_start < output_channels_block_size);
+		output_transform += batch_block_size          * output_channels_subblock_max * tuple_elements;
+	}
 }
 
 static void compute_convolution_output(
@@ -347,6 +331,7 @@ static void compute_convolution_output(
 							.batch_block_size = batch_block_size,
 							.input_channels_block_start = input_channels_block_start,
 							.input_channels_block_size = input_channels_block_size,
+							.batch_subblock_max = batch_subblock_max,
 							.output_channels_subblock_max = output_channels_subblock_max,
 							.input_transform = input_transform +
 								tuple_index * tuple_elements * batch_size * input_channels +
@@ -360,65 +345,20 @@ static void compute_convolution_output(
 						};
 						if (fourier_transform) {
 							if (tuple_index == 0) {
-								#if NNP_ARCH_X86_64
-									matrix_multiplication_context.cgemm[0][0] = nnp_s4c6gemmcb1x1__fma3;
-									matrix_multiplication_context.cgemm[0][1] = nnp_s4c6gemmcb1x2__fma3;
-									matrix_multiplication_context.cgemm[1][0] = nnp_s4c6gemmcb2x1__fma3;
-									matrix_multiplication_context.cgemm[1][1] = nnp_s4c6gemmcb2x2__fma3;
-								#elif NNP_ARCH_PSIMD
-									matrix_multiplication_context.cgemm[0][0] = nnp_s4c2gemmcb1x1__psimd;
-									matrix_multiplication_context.cgemm[0][1] = nnp_s4c2gemmcb1x2__psimd;
-									matrix_multiplication_context.cgemm[1][0] = nnp_s4c2gemmcb2x1__psimd;
-									matrix_multiplication_context.cgemm[1][1] = nnp_s4c2gemmcb2x2__psimd;
-								#endif
+								matrix_multiplication_context.fast_gemm = nnp_hwinfo.cxgemm.s4cX_conjb_only_mr_x_nr;
+								matrix_multiplication_context.full_gemm = nnp_hwinfo.cxgemm.s4cX_conjb_upto_mr_x_nr;
 							} else {
-								#if NNP_ARCH_X86_64
-									matrix_multiplication_context.cgemm[0][0] = nnp_c8gemmcb1x1__fma3;
-									matrix_multiplication_context.cgemm[0][1] = nnp_c8gemmcb1x2__fma3;
-									matrix_multiplication_context.cgemm[1][0] = nnp_c8gemmcb2x1__fma3;
-									matrix_multiplication_context.cgemm[1][1] = nnp_c8gemmcb2x2__fma3;
-								#elif NNP_ARCH_PSIMD
-									matrix_multiplication_context.cgemm[0][0] = nnp_c4gemmcb1x1__psimd;
-									matrix_multiplication_context.cgemm[0][1] = nnp_c4gemmcb1x2__psimd;
-									matrix_multiplication_context.cgemm[1][0] = nnp_c4gemmcb2x1__psimd;
-									matrix_multiplication_context.cgemm[1][1] = nnp_c4gemmcb2x2__psimd;
-								#endif
+								matrix_multiplication_context.fast_gemm = nnp_hwinfo.cxgemm.cX_conjb_only_mr_x_nr;
+								matrix_multiplication_context.full_gemm = nnp_hwinfo.cxgemm.cX_conjb_upto_mr_x_nr;
 							}
 						} else {
-							#if NNP_ARCH_X86_64
-								matrix_multiplication_context.sgemm[0][0] = nnp_s8gemm1x1__fma3;
-								matrix_multiplication_context.sgemm[0][1] = nnp_s8gemm1x2__fma3;
-								matrix_multiplication_context.sgemm[0][2] = nnp_s8gemm1x3__fma3;
-								matrix_multiplication_context.sgemm[0][3] = nnp_s8gemm1x4__fma3;
-								matrix_multiplication_context.sgemm[1][0] = nnp_s8gemm2x1__fma3;
-								matrix_multiplication_context.sgemm[1][1] = nnp_s8gemm2x2__fma3;
-								matrix_multiplication_context.sgemm[1][2] = nnp_s8gemm2x3__fma3;
-								matrix_multiplication_context.sgemm[1][3] = nnp_s8gemm2x4__fma3;
-								matrix_multiplication_context.sgemm[2][0] = nnp_s8gemm3x1__fma3;
-								matrix_multiplication_context.sgemm[2][1] = nnp_s8gemm3x2__fma3;
-								matrix_multiplication_context.sgemm[2][2] = nnp_s8gemm3x3__fma3;
-								matrix_multiplication_context.sgemm[2][3] = nnp_s8gemm3x4__fma3;
-							#elif NNP_ARCH_PSIMD
-								matrix_multiplication_context.sgemm[0][0] = nnp_s4gemm1x1__psimd;
-								matrix_multiplication_context.sgemm[0][1] = nnp_s4gemm1x2__psimd;
-								matrix_multiplication_context.sgemm[0][2] = nnp_s4gemm1x3__psimd;
-								matrix_multiplication_context.sgemm[0][3] = nnp_s4gemm1x4__psimd;
-								matrix_multiplication_context.sgemm[1][0] = nnp_s4gemm2x1__psimd;
-								matrix_multiplication_context.sgemm[1][1] = nnp_s4gemm2x2__psimd;
-								matrix_multiplication_context.sgemm[1][2] = nnp_s4gemm2x3__psimd;
-								matrix_multiplication_context.sgemm[1][3] = nnp_s4gemm2x4__psimd;
-								matrix_multiplication_context.sgemm[2][0] = nnp_s4gemm3x1__psimd;
-								matrix_multiplication_context.sgemm[2][1] = nnp_s4gemm3x2__psimd;
-								matrix_multiplication_context.sgemm[2][2] = nnp_s4gemm3x3__psimd;
-								matrix_multiplication_context.sgemm[2][3] = nnp_s4gemm3x4__psimd;
-							#endif
+							matrix_multiplication_context.fast_gemm = nnp_hwinfo.sxgemm.only_mr_x_nr;
+							matrix_multiplication_context.full_gemm = nnp_hwinfo.sxgemm.upto_mr_x_nr;
 						}
 						pthreadpool_compute_2d_tiled(threadpool,
-							(pthreadpool_function_2d_tiled_t) (fourier_transform ?
-								compute_complex_matrix_multiplication :
-								compute_real_matrix_multiplication),
+							(pthreadpool_function_2d_tiled_t) compute_matrix_multiplication,
 							&matrix_multiplication_context,
-							output_channels,          batch_block_size,
+							output_channels,           batch_block_size,
 							output_channels_block_max, batch_subblock_max);
 					}
 				}
@@ -574,8 +514,8 @@ enum nnp_status nnp_convolution_output(
 	const size_t cache_elements_l2 = nnp_hwinfo.blocking.l2 / (tuple_elements * sizeof(float));
 	const size_t cache_elements_l3 = nnp_hwinfo.blocking.l3 / (tuple_elements * sizeof(float));
 
-	const size_t batch_subblock_max = (fourier_transform ? 2 : 3);
-	const size_t output_channels_subblock_max = (fourier_transform ? 2 : 4);
+	const size_t batch_subblock_max = (fourier_transform ? nnp_hwinfo.cxgemm.mr : nnp_hwinfo.sxgemm.mr);
+	const size_t output_channels_subblock_max = (fourier_transform ? nnp_hwinfo.cxgemm.nr : nnp_hwinfo.sxgemm.nr);
 
 	const size_t input_channels_block_max =
 		round_down(cache_elements_l1 / (batch_subblock_max + output_channels_subblock_max), 2);

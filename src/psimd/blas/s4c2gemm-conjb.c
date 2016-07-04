@@ -4,7 +4,7 @@
 #include <nnpack/simd.h>
 
 
-void nnp_s4c2gemm_only_2x2__psimd(
+void nnp_s4c2gemm_conjb_only_2x2__psimd(
 	size_t k, size_t update,
 	const float a[restrict static 1],
 	const float b[restrict static 1],
@@ -38,15 +38,15 @@ void nnp_s4c2gemm_only_2x2__psimd(
 		acc11i += a1i * b1r;
 
 		b0i = v4f_andi(b0i, (v4i) { 0, 0, -1, -1 });
-		acc00r -= a0i * b0i;
-		acc00i += a0r * b0i;
-		acc10r -= a1i * b0i;
-		acc10i += a1r * b0i;
+		acc00r += a0i * b0i;
+		acc00i -= a0r * b0i;
+		acc10r += a1i * b0i;
+		acc10i -= a1r * b0i;
 		b1i = v4f_andi(b1i, (v4i) { 0, 0, -1, -1 });
-		acc01r -= a0i * b1i;
-		acc01i += a0r * b1i;
-		acc11r -= a1i * b1i;
-		acc11i += a1r * b1i;
+		acc01r += a0i * b1i;
+		acc01i -= a0r * b1i;
+		acc11r += a1i * b1i;
+		acc11i -= a1r * b1i;
 
 		a += 16;
 		b += 16;
@@ -75,7 +75,7 @@ void nnp_s4c2gemm_only_2x2__psimd(
 	}
 }
 
-void nnp_s4c2gemm_upto_2x2__psimd(
+void nnp_s4c2gemm_conjb_upto_2x2__psimd(
 	uint32_t mr, uint32_t nr,
 	size_t k, size_t update,
 	const float a[restrict static 1],
@@ -111,10 +111,10 @@ void nnp_s4c2gemm_upto_2x2__psimd(
 		acc10i += a1i * b0r;
 
 		b0i = v4f_andi(b0i, (v4i) { 0, 0, -1, -1 });
-		acc00r -= a0i * b0i;
-		acc00i += a0r * b0i;
-		acc10r -= a1i * b0i;
-		acc10i += a1r * b0i;
+		acc00r += a0i * b0i;
+		acc00i -= a0r * b0i;
+		acc10r += a1i * b0i;
+		acc10i -= a1r * b0i;
 
 		if (nr > 1) {
 			b1r = v4f_ld(b + 0);
@@ -128,10 +128,10 @@ void nnp_s4c2gemm_upto_2x2__psimd(
 			acc11i += a1i * b1r;
 
 			b1i = v4f_andi(b1i, (v4i) { 0, 0, -1, -1 });
-			acc01r -= a0i * b1i;
-			acc01i += a0r * b1i;
-			acc11r -= a1i * b1i;
-			acc11i += a1r * b1i;
+			acc01r += a0i * b1i;
+			acc01i -= a0r * b1i;
+			acc11r += a1i * b1i;
+			acc11i -= a1r * b1i;
 		}
 	} while (--k);
 

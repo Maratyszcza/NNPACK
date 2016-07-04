@@ -79,13 +79,25 @@ struct sgemm {
 };
 
 struct sxgemm {
-	const nnp_tuple_gemm_function* functions;
+	nnp_fast_tuple_gemm_function only_mr_x_nr;
+	nnp_full_tuple_gemm_function upto_mr_x_nr;
 	uint32_t mr;
 	uint32_t nr;
 };
 
 struct cxgemm {
-	const nnp_tuple_gemm_function* functions;
+	nnp_fast_tuple_gemm_function s4cX_only_mr_x_nr;
+	nnp_full_tuple_gemm_function s4cX_upto_mr_x_nr;
+	nnp_fast_tuple_gemm_function cX_only_mr_x_nr;
+	nnp_full_tuple_gemm_function cX_upto_mr_x_nr;
+	nnp_fast_tuple_gemm_function s4cX_conjb_only_mr_x_nr;
+	nnp_full_tuple_gemm_function s4cX_conjb_upto_mr_x_nr;
+	nnp_fast_tuple_gemm_function cX_conjb_only_mr_x_nr;
+	nnp_full_tuple_gemm_function cX_conjb_upto_mr_x_nr;
+	nnp_fast_tuple_gemm_function s4cX_conjb_transc_only_mr_x_nr;
+	nnp_full_tuple_gemm_function s4cX_conjb_transc_upto_mr_x_nr;
+	nnp_fast_tuple_gemm_function cX_conjb_transc_only_mr_x_nr;
+	nnp_full_tuple_gemm_function cX_conjb_transc_upto_mr_x_nr;
 	uint32_t mr;
 	uint32_t nr;
 };
