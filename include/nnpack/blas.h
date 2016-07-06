@@ -37,6 +37,9 @@ void nnp_s4c6gemm_conjb_upto_2x2__fma3(uint32_t mr, uint32_t nr, size_t k, size_
 void nnp_s4c6gemm_conjb_transc_only_2x2__fma3(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 void nnp_s4c6gemm_conjb_transc_upto_2x2__fma3(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 
+void nnp_s8gemm_only_3x4__fma3(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+void nnp_s8gemm_upto_3x4__fma3(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+
 void nnp_s4gemm_only_3x4__psimd(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 void nnp_s4gemm_upto_3x4__psimd(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 
