@@ -160,12 +160,12 @@ enum nnp_status nnp_convolution_inference(
 	float* output_transform = memory_block + input_transform_size + kernel_transform_size;
 
 	{
-		const float (*input)[input_size.width][input_size.height] =
-			(const float(*)[input_size.width][input_size.height]) input_pointer;
+		const float (*input)[input_size.height][input_size.width] =
+			(const float(*)[input_size.height][input_size.width]) input_pointer;
 		const float (*kernel)[input_channels][kernel_size.width * kernel_size.height] =
 			(const float(*)[input_channels][kernel_size.width * kernel_size.height]) kernel_pointer;
-		float (*output)[output_size.width][output_size.height] =
-			(float(*)[output_size.width][output_size.height]) output_pointer;
+		float (*output)[output_size.height][output_size.width] =
+			(float(*)[output_size.height][output_size.width]) output_pointer;
 
 		switch (transform_strategy) {
 			case nnp_convolution_transform_strategy_tuple_based:
