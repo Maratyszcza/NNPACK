@@ -43,7 +43,9 @@ enum nnp_status {
 	/** NNPACK function was called with pooling_stride.height == 0 or pooling_stride.width == 0 */
 	nnp_status_invalid_pooling_stride = 15,
 	/** NNPACK function was called with convolution algorithm not in nnp_convolution_algorithm enumeration */
-	nnp_status_invalid_algorithm = 15,
+	nnp_status_invalid_algorithm = 16,
+	/** NNPACK function was called with convolution transform strategy not in nnp_convolution_transform_strategy enum */
+	nnp_status_invalid_transform_strategy = 17,
 
 	/** NNPACK does not support the particular input size for the function */
 	nnp_status_unsupported_input_size = 20,
@@ -59,6 +61,8 @@ enum nnp_status {
 	nnp_status_unsupported_pooling_stride = 25,
 	/** NNPACK does not support the particular convolution algorithm for the function */
 	nnp_status_unsupported_algorithm = 26,
+	/** NNPACK does not support the particular convolution transform strategy for the algorithm */
+	nnp_status_unsupported_transform_strategy = 27,
 
 	/** NNPACK function was called before the library was initialized */
 	nnp_status_uninitialized = 50,
@@ -82,10 +86,10 @@ enum nnp_convolution_algorithm {
 	nnp_convolution_algorithm_wt8x8 = 3
 };
 
-enum nnp_convolution_kernel_transform_strategy {
-	nnp_convolution_kernel_transform_strategy_recompute = 1,
-	nnp_convolution_kernel_transform_strategy_reuse = 2,
-	nnp_convolution_kernel_transform_strategy_precomputed = 3
+enum nnp_convolution_transform_strategy {
+	nnp_convolution_transform_strategy_block_based = 1,
+	nnp_convolution_transform_strategy_tuple_based = 2,
+	nnp_convolution_transform_strategy_precomputed = 3
 };
 
 /**
@@ -287,13 +291,13 @@ enum nnp_status nnp_convolution_kernel_gradient(
  *    - nnp_convolution_algorithm_wt8x8   -- tiled convolution based on 2D Winograd transform F(3x3, 6x6).
  *                                           Supports only 3x3 kernels.
  *
- * @param kernel_transform_strategy A strategy that guides computation of kernel transforms coefficients.
- *                                  Possible values are:
+ * @param transform_strategy A strategy that guides computation of kernel transforms coefficients.
+ *                           Possible values are:
  *
- *    - nnp_convolution_kernel_transform_strategy_recompute -- recompute transformation of kernel every time is needed,
- *                                                             and never store it to memory.
- *    - nnp_convolution_kernel_transform_strategy_reuse     -- compute transformation of kernel tensor once, store in
- *                                                             memory, and reuse the coefficients for every input tile.
+ *    - nnp_convolution_transform_strategy_block_based -- do multiplication-accumulations on blocks of transformed
+ *                                                        coefficients.
+ *    - nnp_convolution_transform_strategy_tuple_based -- do multiplication-accumulations on tuples of transformed
+ *                                                        coefficients.
  *
  * @param input_channels The number of channels (AKA features, dimensions) in the input image.
  * @param output_channels The number of channels (AKA features, dimensions) in the output image.
@@ -315,7 +319,7 @@ enum nnp_status nnp_convolution_kernel_gradient(
  */
 enum nnp_status nnp_convolution_inference(
 	enum nnp_convolution_algorithm algorithm,
-	enum nnp_convolution_kernel_transform_strategy kernel_transform_strategy,
+	enum nnp_convolution_transform_strategy transform_strategy,
 	size_t input_channels,
 	size_t output_channels,
 	struct nnp_size input_size,

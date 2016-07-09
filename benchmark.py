@@ -10,7 +10,7 @@ def extract_time(line, prefix):
 		return line
 
 
-def convolution(mode, batch_size, input_channels, output_channels, image_size, kernel_size, padding, algorithm, kernel_transform=None, threads=None, verbose=False, use_selldr=False):
+def convolution(mode, batch_size, input_channels, output_channels, image_size, kernel_size, padding, algorithm, transform_strategy=None, threads=None, verbose=False, use_selldr=False):
 	import subprocess
 	if use_selldr:
 		import os
@@ -33,8 +33,8 @@ def convolution(mode, batch_size, input_channels, output_channels, image_size, k
 		"-ks", str(kernel_size[0]), str(kernel_size[1]),
 		"-a", algorithm
 	]
-	if mode == "inference" and kernel_transform is not None:
-		benchmark_args += ["-kt", kernel_transform]
+	if mode == "inference" and transform_strategy is not None:
+		benchmark_args += ["-s", transform_strategy]
 	if threads is not None:
 		benchmark_args += ["-t", str(threads)]
 	benchmark = subprocess.Popen(benchmark_args, stdout=subprocess.PIPE)
@@ -133,7 +133,7 @@ if __name__ == "__main__":
 	parser.add_argument("-l", "--layer", dest="layer", required=True, choices=["convolution", "fully-connected", "pooling"])
 	parser.add_argument("-n", "--network", dest="network", required=True, choices=["vgg-a", "alexnet", "overfeat-fast"])
 	parser.add_argument("-m", "--mode", dest="mode", required=True, choices=["output", "input-gradient", "kernel-gradient", "inference"])
-	parser.add_argument("-k", "--kernel-transform", dest="kernel_transform", choices=["recompute", "reuse"])
+	parser.add_argument("-s", "--transform-strategy", dest="transform_strategy", choices=["block", "tuple"])
 	parser.add_argument("-b", "--batch", dest="batch", type=int)
 	parser.add_argument("-t", "--threads", dest="threads")
 	parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", default=False)
@@ -159,11 +159,11 @@ if __name__ == "__main__":
 			raise ValueError("Non-unit batch {batch} is not allowed in inference mode".format(batch=batch))
 	elif options.mode == "inference":
 		batch = 1
-	if options.kernel_transform is not None:
+	if options.transform_strategy is not None:
 		if options.layer != "convolution":
-			raise ValueError("Kernel transform {kernel_transform} is meaningless for non-convolutional layers".format(kernel_transform=kernel_transform))
+			raise ValueError("Transform strategy {transform_strategy} is meaningless for non-convolutional layers".format(transform_strategy=transform_strategy))
 		elif options.mode != "inference":
-			raise ValueError("Kernel transform {kernel_transform} is meaningless in non-inference mode".format(kernel_transform=kernel_transform))
+			raise ValueError("Transform strategy {transform_strategy} is meaningless in non-inference mode".format(transform_strategy=transform_strategy))
 
 	if options.layer == "convolution":
 		for name, input_channels, output_channels, image_size, kernel_size, padding in network_layers:
@@ -174,7 +174,7 @@ if __name__ == "__main__":
 
 				measurements += list(convolution(options.mode, batch, input_channels, output_channels,
 					image_size, kernel_size, padding, algorithm,
-					kernel_transform=options.kernel_transform,
+					transform_strategy=options.transform_strategy,
 					threads=options.threads, verbose=options.verbose, use_selldr=options.use_selldr))
 			print("\t".join(map(str, measurements)))
 	elif options.layer == "fully-connected":

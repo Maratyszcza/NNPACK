@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <assert.h>
+
+#include <fxdiv.h>
 
 #include <nnpack.h>
 #include <nnpack/macros.h>
@@ -17,7 +17,7 @@
 
 enum nnp_status nnp_convolution_inference(
 	enum nnp_convolution_algorithm algorithm,
-	enum nnp_convolution_kernel_transform_strategy kernel_transform_strategy,
+	enum nnp_convolution_transform_strategy transform_strategy,
 	size_t input_channels,
 	size_t output_channels,
 	struct nnp_size input_size,
@@ -75,8 +75,6 @@ enum nnp_status nnp_convolution_inference(
 	nnp_transform_2d input_transform_function = NULL;
 	nnp_transform_2d kernel_transform_function = NULL;
 	nnp_transform_2d_with_bias output_transform_function = NULL;
-	nnp_fourier_transform_2d_and_mac kernel_fourier_transform_and_mac_by_conj_function = NULL;
-	nnp_kernel_winograd_transform_2d_and_mac kernel_winograd_transform_and_mac_function = NULL;
 	nnp_blockmac block_mac_function = NULL;
 	switch (algorithm) {
 		case nnp_convolution_algorithm_wt8x8:
@@ -85,41 +83,23 @@ enum nnp_status nnp_convolution_inference(
 				goto cleanup;
 			}
 			tile_size = (struct nnp_size) { .height = 8, .width = 8 };
-			input_transform_function = nnp_hwinfo.transforms.iwt_f6x6_3x3_and_store;
+			input_transform_function = nnp_hwinfo.transforms.iwt_f6x6_3x3_and_stream;
 			kernel_transform_function = nnp_hwinfo.transforms.kwt_f6x6_3x3;
-			kernel_winograd_transform_and_mac_function = nnp_hwinfo.transforms.kwt_f6x6_3x3_and_mac;
 			output_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias;
-		#if NNP_ARCH_X86_64
-			block_mac_function = nnp_s8x8gemm__fma3;
-		#elif NNP_ARCH_PSIMD
-			block_mac_function = nnp_s8x8gemm__psimd;
-		#endif
 			fourier_transform = false;
 			break;
 		case nnp_convolution_algorithm_ft8x8:
 			tile_size = (struct nnp_size) { .height = 8, .width = 8 };
-			input_transform_function = nnp_hwinfo.transforms.fft8x8_and_store;
+			input_transform_function = nnp_hwinfo.transforms.fft8x8_and_stream;
 			kernel_transform_function = nnp_hwinfo.transforms.fft8x8_and_stream;
-			kernel_fourier_transform_and_mac_by_conj_function = nnp_hwinfo.transforms.fft8x8_and_mac_by_conj;
 			output_transform_function = nnp_hwinfo.transforms.ifft8x8_with_bias;
-		#if NNP_ARCH_X86_64
-			block_mac_function = nnp_ft8x8gemmc__fma3;
-		#elif NNP_ARCH_PSIMD
-			block_mac_function = nnp_ft8x8gemmc__psimd;
-		#endif
 			fourier_transform = true;
 			break;
 		case nnp_convolution_algorithm_ft16x16:
 			tile_size = (struct nnp_size) { .height = 16, .width = 16 };
-			input_transform_function = nnp_hwinfo.transforms.fft16x16_and_store;
+			input_transform_function = nnp_hwinfo.transforms.fft16x16_and_stream;
 			kernel_transform_function = nnp_hwinfo.transforms.fft16x16_and_stream;
-			kernel_fourier_transform_and_mac_by_conj_function = nnp_hwinfo.transforms.fft16x16_and_mac_by_conj;
 			output_transform_function = nnp_hwinfo.transforms.ifft16x16_with_bias;
-		#if NNP_ARCH_X86_64
-			block_mac_function = nnp_ft16x16gemmc__fma3;
-		#elif NNP_ARCH_PSIMD
-			block_mac_function = nnp_ft16x16gemmc__psimd;
-		#endif
 			fourier_transform = true;
 			break;
 		case nnp_convolution_algorithm_auto:
@@ -143,14 +123,31 @@ enum nnp_status nnp_convolution_inference(
 		.height = input_tile.height - kernel_size.height + 1
 	};
 
+	const size_t tiles_y_count = divide_round_up(output_size.height, output_tile.height);
+	const struct fxdiv_divisor_size_t tiles_x_count = fxdiv_init_size_t(
+		divide_round_up(output_size.width, output_tile.width));
+	const size_t tiles_count = tiles_x_count.value * tiles_y_count;
+
+	/* Calculate cache blocking parameters */
+	const size_t cache_elements_l1 = nnp_hwinfo.blocking.l1 / (tuple_elements * sizeof(float));
+	const size_t cache_elements_l2 = nnp_hwinfo.blocking.l2 / (tuple_elements * sizeof(float));
+	const size_t cache_elements_l3 = nnp_hwinfo.blocking.l3 / (tuple_elements * sizeof(float));
+
+	const size_t tiles_subblock_max = (fourier_transform ? nnp_hwinfo.cxgemm.mr : nnp_hwinfo.sxgemm.mr);
+	const size_t output_channels_subblock_max = (fourier_transform ? nnp_hwinfo.cxgemm.nr : nnp_hwinfo.sxgemm.nr);
+
+	const size_t input_channels_block_max =
+		round_down(cache_elements_l1 / (tiles_subblock_max + output_channels_subblock_max), 2);
+	const size_t tiles_block_max =
+		round_down(cache_elements_l2 / input_channels_block_max, tiles_subblock_max);
+	const size_t output_channels_block_max =
+		round_down(cache_elements_l3 / input_channels_block_max, output_channels_subblock_max);
+
 	const size_t transform_tile_size = tile_elements * sizeof(float);
-	const size_t input_transform_size = input_channels * transform_tile_size;
-	const size_t kernel_transform_size = output_channels * input_channels * transform_tile_size;
-	const size_t output_transform_size = output_channels * transform_tile_size;
-	size_t memory_size = input_transform_size + output_transform_size;
-	if (kernel_transform_strategy == nnp_convolution_kernel_transform_strategy_reuse) {
-		memory_size += kernel_transform_size;
-	}
+	const size_t input_transform_size = tiles_count * min(input_channels, input_channels_block_max) * transform_tile_size;
+	const size_t kernel_transform_size = output_channels * min(input_channels, input_channels_block_max) * transform_tile_size;
+	const size_t output_transform_size = tiles_count * output_channels * transform_tile_size;
+	const size_t memory_size = input_transform_size + kernel_transform_size + output_transform_size;
 
 	memory_block = allocate_memory(memory_size);
 	if (memory_block == NULL) {
@@ -159,154 +156,160 @@ enum nnp_status nnp_convolution_inference(
 	}
 
 	float* input_transform = memory_block;
-	float* output_transform = memory_block + input_transform_size;
-	float* kernel_transform = NULL;
-	if (kernel_transform_strategy == nnp_convolution_kernel_transform_strategy_reuse) {
-		kernel_transform = memory_block + input_transform_size + output_transform_size;
-	}
-
-	/* TODO: WTF is this? Figure out and rewrite through cache hierarchy parameters */
-	const size_t input_channels_block_max = 16 / (tile_elements / 64);
-	const size_t output_channels_block_max = 16 / (tile_elements / 64);
+	float* kernel_transform = memory_block + input_transform_size;
+	float* output_transform = memory_block + input_transform_size + kernel_transform_size;
 
 	{
-		const float (*input)[input_size.width * input_size.height] =
-			(const float(*)[input_size.width * input_size.height]) input_pointer;
+		const float (*input)[input_size.width][input_size.height] =
+			(const float(*)[input_size.width][input_size.height]) input_pointer;
 		const float (*kernel)[input_channels][kernel_size.width * kernel_size.height] =
 			(const float(*)[input_channels][kernel_size.width * kernel_size.height]) kernel_pointer;
-		float (*output)[output_size.width * output_size.height] =
-			(float(*)[output_size.width * output_size.height]) output_pointer;
+		float (*output)[output_size.width][output_size.height] =
+			(float(*)[output_size.width][output_size.height]) output_pointer;
 
-		switch (kernel_transform_strategy) {
-			case nnp_convolution_kernel_transform_strategy_recompute:
-				for (size_t y = 0; y < output_size.height; y += output_tile.height) {
-					const size_t input_y = min(doz(y, input_padding.top), input_size.height);
-					for (size_t x = 0; x < output_size.width; x += output_tile.width) {
-						const size_t input_x = min(doz(x, input_padding.left), input_size.width);
+		switch (transform_strategy) {
+			case nnp_convolution_transform_strategy_tuple_based:
+				for (size_t input_channels_block_start = 0; input_channels_block_start < input_channels; input_channels_block_start += input_channels_block_max) {
+					const size_t input_channels_block_size = min(input_channels - input_channels_block_start, input_channels_block_max);
 
-						{
-							NNP_INPUT_TRANSFORM_START(profile)
-							for (size_t input_channel = 0; input_channel < input_channels; input_channel++) {
-								input_transform_function(
-									&input[input_channel][input_y * input_size.width + input_x],
-									input_transform + input_channel * tile_elements,
-									input_size.width,
-									tuple_size,
-									min(input_tile.height, doz(input_size.height, input_y)),
-									min(input_tile.width, doz(input_size.width, input_x)),
-									doz(input_padding.top, y),
-									doz(input_padding.left, x));
-							}
-							NNP_INPUT_TRANSFORM_END(profile)
-						}
-
-						for (size_t output_channel = 0; output_channel < output_channels; output_channel++) {
-							memset(output_transform + output_channel * tile_elements, 0, tile_elements * sizeof(float));
-
-							NNP_KERNEL_TRANSFORM_START(profile)
-							for (size_t input_channel = 0; input_channel < input_channels; input_channel++) {
-								if (fourier_transform) {
-									kernel_fourier_transform_and_mac_by_conj_function(
-										kernel[output_channel][input_channel],
-										output_transform + output_channel * tile_elements,
-										input_transform + input_channel * tile_elements,
-										kernel_size.width,
-										kernel_size.height, kernel_size.width, 0, 0);
-								} else {
-									kernel_winograd_transform_and_mac_function(
-										kernel[output_channel][input_channel],
-										output_transform + output_channel * tile_elements,
-										input_transform + input_channel * tile_elements,
-										kernel_size.width);
-								}
-							}
-							NNP_KERNEL_TRANSFORM_END(profile)
-
-							NNP_OUTPUT_TRANSFORM_START(profile)
-							output_transform_function(
-								output_transform + output_channel * tile_elements,
-								&output[output_channel][y * output_size.width + x],
-								&bias[output_channel],
-								tuple_size,
-								output_size.width,
-								min(output_tile.height, output_size.height - y),
-								min(output_tile.width, output_size.width - x));
-							NNP_OUTPUT_TRANSFORM_END(profile)
-						}
-					}
-				}
-				break;
-			case nnp_convolution_kernel_transform_strategy_reuse:
-				{
-					for (size_t output_channel = 0; output_channel < output_channels; output_channel++) {
-						for (size_t input_channels_block_start = 0; input_channels_block_start < input_channels; input_channels_block_start += input_channels_block_max) {
-							const size_t input_channels_block_size = min(input_channels - input_channels_block_start, input_channels_block_max);
-							for (size_t input_channels_block_offset = 0; input_channels_block_offset < input_channels_block_size; input_channels_block_offset++) {
+					NNP_KERNEL_TRANSFORM_START(profile)
+					for (size_t output_channels_subblock_start = 0; output_channels_subblock_start < output_channels; output_channels_subblock_start += output_channels_subblock_max) {
+						const size_t output_channels_subblock_size = min(output_channels - output_channels_subblock_start, output_channels_subblock_max);
+						for (size_t output_channels_subblock_offset = 0; output_channels_subblock_offset < output_channels_subblock_size; output_channels_subblock_offset += 1) {
+							const size_t output_channel = output_channels_subblock_start + output_channels_subblock_offset;
+							for (size_t input_channels_block_offset = 0; input_channels_block_offset < input_channels_block_size; input_channels_block_offset += 1) {
 								const size_t input_channel = input_channels_block_start + input_channels_block_offset;
 								kernel_transform_function(
 									kernel[output_channel][input_channel],
-									kernel_transform + (input_channels_block_start * output_channels + output_channel * input_channels_block_size + input_channels_block_offset) * tile_elements,
+									kernel_transform +
+										(output_channels_subblock_start * input_channels_block_size + input_channels_block_offset * output_channels_subblock_size + output_channels_subblock_offset) * tuple_elements,
 									kernel_size.width,
-									tuple_size,
+									input_channels_block_size * output_channels * tuple_size,
 									kernel_size.height, kernel_size.width, 0, 0);
 							}
 						}
 					}
-				}
-				for (size_t y = 0; y < output_size.height; y += output_tile.height) {
-					const size_t input_y = min(doz(y, input_padding.top), input_size.height);
-					for (size_t x = 0; x < output_size.width; x += output_tile.width) {
-						const size_t input_x = min(doz(x, input_padding.left), input_size.width);
+					NNP_KERNEL_TRANSFORM_END(profile)
 
-						for (size_t input_channels_block_start = 0; input_channels_block_start < input_channels; input_channels_block_start += input_channels_block_max) {
-							const size_t input_channels_block_end = min(input_channels_block_start + input_channels_block_max, input_channels);
-							for (size_t input_channel = input_channels_block_start; input_channel < input_channels_block_end; input_channel++) {
-								input_transform_function(
-									&input[input_channel][input_y * input_size.width + input_x],
-									input_transform + input_channel * tile_elements,
-									input_size.width,
-									tuple_size,
-									min(input_tile.height, doz(input_size.height, input_y)),
-									min(input_tile.width, doz(input_size.width, input_x)),
-									doz(input_padding.top, y),
-									doz(input_padding.left, x));
+					NNP_INPUT_TRANSFORM_START(profile)
+					for (size_t tiles_block_start = 0; tiles_block_start < tiles_count; tiles_block_start += tiles_block_max) {
+						const size_t tiles_block_size = min(tiles_count - tiles_block_start, tiles_block_max);
+						for (size_t tiles_subblock_start = 0; tiles_subblock_start < tiles_block_size; tiles_subblock_start += tiles_subblock_max) {
+							const size_t tiles_subblock_size = min(tiles_block_size - tiles_subblock_start, tiles_subblock_max);
+							for (size_t tiles_subblock_offset = 0; tiles_subblock_offset < tiles_subblock_size; tiles_subblock_offset += 1) {
+								const size_t tile = tiles_block_start + tiles_subblock_start + tiles_subblock_offset;
+								const struct fxdiv_result_size_t tile_xy = fxdiv_divide_size_t(tile, tiles_x_count);
+								const size_t tile_x = tile_xy.remainder;
+								const size_t tile_y = tile_xy.quotient;
+
+								const size_t output_x = tile_x * output_tile.width;
+								const size_t output_y = tile_y * output_tile.height;
+
+								const size_t input_x = min(doz(output_x, input_padding.left), input_size.width);
+								const size_t input_y = min(doz(output_y, input_padding.top), input_size.height);
+
+								const size_t row_offset = doz(input_padding.top, output_y);
+								const size_t row_count = min(input_size.height - input_y, input_tile.height - row_offset);
+								const size_t column_offset = doz(input_padding.left, output_x);
+								const size_t column_count = min(input_size.width - input_x, input_tile.width - column_offset);
+
+								for (size_t input_channels_block_offset = 0; input_channels_block_offset < input_channels_block_size; input_channels_block_offset++) {
+									const size_t input_channel = input_channels_block_start + input_channels_block_offset;
+									input_transform_function(
+										&input[input_channel][input_y][input_x],
+										input_transform + ((tiles_block_start + tiles_subblock_start) * input_channels_block_size + input_channels_block_offset * tiles_subblock_size + tiles_subblock_offset) * tuple_elements,
+										input_size.width,
+										input_channels_block_size * tiles_count * tuple_size,
+										row_count, column_count, row_offset, column_offset);
+								}
 							}
 						}
+					}
+					NNP_INPUT_TRANSFORM_END(profile)
 
-						for (size_t input_channels_block_start = 0; input_channels_block_start < input_channels; input_channels_block_start += input_channels_block_max) {
-							const size_t input_channels_block_size = min(input_channels_block_max, input_channels - input_channels_block_start);
+					NNP_BLOCK_MULTIPLICATION_START(profile)
+					for (size_t tuple_index = 0; tuple_index < tile_elements / tuple_elements; tuple_index += 1) {
+						nnp_full_tuple_gemm_function full_gemm_function;
+						if (fourier_transform) {
+							if (tuple_index == 0) {
+								full_gemm_function = nnp_hwinfo.cxgemm.s4cX_conjb_upto_mr_x_nr;
+							} else {
+								full_gemm_function = nnp_hwinfo.cxgemm.cX_conjb_upto_mr_x_nr;
+							}
+						} else {
+							full_gemm_function = nnp_hwinfo.sxgemm.upto_mr_x_nr;
+						}
+						for (size_t tiles_block_start = 0; tiles_block_start < tiles_count; tiles_block_start += tiles_block_max) {
+							const size_t tiles_block_size = min(tiles_count - tiles_block_start, tiles_block_max);
 							for (size_t output_channels_block_start = 0; output_channels_block_start < output_channels; output_channels_block_start += output_channels_block_max) {
-								const size_t output_channels_block_end = min(output_channels_block_start + output_channels_block_max, output_channels);
-								for (size_t output_channel = output_channels_block_start; output_channel < output_channels_block_end; output_channel++) {
-									if (input_channels_block_start == 0) {
-										memset(output_transform + output_channel * tile_elements, 0, tile_elements * sizeof(float));
+								const size_t output_channels_block_size = min(output_channels - output_channels_block_start, output_channels_block_max);
+								for (size_t output_channels_subblock_start = 0; output_channels_subblock_start < output_channels_block_size; output_channels_subblock_start += output_channels_subblock_max) {
+									const size_t output_channels_subblock_size = min(output_channels_block_size - output_channels_subblock_start, output_channels_subblock_max);
+									for (size_t tiles_subblock_start = 0; tiles_subblock_start < tiles_block_size; tiles_subblock_start += tiles_subblock_max) {
+										const size_t tiles_subblock_size = min(tiles_block_size - tiles_subblock_start, tiles_subblock_max);
+										full_gemm_function(
+											tiles_subblock_size, output_channels_subblock_size,
+											input_channels_block_size, input_channels_block_start,
+											input_transform +
+												tuple_index * tiles_count * input_channels_block_size * tuple_elements +
+												((tiles_block_start + tiles_subblock_start) * input_channels_block_size) * tuple_elements,
+											kernel_transform +
+												tuple_index * output_channels * input_channels_block_size * tuple_elements +
+												((output_channels_block_start + output_channels_subblock_start) * input_channels_block_size) * tuple_elements,
+											output_transform +
+												tuple_index * tiles_count * output_channels * tuple_elements +
+												(tiles_block_start * output_channels + (output_channels_block_start + output_channels_subblock_start) * tiles_block_size + tiles_subblock_start * output_channels_subblock_size) * tuple_elements,
+											output_channels_subblock_size * tuple_elements);
 									}
+								}
+							}
+						}
+					}
+					NNP_BLOCK_MULTIPLICATION_END(profile)
+				}
+				NNP_OUTPUT_TRANSFORM_START(profile)
+				for (size_t output_channels_block_start = 0; output_channels_block_start < output_channels; output_channels_block_start += output_channels_block_max) {
+					const size_t output_channels_block_size = min(output_channels - output_channels_block_start, output_channels_block_max);
+					for (size_t output_channels_subblock_start = 0; output_channels_subblock_start < output_channels_block_size; output_channels_subblock_start += output_channels_subblock_max) {
+						const size_t output_channels_subblock_size = min(output_channels_block_size - output_channels_subblock_start, output_channels_subblock_max);
+						for (size_t output_channels_subblock_offset = 0; output_channels_subblock_offset < output_channels_subblock_size; output_channels_subblock_offset += 1) {
+							const size_t output_channel = output_channels_block_start + output_channels_subblock_start + output_channels_subblock_offset;
+							for (size_t tiles_block_start = 0; tiles_block_start < tiles_count; tiles_block_start += tiles_block_max) {
+								const size_t tiles_block_size = min(tiles_count - tiles_block_start, tiles_block_max);
+								for (size_t tiles_subblock_start = 0; tiles_subblock_start < tiles_block_size; tiles_subblock_start += tiles_subblock_max) {
+									const size_t tiles_subblock_size = min(tiles_block_size - tiles_subblock_start, tiles_subblock_max);
+									for (size_t tiles_subblock_offset = 0; tiles_subblock_offset < tiles_subblock_size; tiles_subblock_offset += 1) {
+										const size_t tile = tiles_block_start + tiles_subblock_start + tiles_subblock_offset;
+										const struct fxdiv_result_size_t tile_xy = fxdiv_divide_size_t(tile, tiles_x_count);
+										const size_t tile_x = tile_xy.remainder;
+										const size_t tile_y = tile_xy.quotient;
 
-									for (size_t input_channels_block_offset = 0; input_channels_block_offset < input_channels_block_size; input_channels_block_offset++) {
-										block_mac_function(
-											output_transform + output_channel * tile_elements,
-											input_transform + (input_channels_block_start + input_channels_block_offset) * tile_elements,
-											kernel_transform + (input_channels_block_start * output_channels + output_channel * input_channels_block_size + input_channels_block_offset) * tile_elements);
-									}
+										const size_t output_x = tile_x * output_tile.width;
+										const size_t output_y = tile_y * output_tile.height;
 
-									if (input_channels_block_start + input_channels_block_size == input_channels) {
 										output_transform_function(
-											output_transform + output_channel * tile_elements,
-											&output[output_channel][y * output_size.width + x],
+											output_transform +
+												(tiles_block_start * output_channels + (output_channels_block_start + output_channels_subblock_start) * tiles_block_size + (tiles_subblock_start + tiles_subblock_offset) * output_channels_subblock_size + output_channels_subblock_offset) * tuple_elements,
+											&output[output_channel][output_y][output_x],
 											&bias[output_channel],
-											tuple_size,
+											tiles_count * output_channels * tuple_size,
 											output_size.width,
-											min(output_tile.height, output_size.height - y),
-											min(output_tile.width, output_size.width - x));
+											min(output_tile.height, output_size.height - output_y),
+											min(output_tile.width, output_size.width - output_x));
 									}
 								}
 							}
 						}
 					}
 				}
+				NNP_OUTPUT_TRANSFORM_END(profile)
 				break;
-			case nnp_convolution_kernel_transform_strategy_precomputed:
-				NNP_UNREACHABLE;
+			case nnp_convolution_transform_strategy_block_based:
+			case nnp_convolution_transform_strategy_precomputed:
+				status = nnp_status_unsupported_transform_strategy;
+				break;
+			default:
+				status = nnp_status_invalid_transform_strategy;
 				break;
 		}
 	}

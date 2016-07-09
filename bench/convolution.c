@@ -24,7 +24,7 @@ struct nnp_profile benchmark_convolution(
 	enum mode mode,
 	const void* memory, size_t cache_size,
 	enum nnp_convolution_algorithm algorithm,
-	enum nnp_convolution_kernel_transform_strategy kernel_transform_strategy,
+	enum nnp_convolution_transform_strategy transform_strategy,
 	size_t batch_size,
 	size_t input_channels,
 	size_t output_channels,
@@ -91,7 +91,7 @@ struct nnp_profile benchmark_convolution(
 			case mode_inference:
 				nnp_convolution_inference(
 					algorithm,
-					kernel_transform_strategy,
+					transform_strategy,
 					input_channels,
 					output_channels,
 					input_size,
@@ -118,7 +118,7 @@ struct options {
 	size_t input_padding;
 	struct nnp_size kernel_size;
 	enum nnp_convolution_algorithm algorithm;
-	enum nnp_convolution_kernel_transform_strategy kernel_transform_strategy;
+	enum nnp_convolution_transform_strategy transform_strategy;
 	size_t threads;
 	size_t iterations;
 	bool threadpool;
@@ -135,7 +135,7 @@ static void print_options_help(const char* program_name) {
 "Optional parameters:\n"
 "  -m   --mode               The convolution mode (output, inference)\n"
 "  -a   --algorithm          The algorithm (auto, ft8x8, ft16x16, or wt8x8) for computing convolution (default: auto)\n"
-"  -kt  --kernel-transform   The kernel transform strategy (recompute, reuse, precompute) in inference mode (default: recompute)\n"
+"  -s   --strategy           The transform strategy (block, tuple, precompute) in inference mode (default: tuple)\n"
 "  -b   --batch              The size of a minibatch (default: 1)\n"
 "  -p   --padding            Implicit input padding (default: 0)\n"
 "  -t   --threads            The number of threads (default: all; 0 to disable threadpool)\n"
@@ -153,7 +153,7 @@ static struct options parse_options(int argc, char** argv) {
 		.input_padding = 0,
 		.kernel_size = { 0, 0 },
 		.algorithm = nnp_convolution_algorithm_auto,
-		.kernel_transform_strategy = nnp_convolution_kernel_transform_strategy_recompute,
+		.transform_strategy = nnp_convolution_transform_strategy_tuple_based,
 		.threads = 0,
 		.iterations = 3,
 		.threadpool = true,
@@ -273,17 +273,17 @@ static struct options parse_options(int argc, char** argv) {
 				exit(EXIT_FAILURE);
 			}
 			argi += 1;
-		} else if ((strcmp(argv[argi], "--kernel-transform") == 0) || (strcmp(argv[argi], "-kt") == 0)) {
+		} else if ((strcmp(argv[argi], "--transform-strategy") == 0) || (strcmp(argv[argi], "-s") == 0)) {
 			if (argi + 1 == argc) {
-				fprintf(stderr, "Error: expected kernel transform strategy\n");
+				fprintf(stderr, "Error: expected transform strategy\n");
 				exit(EXIT_FAILURE);
 			}
-			if (strcmp(argv[argi + 1], "recompute") == 0) {
-				options.kernel_transform_strategy = nnp_convolution_kernel_transform_strategy_recompute;
-			} else if (strcmp(argv[argi + 1], "reuse") == 0) {
-				options.kernel_transform_strategy = nnp_convolution_kernel_transform_strategy_reuse;
+			if (strcmp(argv[argi + 1], "block") == 0) {
+				options.transform_strategy = nnp_convolution_transform_strategy_block_based;
+			} else if (strcmp(argv[argi + 1], "tuple") == 0) {
+				options.transform_strategy = nnp_convolution_transform_strategy_tuple_based;
 			} else if (strcmp(argv[argi + 1], "precomputed") == 0) {
-				options.kernel_transform_strategy = nnp_convolution_kernel_transform_strategy_precomputed;
+				options.transform_strategy = nnp_convolution_transform_strategy_precomputed;
 			} else {
 				fprintf(stderr, "Error: invalid kernel transform strategy %s\n", argv[argi]);
 				exit(EXIT_FAILURE);
@@ -456,7 +456,7 @@ int main(int argc, char** argv) {
 			options.mode,
 			memory, cache_size,
 			options.algorithm,
-			options.kernel_transform_strategy,
+			options.transform_strategy,
 			batch_size, input_channels, output_channels,
 			input_size, input_padding, kernel_size,
 			input, kernel, bias, output,

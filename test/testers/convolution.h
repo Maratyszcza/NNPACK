@@ -290,7 +290,7 @@ public:
 		}
 	}
 
-	void testInference(enum nnp_convolution_algorithm algorithm, enum nnp_convolution_kernel_transform_strategy kernel_transform_strategy=nnp_convolution_kernel_transform_strategy_recompute) const {
+	void testInference(enum nnp_convolution_algorithm algorithm, enum nnp_convolution_transform_strategy transform_strategy) const {
 		ASSERT_EQ(1, batchSize());
 
 		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -317,8 +317,7 @@ public:
 				this->threadpool);
 
 			enum nnp_status status = nnp_convolution_inference(
-				algorithm,
-				kernel_transform_strategy,
+				algorithm, transform_strategy,
 				inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(),
 				input.data(), kernel.data(), bias.data(), output.data(),

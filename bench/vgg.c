@@ -169,7 +169,7 @@ struct options {
 	size_t input_padding;
 	struct nnp_size kernel_size;
 	enum nnp_convolution_algorithm algorithm;
-	enum nnp_convolution_kernel_transform_strategy kernel_transform_strategy;
+	enum nnp_convolution_transform_strategy transform_strategy;
 	size_t threads;
 	size_t iterations;
 	bool threadpool;
