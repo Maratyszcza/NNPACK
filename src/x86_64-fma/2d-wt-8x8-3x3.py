@@ -58,23 +58,17 @@ for post_operation in ["store", "stream"]:
 
 
 for reverse_kernel in [False, True]:
-    for post_operation in ["store", "mac", "stream"]:
+    for post_operation in ["store", "stream"]:
         arg_g_pointer = Argument(ptr(const_float_), name="d_pointer")
         arg_wg_pointer = Argument(ptr(float_), name="wd_pointer")
-        if post_operation == "mac":
-            arg_x_pointer = Argument(ptr(const_float_), name="x_pointer")
         arg_g_stride = Argument(size_t, name="d_stride")
-        if post_operation != "mac":
-            arg_wg_stride = Argument(size_t, name="wd_stride")
+        arg_wg_stride = Argument(size_t, name="wd_stride")
         arg_row_count = Argument(uint32_t, name="row_count")
         arg_column_count = Argument(uint32_t, name="column_count")
         arg_row_offset = Argument(uint32_t, name="row_offset")
         arg_column_offset = Argument(uint32_t, name="column_offset")
 
-        if post_operation == "mac":
-            kwt_arguments = (arg_g_pointer, arg_wg_pointer, arg_x_pointer, arg_g_stride)
-        else:
-            kwt_arguments = (arg_g_pointer, arg_wg_pointer, arg_g_stride, arg_wg_stride, arg_row_count, arg_column_count, arg_row_offset, arg_column_offset)
+        kwt_arguments = (arg_g_pointer, arg_wg_pointer, arg_g_stride, arg_wg_stride, arg_row_count, arg_column_count, arg_row_offset, arg_column_offset)
         with Function("nnp_kwt8x8_3{reverse}x3{reverse}_and_{post_operation}__avx2".format(
                 reverse="R" if reverse_kernel else "", post_operation=post_operation),
             kwt_arguments, target=uarch.default + isa.fma3 + isa.avx2):
@@ -85,16 +79,11 @@ for reverse_kernel in [False, True]:
             reg_wg = GeneralPurposeRegister64()
             LOAD.ARGUMENT(reg_wg, arg_wg_pointer)
 
-            if post_operation == "mac":
-                reg_x = GeneralPurposeRegister64()
-                LOAD.ARGUMENT(reg_x, arg_x_pointer)
-
             reg_stride_g = GeneralPurposeRegister64()
             LOAD.ARGUMENT(reg_stride_g, arg_g_stride)
 
-            if post_operation != "mac":
-                reg_stride_wg = GeneralPurposeRegister64()
-                LOAD.ARGUMENT(reg_stride_wg, arg_wg_stride)
+            reg_stride_wg = GeneralPurposeRegister64()
+            LOAD.ARGUMENT(reg_stride_wg, arg_wg_stride)
 
             # stride is in elements; multiply by sizeof(float) to get stride in bytes
             SHL(reg_stride_g, 2)
@@ -145,28 +134,12 @@ for reverse_kernel in [False, True]:
             VMULPS(ymm_wg_rows[5], ymm_wg_rows[5], ymm_row56_scale)
             VMULPS(ymm_wg_rows[6], ymm_wg_rows[6], ymm_row56_scale)
 
-            if post_operation == "mac":
-                # Multiply with X block, accumulate with ACC block, and write output sequentially
-                row_offset = 0
-                for ymm_wg_row in ymm_wg_rows:
-                    if row_offset == 128:
-                        SUB(reg_x, -128)
-                        SUB(reg_wg, -128)
-                        row_offset = 0
-
-                    ymm_acc = YMMRegister()
-                    VMOVAPS(ymm_acc, [reg_wg + row_offset])
-                    VFMADD231PS(ymm_acc, ymm_wg_row, [reg_x + row_offset])
-                    VMOVAPS([reg_wg + row_offset], ymm_acc)
-
-                    row_offset += YMMRegister.size
-            else:
-                # Write output with stride
-                VSTOREPS = {"store": VMOVAPS, "stream": VMOVNTPS}[post_operation]
-                for ymm_wg_row in ymm_wg_rows:
-                    VSTOREPS([reg_wg], ymm_wg_row)
-                    if ymm_wg_row is not ymm_wg_rows[-1]:
-                        ADD(reg_wg, reg_stride_wg)
+            # Write output with stride
+            VSTOREPS = {"store": VMOVAPS, "stream": VMOVNTPS}[post_operation]
+            for ymm_wg_row in ymm_wg_rows:
+                VSTOREPS([reg_wg], ymm_wg_row)
+                if ymm_wg_row is not ymm_wg_rows[-1]:
+                    ADD(reg_wg, reg_stride_wg)
 
             RETURN()
 

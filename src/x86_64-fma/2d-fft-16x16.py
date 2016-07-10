@@ -13,11 +13,8 @@ arg_row_count = Argument(uint32_t, name="row_count")
 arg_column_count = Argument(uint32_t, name="column_count")
 arg_row_offset = Argument(uint32_t, name="row_offset")
 arg_column_offset = Argument(uint32_t, name="column_offset")
-for post_operation in ["stream", "store", "macc"]:
-    if post_operation in ["macc"]:
-        fft16x16_arguments = (arg_t_pointer, arg_f_pointer, arg_x_pointer, arg_t_stride, arg_row_count, arg_column_count, arg_row_offset, arg_column_offset)
-    else:
-        fft16x16_arguments = (arg_t_pointer, arg_f_pointer, arg_t_stride, arg_f_stride, arg_row_count, arg_column_count, arg_row_offset, arg_column_offset)
+for post_operation in ["stream", "store"]:
+    fft16x16_arguments = (arg_t_pointer, arg_f_pointer, arg_t_stride, arg_f_stride, arg_row_count, arg_column_count, arg_row_offset, arg_column_offset)
     with Function("nnp_fft16x16_and_{post_operation}__avx2".format(post_operation=post_operation),
         fft16x16_arguments, target=uarch.default + isa.fma3 + isa.avx2):
 
@@ -27,16 +24,11 @@ for post_operation in ["stream", "store", "macc"]:
         reg_f = GeneralPurposeRegister64()
         LOAD.ARGUMENT(reg_f, arg_f_pointer)
 
-        if post_operation in ["macc"]:
-            reg_x = GeneralPurposeRegister64()
-            LOAD.ARGUMENT(reg_x, arg_x_pointer)
-
         reg_t_stride = GeneralPurposeRegister64()
         LOAD.ARGUMENT(reg_t_stride, arg_t_stride)
 
-        if post_operation in ["stream", "store"]:
-            reg_f_stride = GeneralPurposeRegister64()
-            LOAD.ARGUMENT(reg_f_stride, arg_f_stride)
+        reg_f_stride = GeneralPurposeRegister64()
+        LOAD.ARGUMENT(reg_f_stride, arg_f_stride)
 
         reg_row_end = GeneralPurposeRegister32()
         LOAD.ARGUMENT(reg_row_end, arg_row_count)
@@ -128,67 +120,15 @@ for post_operation in ["stream", "store", "macc"]:
             if row_batch_start == 0:
                 fft.two_real_to_two_complex_soa_perm_planar.fft16_within_rows_postprocess(ymm_wr_list[0], ymm_wi_list[0], bit_reversal=True)
 
-            if post_operation in ["macc"]:
-                for row_batch_offset, (ymm_wr, ymm_wi) in enumerate(zip(ymm_wr_list, ymm_wi_list)):
-                    row = row_batch_start + row_batch_offset
+            VSTOREPS = {"store": VMOVAPS, "stream": VMOVNTPS}[post_operation]
+            for row_batch_offset, (ymm_wr, ymm_wi) in enumerate(zip(ymm_wr_list, ymm_wi_list)):
+                row = row_batch_start + row_batch_offset
 
-                    for column in range(2):
-                        # First row: the first two elements are real numbers
-                        if row == 0 and column == 0:
-
-                            ymm_accr, ymm_xr = YMMRegister(), YMMRegister()
-                            VMOVAPS(ymm_accr, [reg_f + (column * 2) * YMMRegister.size])
-                            VMOVAPS(ymm_xr, [reg_x + (column * 2) * YMMRegister.size])
-                            VFMADD231PS(ymm_accr, ymm_xr, ymm_wr[column])
-
-                            # Don't be fooled: elements 0-1 are all real numbers,
-                            # not imag components of complex numbers.
-                            # Compute acc.im += x.im * w.im for elements 0-1.
-                            # w.re is not used after this snippet. Use it for the output
-                            ymm_xi = YMMRegister()
-                            VMOVAPS(ymm_xi, [reg_x + (column * 2 + 1) * YMMRegister.size])
-                            VBLENDPS(ymm_wr[column], ymm_wr[column], ymm_wi[column], 0b00000011)
-                            VFMADD213PS(ymm_wr[column], ymm_xi, [reg_f + (column * 2 + 1) * YMMRegister.size])
-                            ymm_acci = ymm_wr[column]
-
-                            # Overwrite ymm_xi (instead of ymm_accr), then copy elements 2-7 to ymm_accr
-                            VFMADD132PS(ymm_xi, ymm_accr, ymm_wi[column])
-                            VBLENDPS(ymm_accr, ymm_accr, ymm_xi, 0b11111100)
-                            VMOVAPS([reg_f + (column * 2) * YMMRegister.size], ymm_accr)
-
-                            # Overwrite ymm_xr (instead of ymm_acci), then copy elements 2-7 to ymm_acci
-                            VFNMADD132PS(ymm_xr, ymm_acci, ymm_wi[column])
-                            VBLENDPS(ymm_acci, ymm_acci, ymm_xr, 0b11111100)
-                            VMOVAPS([reg_f + (column * 2 + 1) * YMMRegister.size], ymm_acci)
-                        else:
-                            ymm_xr, ymm_accr = YMMRegister(), YMMRegister()
-                            VMOVAPS(ymm_xr, [reg_x + (column * 2) * YMMRegister.size])
-                            VMOVAPS(ymm_accr, [reg_f + (column * 2) * YMMRegister.size])
-                            VFMADD231PS(ymm_accr, ymm_xr, ymm_wr[column])
-
-                            ymm_xi, ymm_acci = YMMRegister(), ymm_wr[column]
-                            VMOVAPS(ymm_xi, [reg_x + (column * 2 + 1) * YMMRegister.size])
-                            VFMADD213PS(ymm_wr[column], ymm_xi, [reg_f + (column * 2 + 1) * YMMRegister.size])
-
-                            VFMADD231PS(ymm_accr, ymm_xi, ymm_wi[column])
-                            VMOVAPS([reg_f + (column * 2) * YMMRegister.size], ymm_accr)
-
-                            VFNMADD231PS(ymm_acci, ymm_xr, ymm_wi[column])
-                            VMOVAPS([reg_f + (column * 2 + 1) * YMMRegister.size], ymm_acci)
-
-                    if row + 1 != 8:
-                        SUB(reg_f, -4 * YMMRegister.size)
-                        SUB(reg_x, -4 * YMMRegister.size)
-            else:
-                VSTOREPS = {"store": VMOVAPS, "stream": VMOVNTPS}[post_operation]
-                for row_batch_offset, (ymm_wr, ymm_wi) in enumerate(zip(ymm_wr_list, ymm_wi_list)):
-                    row = row_batch_start + row_batch_offset
-
-                    for column in range(2):
-                        VSTOREPS([reg_f], ymm_wr[column])
-                        VSTOREPS([reg_f + YMMRegister.size], ymm_wi[column])
-                        if row + 1 != 8 or column + 1 != 2:
-                            ADD(reg_f, reg_f_stride)
+                for column in range(2):
+                    VSTOREPS([reg_f], ymm_wr[column])
+                    VSTOREPS([reg_f + YMMRegister.size], ymm_wi[column])
+                    if row + 1 != 8 or column + 1 != 2:
+                        ADD(reg_f, reg_f_stride)
 
         RETURN()
 

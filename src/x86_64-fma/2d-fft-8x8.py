@@ -15,11 +15,8 @@ arg_row_offset = Argument(uint32_t, name="row_offset")
 arg_row_count = Argument(uint32_t, name="row_count")
 arg_column_offset = Argument(uint32_t, name="column_offset")
 arg_column_count = Argument(uint32_t, name="column_count")
-for post_operation in ["stream", "store", "macc"]:
-    if post_operation in ["macc"]:
-        fft8x8_arguments = (arg_t_pointer, arg_f_pointer, arg_x_pointer, arg_t_stride, arg_row_count, arg_column_count, arg_row_offset, arg_column_offset)
-    else:
-        fft8x8_arguments = (arg_t_pointer, arg_f_pointer, arg_t_stride, arg_f_stride, arg_row_count, arg_column_count, arg_row_offset, arg_column_offset)
+for post_operation in ["stream", "store"]:
+    fft8x8_arguments = (arg_t_pointer, arg_f_pointer, arg_t_stride, arg_f_stride, arg_row_count, arg_column_count, arg_row_offset, arg_column_offset)
     with Function("nnp_fft8x8_and_{post_operation}__avx2".format(post_operation=post_operation),
         fft8x8_arguments, target=uarch.default + isa.fma3 + isa.avx2):
 
@@ -29,16 +26,11 @@ for post_operation in ["stream", "store", "macc"]:
         reg_f = GeneralPurposeRegister64()
         LOAD.ARGUMENT(reg_f, arg_f_pointer)
 
-        if post_operation in ["macc"]:
-            reg_x = GeneralPurposeRegister64()
-            LOAD.ARGUMENT(reg_x, arg_x_pointer)
-
         reg_inct = GeneralPurposeRegister64()
         LOAD.ARGUMENT(reg_inct, arg_t_stride)
 
-        if post_operation not in ["macc"]:
-            reg_incf = GeneralPurposeRegister64()
-            LOAD.ARGUMENT(reg_incf, arg_f_stride)
+        reg_incf = GeneralPurposeRegister64()
+        LOAD.ARGUMENT(reg_incf, arg_f_stride)
 
         reg_row_cnt = GeneralPurposeRegister32()
         LOAD.ARGUMENT(reg_row_cnt, arg_row_count)
@@ -61,59 +53,12 @@ for post_operation in ["stream", "store", "macc"]:
         fft.complex_soa.fft8_within_rows(ymm_real, ymm_imag)
         fft.two_real_to_two_complex_soa_perm_planar.fft8_within_rows_postprocess(ymm_real[0], ymm_imag[0])
 
-        if post_operation in ["macc"]:
-            for row, (ymm_wr, ymm_wi) in enumerate(zip(ymm_real, ymm_imag)):
-                # First row: the first two elements are real numbers
-                if row == 0:
-                    ymm_xr, ymm_accr = YMMRegister(), YMMRegister()
-                    VMOVAPS(ymm_accr, [reg_f])
-                    VMOVAPS(ymm_xr, [reg_x])
-                    VFMADD231PS(ymm_accr, ymm_xr, ymm_wr)
-
-                    # Don't be fooled: elements 0-1 are all real numbers,
-                    # not imag components of complex numbers.
-                    # Compute acc.im += x.im * w.im for elements 0-1.
-                    # w.re is not used after this snippet. Use it for the output
-                    ymm_xi, ymm_acci = YMMRegister(), ymm_wr
-                    VMOVAPS(ymm_xi, [reg_x + YMMRegister.size])
-                    VBLENDPS(ymm_wr, ymm_wr, ymm_wi, 0b00000011)
-                    VFMADD213PS(ymm_wr, ymm_xi, [reg_f + YMMRegister.size])
-
-                    # Overwrite ymm_xi (instead of ymm_accr), then copy elements 2-7 to ymm_accr
-                    VFMADD132PS(ymm_xi, ymm_accr, ymm_wi)
-                    VBLENDPS(ymm_accr, ymm_accr, ymm_xi, 0b11111100)
-                    VMOVAPS([reg_f], ymm_accr)
-
-                    # Overwrite ymm_xr (instead of ymm_acci), then copy elements 2-7 to ymm_acci
-                    VFNMADD132PS(ymm_xr, ymm_acci, ymm_wi)
-                    VBLENDPS(ymm_acci, ymm_acci, ymm_xr, 0b11111100)
-                    VMOVAPS([reg_f + YMMRegister.size], ymm_acci)
-                else:
-                    ymm_xr, ymm_accr = YMMRegister(), YMMRegister()
-                    VMOVAPS(ymm_xr, [reg_x])
-                    VMOVAPS(ymm_accr, [reg_f])
-                    VFMADD231PS(ymm_accr, ymm_xr, ymm_wr)
-
-                    ymm_xi, ymm_acci = YMMRegister(), ymm_wr
-                    VMOVAPS(ymm_xi, [reg_x + YMMRegister.size])
-                    VFMADD213PS(ymm_wr, ymm_xi, [reg_f + YMMRegister.size])
-
-                    VFMADD231PS(ymm_accr, ymm_xi, ymm_wi)
-                    VMOVAPS([reg_f], ymm_accr)
-
-                    VFNMADD231PS(ymm_acci, ymm_xr, ymm_wi)
-                    VMOVAPS([reg_f + YMMRegister.size], ymm_acci)
-
-                if ymm_wr is not ymm_real[-1]:
-                    ADD(reg_f, 2 * YMMRegister.size)
-                    ADD(reg_x, 2 * YMMRegister.size)
-        else:
-            VSTOREPS = {"store": VMOVAPS, "stream": VMOVNTPS}[post_operation]
-            for ymm_re, ymm_im in zip(ymm_real, ymm_imag):
-                VSTOREPS([reg_f], ymm_re)
-                VSTOREPS([reg_f + YMMRegister.size], ymm_im)
-                if ymm_re is not ymm_real[-1]:
-                    ADD(reg_f, reg_incf)
+        VSTOREPS = {"store": VMOVAPS, "stream": VMOVNTPS}[post_operation]
+        for ymm_re, ymm_im in zip(ymm_real, ymm_imag):
+            VSTOREPS([reg_f], ymm_re)
+            VSTOREPS([reg_f + YMMRegister.size], ymm_im)
+            if ymm_re is not ymm_real[-1]:
+                ADD(reg_f, reg_incf)
 
         RETURN()
 
