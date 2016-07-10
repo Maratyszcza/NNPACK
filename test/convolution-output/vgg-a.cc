@@ -26,7 +26,7 @@ TEST(FT16x16, conv1) {
 TEST(WT8x8, conv1) {
 	VGG_A::conv1()
 		.batchSize(64)
-		.errorLimit(1.0e-5)
+		.errorLimit(3.0e-5)
 		.testOutput(nnp_convolution_algorithm_wt8x8);
 }
 
