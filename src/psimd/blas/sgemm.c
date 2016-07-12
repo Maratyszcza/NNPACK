@@ -81,7 +81,7 @@ void nnp_sgemm_upto_4x8__psimd(uint32_t mr, uint32_t nr, size_t k, size_t update
 			vc10 += va1 * vb0;
 			vc11 += va1 * vb1;
 
-			if (mr > 2) {
+			if (mr > 3) {
 				const v4f va2 = v4f_splat(*a++);
 				vc20 += va2 * vb0;
 				vc21 += va2 * vb1;
