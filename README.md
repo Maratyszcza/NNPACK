@@ -51,11 +51,10 @@ NNPACK is not intended to be directly used by machine learning researchers; inst
 ## Layers
 
 - Convolutional layer
-  - **Only convolutional layers without stride are currently supported**
   - Training-optimized forward propagation (`nnp_convolution_output`)
   - Training-optimized backward input gradient update (`nnp_convolution_input_gradient`)
   - Training-optimized backward kernel gradient update (`nnp_convolution_kernel_gradient`)
-  - Inference-optimized forward propagation (`nnp_convolution_inference`) is a work-in-progress
+  - Inference-optimized forward propagation (`nnp_convolution_inference`)
 - Fully-connected layer
   - Training-optimized forward propagation (`nnp_fully_connected_output`)
   - Inference-optimized forward propagation (`nnp_fully_connected_inference`)
