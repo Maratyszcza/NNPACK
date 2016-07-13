@@ -168,7 +168,7 @@ if __name__ == "__main__":
 	if options.layer == "convolution":
 		for name, input_channels, output_channels, image_size, kernel_size, padding in network_layers:
 			measurements = [name]
-			for algorithm in ["ft8x8", "ft16x16", "wt8x8"]:
+			for algorithm in ["implicit-gemm", "ft8x8", "ft16x16", "wt8x8"]:
 				if algorithm.startswith("wt") and kernel_size != (3, 3):
 					continue
 

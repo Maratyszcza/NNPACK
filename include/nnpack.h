@@ -83,7 +83,9 @@ enum nnp_convolution_algorithm {
 	/** Tiled convolution based on 2D Fourier transform with 16x16 blocks. Supports kernels up to 16x16. */
 	nnp_convolution_algorithm_ft16x16 = 2,
 	/** Tiled convolution based on 2D Winograd transform F(3x3, 6x6) with 8x8 blocks. Supports only 3x3 kernels. */
-	nnp_convolution_algorithm_wt8x8 = 3
+	nnp_convolution_algorithm_wt8x8 = 3,
+	/** Direct convolution via implicit GEMM. */
+	nnp_convolution_algorithm_implicit_gemm = 4,
 };
 
 enum nnp_convolution_transform_strategy {

@@ -134,7 +134,7 @@ static void print_options_help(const char* program_name) {
 "  -os  --kernel-size        Kernel height and width\n"
 "Optional parameters:\n"
 "  -m   --mode               The convolution mode (output, inference)\n"
-"  -a   --algorithm          The algorithm (auto, ft8x8, ft16x16, or wt8x8) for computing convolution (default: auto)\n"
+"  -a   --algorithm          The algorithm (auto, ft8x8, ft16x16, wt8x8, or implicit-gemm) for computing convolution (default: auto)\n"
 "  -s   --strategy           The transform strategy (block, tuple, precompute) in inference mode (default: tuple)\n"
 "  -b   --batch              The size of a minibatch (default: 1)\n"
 "  -p   --padding            Implicit input padding (default: 0)\n"
@@ -268,6 +268,8 @@ static struct options parse_options(int argc, char** argv) {
 				options.algorithm = nnp_convolution_algorithm_ft16x16;
 			} else if (strcmp(argv[argi + 1], "wt8x8") == 0) {
 				options.algorithm = nnp_convolution_algorithm_wt8x8;
+			} else if (strcmp(argv[argi + 1], "implicit-gemm") == 0) {
+				options.algorithm = nnp_convolution_algorithm_implicit_gemm;
 			} else {
 				fprintf(stderr, "Error: invalid convolution algorithm name %s\n", argv[argi + 1]);
 				exit(EXIT_FAILURE);
@@ -417,6 +419,10 @@ int main(int argc, char** argv) {
 			tile_size = (struct nnp_size) { 8, 8 };
 			flops_per_element = 2.0;
 			printf("Algorithm: WT8x8\n");
+			break;
+		case nnp_convolution_algorithm_implicit_gemm:
+			flops_per_element = 2.0 * kernel_size.height * kernel_size.width;
+			printf("Algorithm: Implicit GEMM\n");
 			break;
 	}
 	const struct nnp_size output_tile_size = {

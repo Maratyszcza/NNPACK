@@ -26,6 +26,10 @@ static inline size_t round_up(size_t number, size_t factor) {
 	return (number + factor - 1) / factor * factor;
 }
 
+static inline size_t round_up_by_power_of_2(size_t number, size_t power_of_2_factor) {
+	return (number + power_of_2_factor - 1) & ~(power_of_2_factor - 1);
+}
+
 static inline size_t round_down(size_t number, size_t factor) {
 	return number / factor * factor;
 }
