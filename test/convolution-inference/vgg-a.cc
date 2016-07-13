@@ -45,6 +45,12 @@ TEST(WT8x8_TUPLE, conv1) {
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_transform_strategy_tuple_based);
 }
 
+TEST(IMPLICIT_GEMM, conv1) {
+	VGG_A::conv1()
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_implicit_gemm, nnp_convolution_transform_strategy_tuple_based);
+}
+
 /*
  * VGG model A conv2 layer
  */
@@ -83,6 +89,12 @@ TEST(WT8x8_TUPLE, conv2) {
 	VGG_A::conv2()
 		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_transform_strategy_tuple_based);
+}
+
+TEST(IMPLICIT_GEMM, conv2) {
+	VGG_A::conv2()
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_implicit_gemm, nnp_convolution_transform_strategy_tuple_based);
 }
 
 /*
@@ -125,6 +137,12 @@ TEST(WT8x8_TUPLE, conv3) {
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_transform_strategy_tuple_based);
 }
 
+TEST(IMPLICIT_GEMM, conv3) {
+	VGG_A::conv3()
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_implicit_gemm, nnp_convolution_transform_strategy_tuple_based);
+}
+
 /*
  * VGG model A conv4 layer
  */
@@ -163,6 +181,12 @@ TEST(WT8x8_TUPLE, conv4) {
 	VGG_A::conv4()
 		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_transform_strategy_tuple_based);
+}
+
+TEST(IMPLICIT_GEMM, conv4) {
+	VGG_A::conv4()
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_implicit_gemm, nnp_convolution_transform_strategy_tuple_based);
 }
 
 /*
@@ -205,6 +229,12 @@ TEST(WT8x8_TUPLE, conv5) {
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_transform_strategy_tuple_based);
 }
 
+TEST(IMPLICIT_GEMM, conv5) {
+	VGG_A::conv5()
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_implicit_gemm, nnp_convolution_transform_strategy_tuple_based);
+}
+
 /*
  * VGG model A conv6 layer
  */
@@ -245,6 +275,12 @@ TEST(WT8x8_TUPLE, conv6) {
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_transform_strategy_tuple_based);
 }
 
+TEST(IMPLICIT_GEMM, conv6) {
+	VGG_A::conv6()
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_implicit_gemm, nnp_convolution_transform_strategy_tuple_based);
+}
+
 /*
  * VGG model A conv8 layer
  */
@@ -283,6 +319,12 @@ TEST(WT8x8_TUPLE, conv8) {
 	VGG_A::conv8()
 		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_transform_strategy_tuple_based);
+}
+
+TEST(IMPLICIT_GEMM, conv8) {
+	VGG_A::conv8()
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_implicit_gemm, nnp_convolution_transform_strategy_tuple_based);
 }
 
 int main(int argc, char* argv[]) {
