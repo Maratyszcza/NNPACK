@@ -10,6 +10,25 @@
 namespace OverFeat_Fast {
 
 	/*
+	 * OverFeat (Fast model) conv1 layer:
+	 *   input channels     = 3
+	 *   output channels    = 96
+	 *   input size         = 231x231
+	 *   implicit padding   = 0
+	 *   kernel size        = 11x11
+	 *   output subsampling = 4x4
+	 */
+	inline ConvolutionTester conv1() {
+		return std::move(ConvolutionTester()
+			.multithreading(true)
+			.inputChannels(3)
+			.outputChannels(96)
+			.inputSize(231, 231)
+			.kernelSize(11, 11)
+			.outputSubsampling(4, 4));
+	}
+
+	/*
 	 * OverFeat (Fast model) conv1 ReLU layer
 	 *   channels   = 96
 	 *   image size = 56x56

@@ -7,7 +7,7 @@
 static inline enum nnp_status validate_convolution_arguments(
 	size_t batch_size, size_t input_channels, size_t output_channels,
 	struct nnp_size input_size, struct nnp_padding input_padding,
-	struct nnp_size kernel_size)
+	struct nnp_size kernel_size, struct nnp_size output_subsampling)
 {
 	if (!nnp_hwinfo.initialized) {
 		return nnp_status_uninitialized;
@@ -43,6 +43,10 @@ static inline enum nnp_status validate_convolution_arguments(
 
 	if (min(kernel_size.height, kernel_size.width) == 0) {
 		return nnp_status_invalid_kernel_size;
+	}
+
+	if (min(output_subsampling.height, output_subsampling.width) == 0) {
+		return nnp_status_invalid_output_subsampling;
 	}
 
 	return nnp_status_success;

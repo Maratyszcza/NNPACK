@@ -15,6 +15,7 @@ void nnp_convolution_output__reference(
 	struct nnp_size input_size,
 	struct nnp_padding input_padding,
 	struct nnp_size kernel_size,
+	struct nnp_size output_subsampling,
 	const float input_pointer[],
 	const float kernel_pointer[],
 	const float bias[],

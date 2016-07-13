@@ -409,7 +409,7 @@ enum nnp_status nnp_convolution_input_gradient(
 	/* Basic validation of parameters. This check detects invalid, but not unsupported parameters. */
 	enum nnp_status status = validate_convolution_arguments(
 		batch_size, input_channels, output_channels,
-		input_size, input_padding, kernel_size);
+		input_size, input_padding, kernel_size, (struct nnp_size) { 1, 1 });
 	if (status != nnp_status_success) {
 		goto cleanup;
 	}

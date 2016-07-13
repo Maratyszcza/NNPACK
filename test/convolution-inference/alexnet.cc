@@ -6,6 +6,16 @@
 #include <models/alexnet.h>
 
 /*
+ * AlexNet conv1 layer
+ */
+
+TEST(IMPLICIT_GEMM, conv1) {
+	AlexNet::conv1()
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_implicit_gemm, nnp_convolution_transform_strategy_tuple_based);
+}
+
+/*
  * AlexNet conv2 layer
  */
 

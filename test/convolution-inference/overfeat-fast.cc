@@ -6,6 +6,16 @@
 #include <models/overfeat-fast.h>
 
 /*
+ * OverFeat (Fast model) conv1 layer
+ */
+
+TEST(IMPLICIT_GEMM, conv1) {
+	OverFeat_Fast::conv1()
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_implicit_gemm, nnp_convolution_transform_strategy_tuple_based);
+}
+
+/*
  * OverFeat (Fast model) conv2 layer
  */
 

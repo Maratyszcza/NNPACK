@@ -31,6 +31,7 @@ struct nnp_profile benchmark_convolution(
 	struct nnp_size input_size,
 	struct nnp_padding input_padding,
 	struct nnp_size kernel_size,
+	struct nnp_size output_subsampling,
 	float input[],
 	float kernel[],
 	const float bias[],
@@ -97,6 +98,7 @@ struct nnp_profile benchmark_convolution(
 					input_size,
 					input_padding,
 					kernel_size,
+					output_subsampling,
 					input,
 					kernel,
 					bias,
@@ -117,6 +119,7 @@ struct options {
 	struct nnp_size input_size;
 	size_t input_padding;
 	struct nnp_size kernel_size;
+	struct nnp_size output_subsampling;
 	enum nnp_convolution_algorithm algorithm;
 	enum nnp_convolution_transform_strategy transform_strategy;
 	size_t threads;
@@ -137,7 +140,8 @@ static void print_options_help(const char* program_name) {
 "  -a   --algorithm          The algorithm (auto, ft8x8, ft16x16, wt8x8, or implicit-gemm) for computing convolution (default: auto)\n"
 "  -s   --strategy           The transform strategy (block, tuple, precompute) in inference mode (default: tuple)\n"
 "  -b   --batch              The size of a minibatch (default: 1)\n"
-"  -p   --padding            Implicit input padding (default: 0)\n"
+"       --output-subsampling The size of a output subsampling region (default: 1x1)\n"
+"  -ip  --padding            Implicit input padding (default: 0)\n"
 "  -t   --threads            The number of threads (default: all; 0 to disable threadpool)\n"
 "  -i   --iterations         # iterations (default: 3)\n",
 		program_name);
@@ -152,6 +156,7 @@ static struct options parse_options(int argc, char** argv) {
 		.input_size = { 0, 0 },
 		.input_padding = 0,
 		.kernel_size = { 0, 0 },
+		.output_subsampling = { 1, 1 },
 		.algorithm = nnp_convolution_algorithm_auto,
 		.transform_strategy = nnp_convolution_transform_strategy_tuple_based,
 		.threads = 0,
@@ -255,6 +260,28 @@ static struct options parse_options(int argc, char** argv) {
 				exit(EXIT_FAILURE);
 			}
 			argi += 1;
+		} else if (strcmp(argv[argi], "--output-subsampling") == 0) {
+			if (argc - argi < 2) {
+				fprintf(stderr, "Error: expected two output subsampling values\n");
+				exit(EXIT_FAILURE);
+			}
+			if (sscanf(argv[argi + 1], "%zu", &options.output_subsampling.height) != 1) {
+				fprintf(stderr, "Error: can not parse %s as an unsigned integer\n", argv[argi + 1]);
+				exit(EXIT_FAILURE);
+			}
+			if (options.output_subsampling.height == 0) {
+				fprintf(stderr, "Error: invalid value %s for the output subsampling height: positive value expected\n", argv[argi + 1]);
+				exit(EXIT_FAILURE);
+			}
+			if (sscanf(argv[argi + 2], "%zu", &options.output_subsampling.width) != 1) {
+				fprintf(stderr, "Error: can not parse %s as an unsigned integer\n", argv[argi + 1]);
+				exit(EXIT_FAILURE);
+			}
+			if (options.output_subsampling.width == 0) {
+				fprintf(stderr, "Error: invalid value %s for the output subsampling width: positive value expected\n", argv[argi + 1]);
+				exit(EXIT_FAILURE);
+			}
+			argi += 2;
 		} else if ((strcmp(argv[argi], "--algorithm") == 0) || (strcmp(argv[argi], "-a") == 0)) {
 			if (argi + 1 == argc) {
 				fprintf(stderr, "Error: expected convolution algorithm name\n");
@@ -387,9 +414,10 @@ int main(int argc, char** argv) {
 	const struct nnp_padding input_padding = { options.input_padding, options.input_padding, options.input_padding, options.input_padding };
 	const struct nnp_size input_size = options.input_size;
 	const struct nnp_size kernel_size = options.kernel_size;
+	const struct nnp_size output_subsampling = options.output_subsampling;
 	const struct nnp_size output_size = {
-		.width = input_padding.left + input_size.width + input_padding.right - kernel_size.width + 1,
-		.height = input_padding.top + input_size.height + input_padding.bottom - kernel_size.height + 1
+		.width = (input_padding.left + input_size.width + input_padding.right - kernel_size.width) / output_subsampling.width + 1,
+		.height = (input_padding.top + input_size.height + input_padding.bottom - kernel_size.height) / output_subsampling.height + 1
 	};
 	struct nnp_size tile_size;
 	double flops_per_element;
@@ -399,6 +427,7 @@ int main(int argc, char** argv) {
 	printf("Output channels: %zu\n", output_channels);
 	printf("Input: %zux%zu with implicit padding %zu\n", input_size.height, input_size.width, options.input_padding);
 	printf("Kernel: %zux%zu\n", kernel_size.height, kernel_size.width);
+	printf("Subsampling: %zux%zu\n", output_subsampling.height, output_subsampling.width);
 	switch (options.algorithm) {
 		case nnp_convolution_algorithm_auto:
 			/* To avoid failure in the next phases */
@@ -421,6 +450,7 @@ int main(int argc, char** argv) {
 			printf("Algorithm: WT8x8\n");
 			break;
 		case nnp_convolution_algorithm_implicit_gemm:
+			tile_size = (struct nnp_size) { 1, 1 };
 			flops_per_element = 2.0 * kernel_size.height * kernel_size.width;
 			printf("Algorithm: Implicit GEMM\n");
 			break;
@@ -464,7 +494,7 @@ int main(int argc, char** argv) {
 			options.algorithm,
 			options.transform_strategy,
 			batch_size, input_channels, output_channels,
-			input_size, input_padding, kernel_size,
+			input_size, input_padding, kernel_size, output_subsampling,
 			input, kernel, bias, output,
 			threadpool, options.iterations);
 	const double convolution_time = convolution_profile.total;

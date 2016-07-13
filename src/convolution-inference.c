@@ -295,6 +295,7 @@ struct NNP_CACHE_ALIGN input_packing_context {
 	struct fxdiv_divisor_size_t kernel_elements;
 	struct fxdiv_divisor_size_t kernel_width;
 	struct fxdiv_divisor_size_t output_width;
+	struct nnp_size output_subsampling;
 };
 
 static void compute_input_packing(
@@ -312,6 +313,7 @@ static void compute_input_packing(
 	const struct fxdiv_divisor_size_t kernel_elements = context->kernel_elements;
 	const struct fxdiv_divisor_size_t kernel_width    = context->kernel_width;
 	const struct fxdiv_divisor_size_t output_width    = context->output_width;
+	const struct nnp_size output_subsampling          = context->output_subsampling;
 
 	const float (*input)[input_size.height][input_size.width] =
 		(const float(*)[input_size.height][input_size.width]) context->input;
@@ -332,8 +334,8 @@ static void compute_input_packing(
 		const size_t output_y = output_xy.quotient;
 		const size_t output_x = output_xy.remainder;
 
-		const size_t input_y = output_y + kernel_y - input_padding_top;
-		const size_t input_x = output_x + kernel_x - input_padding_left;
+		const size_t input_y = output_y * output_subsampling.height + kernel_y - input_padding_top;
+		const size_t input_x = output_x * output_subsampling.width  + kernel_x - input_padding_left;
 
 		const size_t packed_index = output_image_subblock_start * reduction_block_size +
 			reduction_block_offset * output_image_subblock_stride + output_image_subblock_offset;
@@ -612,6 +614,7 @@ static enum nnp_status compute_direct_convolution_inference(
 	const struct nnp_padding input_padding,
 	const struct nnp_size kernel_size,
 	const struct nnp_size output_size,
+	const struct nnp_size output_subsampling,
 	const float* input_ptr,
 	const float* kernel,
 	const float* bias,
@@ -697,6 +700,7 @@ static enum nnp_status compute_direct_convolution_inference(
 				.kernel_elements = kernel_elements_divisor,
 				.kernel_width = kernel_width_divisor,
 				.output_width = output_width_divisor,
+				.output_subsampling = output_subsampling,
 			};
 			pthreadpool_compute_2d_tiled(threadpool,
 				(pthreadpool_function_2d_tiled_t) compute_input_packing,
@@ -748,6 +752,7 @@ enum nnp_status nnp_convolution_inference(
 	struct nnp_size input_size,
 	struct nnp_padding input_padding,
 	struct nnp_size kernel_size,
+	struct nnp_size output_subsampling,
 	const float input[],
 	const float kernel[],
 	const float bias[],
@@ -761,18 +766,20 @@ enum nnp_status nnp_convolution_inference(
 	/* Basic validation of parameters. This check detects invalid, but not unsupported parameters. */
 	enum nnp_status status = validate_convolution_arguments(
 		1, input_channels, output_channels,
-		input_size, input_padding, kernel_size);
+		input_size, input_padding, kernel_size, output_subsampling);
 	if (status != nnp_status_success) {
 		goto cleanup;
 	}
 
 	const struct nnp_size output_size = {
-		.width = input_padding.left + input_size.width + input_padding.right - kernel_size.width + 1,
-		.height = input_padding.top + input_size.height + input_padding.bottom - kernel_size.height + 1
+		.width = (input_padding.left + input_size.width + input_padding.right - kernel_size.width) / output_subsampling.width + 1,
+		.height = (input_padding.top + input_size.height + input_padding.bottom - kernel_size.height) / output_subsampling.height + 1
 	};
 
 	if (algorithm == nnp_convolution_algorithm_auto) {
-		if (max(kernel_size.width, kernel_size.height) > 8) {
+		if (max(kernel_size.width, kernel_size.height) > 16) {
+			algorithm = nnp_convolution_algorithm_implicit_gemm;
+		} if (max(kernel_size.width, kernel_size.height) > 8) {
 			algorithm = nnp_convolution_algorithm_ft16x16;
 		} else {
 			const size_t tile_count_8x8 =
@@ -838,6 +845,10 @@ enum nnp_status nnp_convolution_inference(
 		case nnp_convolution_algorithm_wt8x8:
 		case nnp_convolution_algorithm_ft8x8:
 		case nnp_convolution_algorithm_ft16x16:
+			if (max(output_subsampling.height, output_subsampling.width) != 1) {
+				status = nnp_status_unsupported_algorithm;
+				goto cleanup;
+			}
 			status = compute_fast_convolution_inference(
 				fourier_transform, transform_strategy,
 				input_channels, output_channels,
@@ -849,7 +860,7 @@ enum nnp_status nnp_convolution_inference(
 		case nnp_convolution_algorithm_implicit_gemm:
 			status = compute_direct_convolution_inference(
 				input_channels, output_channels,
-				input_size, input_padding, kernel_size, output_size,
+				input_size, input_padding, kernel_size, output_size, output_subsampling,
 				input, kernel, bias, output,
 				threadpool, profile);
 			break;

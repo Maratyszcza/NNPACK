@@ -46,6 +46,8 @@ enum nnp_status {
 	nnp_status_invalid_algorithm = 16,
 	/** NNPACK function was called with convolution transform strategy not in nnp_convolution_transform_strategy enum */
 	nnp_status_invalid_transform_strategy = 17,
+	/** NNPACK function was called with output_subsampling.height == 0 or output_subsampling.width == 0 */
+	nnp_status_invalid_output_subsampling = 13,
 
 	/** NNPACK does not support the particular input size for the function */
 	nnp_status_unsupported_input_size = 20,
@@ -306,6 +308,7 @@ enum nnp_status nnp_convolution_kernel_gradient(
  * @param input_size Size of input image, excluding implicit zero-padding.
  * @param input_padding Implicit zero-padding of input image.
  * @param kernel_size Kernel size.
+ * @param output_subsampling Subsample region for output, also known as convolution stride.
  * @param[in]  input  A 3D tensor input[input_channels][input_size.height][input_size.width].
  * @param[in]  kernel A 4D tensor kernel[output_channels][input_channels][kernel_size.height][kernel_size.width].
  * @param[in]  bias   A 1D array bias[output_channels].
@@ -327,6 +330,7 @@ enum nnp_status nnp_convolution_inference(
 	struct nnp_size input_size,
 	struct nnp_padding input_padding,
 	struct nnp_size kernel_size,
+	struct nnp_size output_subsampling,
 	const float input[],
 	const float kernel[],
 	const float bias[],

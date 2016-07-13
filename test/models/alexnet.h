@@ -10,6 +10,26 @@
 namespace AlexNet {
 
 	/*
+	 * AlexNet conv1 layer:
+	 *   input channels     = 3
+	 *   output channels    = 64
+	 *   input size         = 224x224
+	 *   implicit padding   = 2
+	 *   kernel size        = 11x11
+	 *   output subsampling = 4x4
+	 */
+	inline ConvolutionTester conv1() {
+		return std::move(ConvolutionTester()
+			.multithreading(true)
+			.inputChannels(64)
+			.outputChannels(192)
+			.inputSize(27, 27)
+			.kernelSize(11, 11)
+			.outputSubsampling(4, 4)
+			.inputPadding(2, 2, 2, 2));
+	}
+
+	/*
 	 * AlexNet conv1 ReLU layer
 	 *   channels   = 64
 	 *   image size = 55x55

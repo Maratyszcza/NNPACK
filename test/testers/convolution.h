@@ -27,6 +27,7 @@ public:
 		inputSize(4, 4);
 		kernelSize(3, 3);
 		inputPadding(0, 0, 0, 0);
+		outputSubsampling(1, 1);
 
 		this->threadpool = nullptr;
 	}
@@ -41,8 +42,9 @@ public:
 		inputChannels_(tester.inputChannels_),
 		outputChannels_(tester.outputChannels_),
 		inputSize_(tester.inputSize_),
-		kernelSize_(tester.kernelSize_),
 		inputPadding_(tester.inputPadding_),
+		kernelSize_(tester.kernelSize_),
+		outputSubsampling_(tester.outputSubsampling_),
 		threadpool(tester.threadpool)
 	{
 		tester.threadpool = nullptr;
@@ -161,11 +163,21 @@ public:
 	}
 
 	inline size_t outputHeight() const {
-		return this->inputPadding_.top + this->inputSize_.height + this->inputPadding_.bottom - this->kernelSize_.height + 1;
+		return (this->inputPadding_.top + this->inputSize_.height + this->inputPadding_.bottom - this->kernelSize_.height) / this->outputSubsampling_.height + 1;
 	}
 
 	inline size_t outputWidth() const {
-		return this->inputPadding_.left + this->inputSize_.width + this->inputPadding_.right - this->kernelSize_.width + 1;
+		return (this->inputPadding_.left + this->inputSize_.width + this->inputPadding_.right - this->kernelSize_.width) / this->outputSubsampling_.width + 1;
+	}
+
+	inline ConvolutionTester& outputSubsampling(size_t height, size_t width) {
+		this->outputSubsampling_.height = height;
+		this->outputSubsampling_.width = width;
+		return *this;
+	}
+
+	inline struct nnp_size outputSubsampling() const {
+		return this->outputSubsampling_;
 	}
 
 	inline ConvolutionTester& inputPadding(size_t top, size_t right, size_t left, size_t bottom) {
@@ -200,7 +212,7 @@ public:
 
 			nnp_convolution_output__reference(
 				batchSize(), inputChannels(), outputChannels(),
-				inputSize(), inputPadding(), kernelSize(),
+				inputSize(), inputPadding(), kernelSize(), outputSubsampling(),
 				input.data(), kernel.data(), bias.data(), referenceOutput.data(),
 				this->threadpool);
 
@@ -312,14 +324,14 @@ public:
 
 			nnp_convolution_output__reference(
 				1, inputChannels(), outputChannels(),
-				inputSize(), inputPadding(), kernelSize(),
+				inputSize(), inputPadding(), kernelSize(), outputSubsampling(),
 				input.data(), kernel.data(), bias.data(), referenceOutput.data(),
 				this->threadpool);
 
 			enum nnp_status status = nnp_convolution_inference(
 				algorithm, transform_strategy,
 				inputChannels(), outputChannels(),
-				inputSize(), inputPadding(), kernelSize(),
+				inputSize(), inputPadding(), kernelSize(), outputSubsampling(),
 				input.data(), kernel.data(), bias.data(), output.data(),
 				this->threadpool, nullptr);
 			ASSERT_EQ(nnp_status_success, status);
@@ -348,4 +360,5 @@ private:
 	struct nnp_size inputSize_;
 	struct nnp_padding inputPadding_;
 	struct nnp_size kernelSize_;
+	struct nnp_size outputSubsampling_;
 };
