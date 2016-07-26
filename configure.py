@@ -63,8 +63,12 @@ class Configuration:
             self.writer.variable("imageformat", "elf")
             self.writer.variable("abi", "sysv")
             self.writer.variable("ar", "ar")
-            self.writer.variable("cc", "gcc")
-            self.writer.variable("cxx", "g++")
+            if options.use_psimd:
+                self.writer.variable("cc", "clang")
+                self.writer.variable("cxx", "clang++")
+            else:
+                self.writer.variable("cc", "gcc")
+                self.writer.variable("cxx", "g++")
             ldflags.append("-Wl,-fuse-ld=gold")
         elif self.host == "x86_64-windows-msvc":
             import _winreg
