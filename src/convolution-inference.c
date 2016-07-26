@@ -777,7 +777,9 @@ enum nnp_status nnp_convolution_inference(
 	};
 
 	if (algorithm == nnp_convolution_algorithm_auto) {
-		if (max(kernel_size.width, kernel_size.height) > 16) {
+		if ((max(kernel_size.width, kernel_size.height) > 16) ||
+			(max(output_subsampling.width, output_subsampling.height) > 1))
+		{
 			algorithm = nnp_convolution_algorithm_implicit_gemm;
 		} if (max(kernel_size.width, kernel_size.height) > 8) {
 			algorithm = nnp_convolution_algorithm_ft16x16;
