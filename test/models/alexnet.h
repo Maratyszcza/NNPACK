@@ -21,9 +21,9 @@ namespace AlexNet {
 	inline ConvolutionTester conv1() {
 		return std::move(ConvolutionTester()
 			.multithreading(true)
-			.inputChannels(64)
-			.outputChannels(192)
-			.inputSize(27, 27)
+			.inputChannels(3)
+			.outputChannels(64)
+			.inputSize(224, 224)
 			.kernelSize(11, 11)
 			.outputSubsampling(4, 4)
 			.inputPadding(2, 2, 2, 2));
