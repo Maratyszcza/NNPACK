@@ -67,7 +67,7 @@ void nnp_sgemm_upto_4x8__psimd(uint32_t mr, uint32_t nr, size_t k, size_t update
 		
 		vb0 = v4f_ld(b);
 		b += 4;
-		if (nr >= 4) {
+		if (nr > 4) {
 			vb1 = v4f_ld(b);
 			b += 4;
 		}
