@@ -1,12 +1,14 @@
 language: c
 compiler: clang
 install:
- - pip install --user ninja-syntax
+ - git clone https://github.com/ninja-build/ninja.git /tmp/ninja
+ - pushd /tmp/ninja
+ - git checkout release
+ - python configure.py --bootstrap
+ - export PATH=/tmp/ninja:$PATH
+ - export PYTHONPATH=/tmp/ninja/misc
+ - popd
 before_script:
  - python ./configure.py --enable-psimd
-script: ninja
-addons:
-  apt:
-    packages:
-    - ninja-build
-    - python-pip
+script:
+ - ninja
