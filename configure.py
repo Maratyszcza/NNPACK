@@ -69,7 +69,7 @@ class Configuration:
             else:
                 self.writer.variable("cc", "gcc")
                 self.writer.variable("cxx", "g++")
-            ldflags.append("-Wl,-fuse-ld=gold")
+            ldflags.append("-fuse-ld=gold")
         elif self.host == "x86_64-windows-msvc":
             import _winreg
             with _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, r"SOFTWARE\Microsoft\VisualStudio\14.0_Config") as vs_key:
