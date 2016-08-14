@@ -52,7 +52,7 @@ class Configuration:
         cflags = ["-g", "-std=gnu99"]
         if options.use_psimd or self.host == "pnacl-nacl-newlib":
             cflags += ["-DNNP_ARCH_PSIMD"]
-        cxxflags = ["-g", "-std=gnu++11"]
+        cxxflags = ["-g", "-std=gnu++0x"]
         ldflags = ["-g"]
         if self.host in ["x86_64-linux-gnu", "x86_64-nacl-glibc", "x86_64-nacl-newlib", "pnacl-nacl-newlib"]:
             cflags.append("-pthread")
