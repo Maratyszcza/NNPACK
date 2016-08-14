@@ -49,7 +49,7 @@ class Configuration:
             self.static_library_ext = ".a"
             self.dynamic_library_ext = ".so"
 
-        cflags = ["-g", "-std=gnu11"]
+        cflags = ["-g", "-std=gnu99"]
         if options.use_psimd or self.host == "pnacl-nacl-newlib":
             cflags += ["-DNNP_ARCH_PSIMD"]
         cxxflags = ["-g", "-std=gnu++11"]
