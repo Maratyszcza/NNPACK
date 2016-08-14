@@ -6,8 +6,13 @@ install:
  - git checkout release
  - python configure.py --bootstrap
  - export PATH=/tmp/ninja:$PATH
- - export PYTHONPATH=/tmp/ninja/misc
  - popd
+ - pip install --user ninja-syntax
+ - git clone https://github.com/Maratyszcza/PeachPy.git /tmp/PeachPy
+ - pushd /tmp/PeachPy
+ - pip install --user --upgrade -r requirements.txt
+ - python setup.py generate
+ - pip install --user --upgrade .
 before_script:
  - python ./configure.py --enable-psimd
 script:
@@ -16,3 +21,4 @@ addons:
   apt:
     packages:
     - linux-headers-3.13.0-40-generic
+    - python-pip
