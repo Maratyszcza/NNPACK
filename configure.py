@@ -593,6 +593,10 @@ def main():
                 config.unittest(nnpack_objects + [config.cxx("sgemm/psimd.cc")] + gtest_objects,
                     "sgemm-psimd-test")
 
+        fp16_ieee_test = \
+            config.unittest([config.cxx("fp16/ieee.cc"), config.cxx("fp16/values.cc")] + gtest_objects,
+                "fp16-ieee-test")
+
         convolution_output_smoke_test = \
             config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/smoke.cc")] + gtest_objects,
                 "convolution-output-smoketest")
