@@ -1,0 +1,12 @@
+language: c
+compiler: clang
+install:
+ - pip install ninja-build
+before_script:
+ - python ./configure.py --enable-psimd
+script: ninja
+addons:
+  apt:
+    packages:
+    - ninja-build
+    - python-pip
