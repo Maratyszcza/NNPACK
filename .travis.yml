@@ -1,7 +1,7 @@
 language: c
 compiler: clang
 install:
- - pip install ninja-build
+ - pip install ninja-syntax
 before_script:
  - python ./configure.py --enable-psimd
 script: ninja
