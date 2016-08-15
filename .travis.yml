@@ -16,8 +16,9 @@ install:
  - popd
 before_script:
  - python ./configure.py
-script:
  - ninja
+script:
+ - ninja test
 addons:
   apt:
     packages:
