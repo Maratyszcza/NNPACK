@@ -486,7 +486,7 @@ def main():
         config.cc("ref/convolution-input-gradient.c"),
         config.cc("ref/convolution-kernel.c"),
         config.cc("ref/fully-connected-output.c"),
-        config.cc("ref/pooling-output.c"),
+        config.cc("ref/max-pooling-output.c"),
         config.cc("ref/softmax-output.c"),
         config.cc("ref/relu-output.c"),
         config.cc("ref/relu-input-gradient.c"),
@@ -687,17 +687,17 @@ def main():
         config.phony("fully-connected-inference-test",
             [fully_connected_inference_alexnet_test, fully_connected_inference_vgg_a_test, fully_connected_inference_overfeat_fast_test])
 
-        pooling_output_smoke_test = \
-            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("pooling-output/smoke.cc")] + gtest_objects,
-                "pooling-output-smoketest")
-        pooling_output_vgg_a_test = \
-            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("pooling-output/vgg-a.cc")] + gtest_objects,
-                "pooling-output-vgg-a-test")
-        pooling_output_overfeat_fast_test = \
-            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("pooling-output/overfeat-fast.cc")] + gtest_objects,
-                "pooling-output-overfeat-fast")
-        config.phony("pooling-output-test",
-            [pooling_output_smoke_test, pooling_output_vgg_a_test, pooling_output_overfeat_fast_test])
+        max_pooling_output_smoke_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("max-pooling-output/smoke.cc")] + gtest_objects,
+                "max-pooling-output-smoketest")
+        max_pooling_output_vgg_a_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("max-pooling-output/vgg-a.cc")] + gtest_objects,
+                "max-pooling-output-vgg-a-test")
+        max_pooling_output_overfeat_fast_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("max-pooling-output/overfeat-fast.cc")] + gtest_objects,
+                "max-pooling-output-overfeat-fast")
+        config.phony("max-pooling-output-test",
+            [max_pooling_output_smoke_test, max_pooling_output_vgg_a_test, max_pooling_output_overfeat_fast_test])
 
         relu_output_alexnet_test = \
             config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("relu-output/alexnet.cc")] + gtest_objects,
@@ -735,13 +735,13 @@ def main():
         config.phony("test", [
             "convolution-output-test", "convolution-input-gradient-test", "convolution-kernel-gradient-test", "convolution-inference-test",
             "fully-connected-output-test", "fully-connected-inference-test",
-            "pooling-output-test",
+            "max-pooling-output-test",
             "relu-output-test", "relu-input-gradient-test",
             "softmax-output-test"])
         config.phony("smoketest", [
             convolution_output_smoke_test, convolution_input_gradient_smoke_test, convolution_kernel_gradient_smoke_test, convolution_inference_smoke_test,
             fully_connected_output_smoke_test,
-            pooling_output_smoke_test,
+            max_pooling_output_smoke_test,
             softmax_output_smoke_test])
 
     # Build benchmarks

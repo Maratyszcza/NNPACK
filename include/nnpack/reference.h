@@ -60,10 +60,10 @@ void nnp_max_pooling_output__reference(
 	size_t channels,
 	struct nnp_size input_size,
 	struct nnp_padding input_padding,
-	struct nnp_size kernel_size,
-	struct nnp_size kernel_stride,
-	const float* input_pointer,
-	float* output_pointer,
+	struct nnp_size pooling_size,
+	struct nnp_size pooling_stride,
+	const float input[],
+	float output[],
 	pthreadpool_t threadpool);
 
 void nnp_relu_output__reference(

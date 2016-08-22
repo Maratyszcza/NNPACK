@@ -9,8 +9,8 @@ struct max_pooling_output_context {
 	struct nnp_size pooling_size;
 	struct nnp_size pooling_stride;
 	struct nnp_size output_size;
-	const float* input_pointer;
-	float* output_pointer;
+	const float* input;
+	float* output;
 };
 
 static void compute_max_pooling_output(
@@ -20,14 +20,14 @@ static void compute_max_pooling_output(
 	const size_t channels                  = context->channels;
 	const struct nnp_size input_size       = context->input_size;
 	const struct nnp_padding input_padding = context->input_padding;
-	const struct nnp_size pooling_size      = context->pooling_size;
-	const struct nnp_size pooling_stride    = context->pooling_stride;
+	const struct nnp_size pooling_size     = context->pooling_size;
+	const struct nnp_size pooling_stride   = context->pooling_stride;
 	const struct nnp_size output_size      = context->output_size;
 
 	const float (*input)[channels][input_size.height][input_size.width] =
-		(const float(*)[channels][input_size.height][input_size.width]) context->input_pointer;
+		(const float(*)[channels][input_size.height][input_size.width]) context->input;
 	float (*output)[channels][output_size.height][output_size.width] =
-		(float(*)[channels][output_size.height][output_size.width]) context->output_pointer;
+		(float(*)[channels][output_size.height][output_size.width]) context->output;
 
 	for (size_t y = 0; y < output_size.height; y++) {
 		for (size_t x = 0; x < output_size.width; x++) {
@@ -55,8 +55,8 @@ void nnp_max_pooling_output__reference(
 	struct nnp_padding input_padding,
 	struct nnp_size pooling_size,
 	struct nnp_size pooling_stride,
-	const float* input_pointer,
-	float* output_pointer,
+	const float* input,
+	float* output,
 	pthreadpool_t threadpool)
 {
 	const struct nnp_size output_size = {
@@ -71,8 +71,8 @@ void nnp_max_pooling_output__reference(
 		.pooling_size = pooling_size,
 		.pooling_stride = pooling_stride,
 		.output_size = output_size,
-		.input_pointer = input_pointer,
-		.output_pointer = output_pointer
+		.input = input,
+		.output = output
 	};
 
 	pthreadpool_compute_2d(threadpool,
