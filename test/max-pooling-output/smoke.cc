@@ -83,10 +83,10 @@ TEST(MaxPooling2x2, DISABLED_implicit_padding) {
 		.poolingSize(2, 2)
 		.poolingStride(2, 2)
 		.iterations(100);
-	for (size_t paddingTop = 0; paddingTop < tester.kernelHeight(); paddingTop++) {
-		for (size_t paddingRight = 0; paddingRight < tester.kernelWidth(); paddingRight++) {
-			for (size_t paddingLeft = 0; paddingLeft < tester.kernelWidth(); paddingLeft++) {
-				for (size_t paddingBottom = 0; paddingBottom < tester.kernelHeight(); paddingBottom++) {
+	for (size_t paddingTop = 0; paddingTop < tester.poolingHeight(); paddingTop++) {
+		for (size_t paddingRight = 0; paddingRight < tester.poolingWidth(); paddingRight++) {
+			for (size_t paddingLeft = 0; paddingLeft < tester.poolingWidth(); paddingLeft++) {
+				for (size_t paddingBottom = 0; paddingBottom < tester.poolingHeight(); paddingBottom++) {
 					tester.inputPadding(paddingTop, paddingRight, paddingLeft, paddingBottom)
 						.testOutput();
 				}
