@@ -165,6 +165,7 @@ enum nnp_status nnp_max_pooling_output(
 	struct pooling_context pooling_context = {
 		.channels = channels,
 		.input_pointer = input,
+		.input_padding = input_padding,
 		.output_pointer = output,
 		.input_size = input_size,
 		.output_size = output_size,
