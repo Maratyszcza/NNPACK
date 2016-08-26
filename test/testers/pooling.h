@@ -137,11 +137,11 @@ public:
 		return this->poolingSize_;
 	}
 
-	inline size_t kernelHeight() const {
+	inline size_t poolingHeight() const {
 		return this->poolingSize_.height;
 	}
 
-	inline size_t kernelWidth() const {
+	inline size_t poolingWidth() const {
 		return this->poolingSize_.width;
 	}
 
@@ -163,11 +163,15 @@ public:
 	}
 
 	inline size_t outputHeight() const {
-		return divide_round_up(this->inputPadding_.top + this->inputSize_.height + this->inputPadding_.bottom, this->poolingSize_.height);
+		return 1 + divide_round_up(
+			this->inputPadding_.top + this->inputSize_.height + this->inputPadding_.bottom - this->poolingSize_.height,
+			this->poolingStride_.height);
 	}
 
 	inline size_t outputWidth() const {
-		return divide_round_up(this->inputPadding_.left + this->inputSize_.width + this->inputPadding_.right, this->poolingSize_.width);
+		return 1 + divide_round_up(
+			this->inputPadding_.left + this->inputSize_.width + this->inputPadding_.right - this->poolingSize_.width,
+			this->poolingStride_.width);
 	}
 
 	inline PoolingTester& inputPadding(size_t top, size_t right, size_t left, size_t bottom) {

@@ -48,7 +48,7 @@ static void compute_max_pooling_forward__generic(
 				const size_t s = y * stride_height + i - padding_top;
 				if (s < input_height) {
 					for (size_t j = 0; j < pooling_width; j++) {
-						const size_t t = x * pooling_width + j - padding_left;
+						const size_t t = x * stride_height + j - padding_left;
 						if (t < input_width) {
 							v = maxf(input[s][t], v);
 						}
