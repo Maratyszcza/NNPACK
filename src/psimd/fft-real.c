@@ -10,18 +10,9 @@ void nnp_fft8_4real__psimd(
 	const float t[restrict static 32],
 	float f[restrict static 32])
 {
-	v4f w0r, w4r, w1r, w1i, w2r, w2i, w3r, w3i;
 	v4f_fft8_real(
-		t, t + 16, 4,
-		&w0r, &w4r, &w1r, &w1i, &w2r, &w2i, &w3r, &w3i);
-	v4f_st(f +  0, w0r);
-	v4f_st(f +  4, w4r);
-	v4f_st(f +  8, w1r);
-	v4f_st(f + 12, w1i);
-	v4f_st(f + 16, w2r);
-	v4f_st(f + 20, w2i);
-	v4f_st(f + 24, w3r);
-	v4f_st(f + 28, w3i);
+		t, t + 16, 4, 0, 8,
+		f, 4);
 }
 
 void nnp_fft16_4real__psimd(
@@ -30,24 +21,8 @@ void nnp_fft16_4real__psimd(
 {
 	v4f w0r, w8r, w1r, w1i, w2r, w2i, w3r, w3i, w4r, w4i, w5r, w5i, w6r, w6i, w7r, w7i;
 	v4f_fft16_real(
-		t, t + 32, 4,
-		&w0r, &w8r, &w1r, &w1i, &w2r, &w2i, &w3r, &w3i, &w4r, &w4i, &w5r, &w5i, &w6r, &w6i, &w7r, &w7i);
-	v4f_st(f +  0, w0r);
-	v4f_st(f +  4, w8r);
-	v4f_st(f +  8, w1r);
-	v4f_st(f + 12, w1i);
-	v4f_st(f + 16, w2r);
-	v4f_st(f + 20, w2i);
-	v4f_st(f + 24, w3r);
-	v4f_st(f + 28, w3i);
-	v4f_st(f + 32, w4r);
-	v4f_st(f + 36, w4i);
-	v4f_st(f + 40, w5r);
-	v4f_st(f + 44, w5i);
-	v4f_st(f + 48, w6r);
-	v4f_st(f + 52, w6i);
-	v4f_st(f + 56, w7r);
-	v4f_st(f + 60, w7i);
+		t, t + 32, 4, 0, 16,
+		f, 4);
 }
 
 void nnp_ifft8_4real__psimd(

@@ -8,6 +8,7 @@ static inline void v4f_fft4_aos(
 	const float t_lo[restrict static 16],
 	const float t_hi[restrict static 16],
 	size_t stride_t,
+	uint32_t row_start, uint32_t row_count,
 	v4f f0r[restrict static 1],
 	v4f f0i[restrict static 1],
 	v4f f1r[restrict static 1],
@@ -18,28 +19,75 @@ static inline void v4f_fft4_aos(
 	v4f f3i[restrict static 1])
 {
 	/* Load inputs and FFT4: butterfly */
-	v4f w0r = v4f_ld(t_lo);
-	t_lo += stride_t;
-	v4f w2r = v4f_ld(t_hi);
-	t_hi += stride_t;
-	v4f_butterfly(&w0r, &w2r);
+	v4f w0r, w0i, w1r, w1i, w2r, w2i, w3r, w3i;
+	w0r = w0i = w1r = w1i = w2r = w2i = w3r = w3i = v4f_zero();
 
-	v4f w0i = v4f_ld(t_lo);
-	t_lo += stride_t;
-	v4f w2i = v4f_ld(t_hi);
-	t_hi += stride_t;
-	v4f_butterfly(&w0i, &w2i);
+	const uint32_t row_end = row_start + row_count;
+	if (row_start <= 0) {
+		w0r = w2r = v4f_ld(t_lo);
+		t_lo += stride_t;
+		if (--row_count == 0) {
+			goto fft4_twiddle;
+		}
+	}
+	if (row_start <= 4 && row_end > 4) {
+		w2r = v4f_ld(t_hi);
+		t_hi += stride_t;
+		v4f_butterfly(&w0r, &w2r);
+		if (--row_count == 0) {
+			goto fft4_twiddle;
+		}
+	}
 
-	v4f w1r = v4f_ld(t_lo);
-	t_lo += stride_t;
-	v4f w3r = v4f_ld(t_hi);
-	t_hi += stride_t;
-	v4f_butterfly(&w1r, &w3r);
+	if (row_start <= 1) {
+		w0i = w2i = v4f_ld(t_lo);
+		t_lo += stride_t;
+		if (--row_count == 0) {
+			goto fft4_twiddle;
+		}
+	}
+	if (row_start <= 5 && row_end > 5) {
+		w2i = v4f_ld(t_hi);
+		t_hi += stride_t;
+		v4f_butterfly(&w0i, &w2i);
+		if (--row_count == 0) {
+			goto fft4_twiddle;
+		}
+	}
 
-	v4f w1i = v4f_ld(t_lo);
-	v4f w3i = v4f_ld(t_hi);
-	v4f_butterfly(&w1i, &w3i);
+	if (row_start <= 2) {
+		w1r = w3r = v4f_ld(t_lo);
+		t_lo += stride_t;
+		if (--row_count == 0) {
+			goto fft4_twiddle;
+		}
+	}
+	if (row_start <= 6 && row_end > 6) {
+		w3r = v4f_ld(t_hi);
+		t_hi += stride_t;
+		v4f_butterfly(&w1r, &w3r);
+		if (--row_count == 0) {
+			goto fft4_twiddle;
+		}
+	}
 
+	if (row_start <= 3) {
+		w1i = w3i = v4f_ld(t_lo);
+		t_lo += stride_t;
+		if (--row_count == 0) {
+			goto fft4_twiddle;
+		}
+	}
+	if (row_start <= 7 && row_end > 7) {
+		w3i = v4f_ld(t_hi);
+		t_hi += stride_t;
+		v4f_butterfly(&w1i, &w3i);
+		if (--row_count == 0) {
+			goto fft4_twiddle;
+		}
+	}
+
+fft4_twiddle:
 	/*
 	 * FFT4: multiplication by twiddle factors:
 	 *   w3r, w3i = w3i, -w3r
@@ -133,6 +181,7 @@ static inline void v4f_fft8_aos(
 	const float t_lo[restrict static 32],
 	const float t_hi[restrict static 32],
 	size_t stride_t,
+	uint32_t row_start, uint32_t row_count,
 	v4f f0r[restrict static 1],
 	v4f f0i[restrict static 1],
 	v4f f1r[restrict static 1],
@@ -151,52 +200,139 @@ static inline void v4f_fft8_aos(
 	v4f f7i[restrict static 1])
 {
 	/* Load inputs and FFT8: butterfly */
-	v4f w0r = v4f_ld(t_lo);
-	t_lo += stride_t;
-	v4f w4r = v4f_ld(t_hi);
-	t_hi += stride_t;
-	v4f_butterfly(&w0r, &w4r);
+	v4f w0r, w0i, w1r, w1i, w2r, w2i, w3r, w3i, w4r, w4i, w5r, w5i, w6r, w6i, w7r, w7i;
+	w0r = w0i = w1r = w1i = w2r = w2i = w3r = w3i = w4r = w4i = w5r = w5i = w6r = w6i = w7r = w7i = v4f_zero();
 
-	v4f w0i = v4f_ld(t_lo);
-	t_lo += stride_t;
-	v4f w4i = v4f_ld(t_hi);
-	t_hi += stride_t;
-	v4f_butterfly(&w0i, &w4i);
+	const uint32_t row_end = row_start + row_count;
+	if (row_start <= 0) {
+		w0r = w4r = v4f_ld(t_lo);
+		t_lo += stride_t;
+		if (--row_count == 0) {
+			goto fft8_twiddle;
+		}
+	}
+	if (row_start <= 8 && row_end > 8) {
+		w4r = v4f_ld(t_hi);
+		t_hi += stride_t;
+		v4f_butterfly(&w0r, &w4r);
+		if (--row_count == 0) {
+			goto fft8_twiddle;
+		}
+	}
 
-	v4f w1r = v4f_ld(t_lo);
-	t_lo += stride_t;
-	v4f w5r = v4f_ld(t_hi);
-	t_hi += stride_t;
-	v4f_butterfly(&w1r, &w5r);
+	if (row_start <= 1) {
+		w0i = w4i = v4f_ld(t_lo);
+		t_lo += stride_t;
+		if (--row_count == 0) {
+			goto fft8_twiddle;
+		}
+	}
+	if (row_start <= 9 && row_end > 9) {
+		w4i = v4f_ld(t_hi);
+		t_hi += stride_t;
+		v4f_butterfly(&w0i, &w4i);
+		if (--row_count == 0) {
+			goto fft8_twiddle;
+		}
+	}
 
-	v4f w1i = v4f_ld(t_lo);
-	t_lo += stride_t;
-	v4f w5i = v4f_ld(t_hi);
-	t_hi += stride_t;
-	v4f_butterfly(&w1i, &w5i);
+	if (row_start <= 2) {
+		w1r = w5r = v4f_ld(t_lo);
+		t_lo += stride_t;
+		if (--row_count == 0) {
+			goto fft8_twiddle;
+		}
+	}
+	if (row_start <= 10 && row_end > 10) {
+		w5r = v4f_ld(t_hi);
+		t_hi += stride_t;
+		v4f_butterfly(&w1r, &w5r);
+		if (--row_count == 0) {
+			goto fft8_twiddle;
+		}
+	}
 
-	v4f w2r = v4f_ld(t_lo);
-	t_lo += stride_t;
-	v4f w6r = v4f_ld(t_hi);
-	t_hi += stride_t;
-	v4f_butterfly(&w2r, &w6r);
+	if (row_start <= 3) {
+		w1i = w5i = v4f_ld(t_lo);
+		t_lo += stride_t;
+		if (--row_count == 0) {
+			goto fft8_twiddle;
+		}
+	}
+	if (row_start <= 11 && row_end > 11) {
+		w5i = v4f_ld(t_hi);
+		t_hi += stride_t;
+		v4f_butterfly(&w1i, &w5i);
+		if (--row_count == 0) {
+			goto fft8_twiddle;
+		}
+	}
 
-	v4f w2i = v4f_ld(t_lo);
-	t_lo += stride_t;
-	v4f w6i = v4f_ld(t_hi);
-	t_hi += stride_t;
-	v4f_butterfly(&w2i, &w6i);
+	if (row_start <= 4) {
+		w2r = w6r = v4f_ld(t_lo);
+		t_lo += stride_t;
+		if (--row_count == 0) {
+			goto fft8_twiddle;
+		}
+	}
+	if (row_start <= 12 && row_end > 12) {
+		w6r = v4f_ld(t_hi);
+		t_hi += stride_t;
+		v4f_butterfly(&w2r, &w6r);
+		if (--row_count == 0) {
+			goto fft8_twiddle;
+		}
+	}
 
-	v4f w3r = v4f_ld(t_lo);
-	t_lo += stride_t;
-	v4f w7r = v4f_ld(t_hi);
-	t_hi += stride_t;
-	v4f_butterfly(&w3r, &w7r);
+	if (row_start <= 5) {
+		w2i = w6i = v4f_ld(t_lo);
+		t_lo += stride_t;
+		if (--row_count == 0) {
+			goto fft8_twiddle;
+		}
+	}
+	if (row_start <= 13 && row_end > 13) {
+		w6i = v4f_ld(t_hi);
+		t_hi += stride_t;
+		v4f_butterfly(&w2i, &w6i);
+		if (--row_count == 0) {
+			goto fft8_twiddle;
+		}
+	}
 
-	v4f w3i = v4f_ld(t_lo);
-	v4f w7i = v4f_ld(t_hi);
-	v4f_butterfly(&w3i, &w7i);
+	if (row_start <= 6) {
+		w3r = w7r = v4f_ld(t_lo);
+		t_lo += stride_t;
+		if (--row_count == 0) {
+			goto fft8_twiddle;
+		}
+	}
+	if (row_start <= 14 && row_end > 14) {
+		w7r = v4f_ld(t_hi);
+		t_hi += stride_t;
+		v4f_butterfly(&w3r, &w7r);
+		if (--row_count == 0) {
+			goto fft8_twiddle;
+		}
+	}
 
+	if (row_start <= 7) {
+		w3i = w7i = v4f_ld(t_lo);
+		t_lo += stride_t;
+		if (--row_count == 0) {
+			goto fft8_twiddle;
+		}
+	}
+	if (row_start <= 15 && row_end > 15) {
+		w7i = v4f_ld(t_hi);
+		t_hi += stride_t;
+		v4f_butterfly(&w3i, &w7i);
+		if (--row_count == 0) {
+			goto fft8_twiddle;
+		}
+	}
+
+fft8_twiddle:;
 	/*
 	 * FFT8: multiplication by twiddle factors:
 	 *   
