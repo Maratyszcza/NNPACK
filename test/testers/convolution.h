@@ -204,6 +204,7 @@ public:
 		std::vector<float> output(batchSize() * outputChannels() * outputHeight() * outputWidth());
 		std::vector<float> referenceOutput(batchSize() * outputChannels() * outputHeight() * outputWidth());
 
+		std::vector<float> maxErrors;
 		for (size_t iteration = 0; iteration < iterations(); iteration++) {
 			std::generate(input.begin(), input.end(), std::ref(rng));
 			std::generate(kernel.begin(), kernel.end(), std::ref(rng));
@@ -226,8 +227,9 @@ public:
 
 			const float maxError = std::inner_product(referenceOutput.cbegin(), referenceOutput.cend(), output.cbegin(), 0.0f,
 				[](float x, float y)->float { return std::max<float>(y, x); }, relativeError);
-			EXPECT_LT(maxError, errorLimit());
+			maxErrors.push_back(maxError);
 		}
+		EXPECT_LT(median(maxErrors), errorLimit());
 	}
 
 	void testInputGradient(enum nnp_convolution_algorithm algorithm) const {
@@ -241,6 +243,7 @@ public:
 
 		std::vector<float> referenceInputGradient(batchSize() * inputChannels() * inputHeight() * inputWidth());
 
+		std::vector<float> maxErrors;
 		for (size_t iteration = 0; iteration < iterations(); iteration++) {
 			std::generate(outputGradient.begin(), outputGradient.end(), std::ref(rng));
 			std::generate(kernel.begin(), kernel.end(), std::ref(rng));
@@ -262,8 +265,9 @@ public:
 
 			const float maxError = std::inner_product(referenceInputGradient.cbegin(), referenceInputGradient.cend(), inputGradient.cbegin(), 0.0f,
 				[](float x, float y)->float { return std::max<float>(y, x); }, relativeError);
-			EXPECT_LT(maxError, errorLimit());
+			maxErrors.push_back(maxError);
 		}
+		EXPECT_LT(median(maxErrors), errorLimit());
 	}
 
 	void testKernelGradient(enum nnp_convolution_algorithm algorithm) const {
@@ -276,6 +280,7 @@ public:
 
 		std::vector<float> referenceKernelGradient(outputChannels() * inputChannels() * kernelHeight() * kernelWidth());
 
+		std::vector<float> maxErrors;
 		for (size_t iteration = 0; iteration < iterations(); iteration++) {
 			std::generate(input.begin(), input.end(), std::ref(rng));
 			std::generate(outputGradient.begin(), outputGradient.end(), std::ref(rng));
@@ -298,8 +303,9 @@ public:
 
 			const float maxError = std::inner_product(referenceKernelGradient.cbegin(), referenceKernelGradient.cend(), kernelGradient.cbegin(), 0.0f,
 				[](float x, float y)->float { return std::max<float>(y, x); }, relativeError);
-			EXPECT_LT(maxError, errorLimit());
+			maxErrors.push_back(maxError);
 		}
+		EXPECT_LT(median(maxErrors), errorLimit());
 	}
 
 	void testInference(enum nnp_convolution_algorithm algorithm, enum nnp_convolution_transform_strategy transform_strategy) const {
@@ -316,6 +322,7 @@ public:
 		std::vector<float> output(outputChannels() * outputHeight() * outputWidth());
 		std::vector<float> referenceOutput(outputChannels() * outputHeight() * outputWidth());
 
+		std::vector<float> maxErrors;
 		for (size_t iteration = 0; iteration < iterations(); iteration++) {
 			std::generate(input.begin(), input.end(), std::ref(rng));
 			std::generate(kernel.begin(), kernel.end(), std::ref(rng));
@@ -338,8 +345,9 @@ public:
 
 			const float maxError = std::inner_product(referenceOutput.cbegin(), referenceOutput.cend(), output.cbegin(), 0.0f,
 				[](float x, float y)->float { return std::max<float>(y, x); }, relativeError);
-			EXPECT_LT(maxError, errorLimit());
+			maxErrors.push_back(maxError);
 		}
+		EXPECT_LT(median(maxErrors), errorLimit());
 	}
 
 protected:
@@ -348,6 +356,11 @@ protected:
 private:
 	inline static float relativeError(float reference, float actual) {
 		return std::abs(reference - actual) / std::max(FLT_MIN, std::abs(reference));
+	}
+
+	inline static float median(std::vector<float>& array) {
+		std::nth_element(array.begin(), array.begin() + array.size() / 2, array.end());
+		return array[array.size() / 2];
 	}
 
 	size_t iterations_;

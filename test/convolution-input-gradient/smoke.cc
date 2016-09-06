@@ -39,6 +39,7 @@ TEST(WT8x8, single_tile) {
 TEST(FT8x8, input_subtile) {
 	ConvolutionTester()
 		.inputSize(4, 4)
+		.iterations(100)
 		.errorLimit(1.0e-3)
 		.testInputGradient(nnp_convolution_algorithm_ft8x8);
 }
@@ -46,6 +47,7 @@ TEST(FT8x8, input_subtile) {
 TEST(FT16x16, input_subtile) {
 	ConvolutionTester()
 		.inputSize(4, 4)
+		.iterations(100)
 		.errorLimit(1.0e-3)
 		.testInputGradient(nnp_convolution_algorithm_ft16x16);
 }
@@ -53,6 +55,7 @@ TEST(FT16x16, input_subtile) {
 TEST(WT8x8, input_subtile) {
 	ConvolutionTester()
 		.inputSize(4, 4)
+		.iterations(100)
 		.errorLimit(1.0e-3)
 		.testInputGradient(nnp_convolution_algorithm_wt8x8);
 }
@@ -64,6 +67,7 @@ TEST(WT8x8, input_subtile) {
 TEST(FT8x8, multi_tile) {
 	ConvolutionTester()
 		.inputSize(11, 11)
+		.iterations(100)
 		.errorLimit(1.0e-2)
 		.testInputGradient(nnp_convolution_algorithm_ft8x8);
 }
@@ -71,6 +75,7 @@ TEST(FT8x8, multi_tile) {
 TEST(FT16x16, multi_tile) {
 	ConvolutionTester()
 		.inputSize(27, 27)
+		.iterations(100)
 		.errorLimit(1.0e-2)
 		.testInputGradient(nnp_convolution_algorithm_ft16x16);
 }
@@ -78,6 +83,7 @@ TEST(FT16x16, multi_tile) {
 TEST(WT8x8, multi_tile) {
 	ConvolutionTester()
 		.inputSize(13, 13)
+		.iterations(100)
 		.errorLimit(1.0e-2)
 		.testInputGradient(nnp_convolution_algorithm_wt8x8);
 }
@@ -90,6 +96,7 @@ TEST(FT8x8, implicit_padding) {
 	ConvolutionTester tester;
 	tester.inputSize(8, 8)
 		.kernelSize(5, 5)
+		.iterations(5)
 		.errorLimit(1.0e-1);
 	for (size_t paddingTop = 0; paddingTop < tester.kernelHeight(); paddingTop++) {
 		for (size_t paddingRight = 0; paddingRight < tester.kernelWidth(); paddingRight++) {
@@ -107,6 +114,7 @@ TEST(FT16x16, implicit_padding) {
 	ConvolutionTester tester;
 	tester.inputSize(16, 16)
 		.kernelSize(5, 5)
+		.iterations(5)
 		.errorLimit(1.0e-1);
 	for (size_t paddingTop = 0; paddingTop < tester.kernelHeight(); paddingTop++) {
 		for (size_t paddingRight = 0; paddingRight < tester.kernelWidth(); paddingRight++) {
@@ -124,6 +132,7 @@ TEST(WT8x8, implicit_padding) {
 	ConvolutionTester tester;
 	tester.inputSize(8, 8)
 		.kernelSize(3, 3)
+		.iterations(15)
 		.errorLimit(1.0e-1);
 	for (size_t paddingTop = 0; paddingTop < tester.kernelHeight(); paddingTop++) {
 		for (size_t paddingRight = 0; paddingRight < tester.kernelWidth(); paddingRight++) {
@@ -144,6 +153,7 @@ TEST(WT8x8, implicit_padding) {
 TEST(FT8x8, small_batch) {
 	ConvolutionTester tester;
 	tester.inputSize(6, 6)
+		.iterations(100)
 		.errorLimit(1.0e-3);
 	for (size_t batchSize = 2; batchSize <= 5; batchSize++) {
 		tester.batchSize(batchSize).testInputGradient(nnp_convolution_algorithm_ft8x8);
@@ -153,6 +163,7 @@ TEST(FT8x8, small_batch) {
 TEST(FT16x16, small_batch) {
 	ConvolutionTester tester;
 	tester.inputSize(14, 14)
+		.iterations(100)
 		.errorLimit(1.0e-3);
 	for (size_t batchSize = 2; batchSize <= 5; batchSize++) {
 		tester.batchSize(batchSize).testInputGradient(nnp_convolution_algorithm_ft16x16);
@@ -162,6 +173,7 @@ TEST(FT16x16, small_batch) {
 TEST(WT8x8, small_batch) {
 	ConvolutionTester tester;
 	tester.inputSize(8, 8)
+		.iterations(100)
 		.errorLimit(1.0e-3);
 	for (size_t batchSize = 2; batchSize <= 5; batchSize++) {
 		tester.batchSize(batchSize).testInputGradient(nnp_convolution_algorithm_wt8x8);
@@ -175,6 +187,7 @@ TEST(WT8x8, small_batch) {
 TEST(FT8x8, few_input_channels) {
 	ConvolutionTester tester;
 	tester.inputSize(6, 6)
+		.iterations(100)
 		.errorLimit(1.0e-2);
 	for (size_t inputChannels = 2; inputChannels <= 5; inputChannels++) {
 		tester.inputChannels(inputChannels).testInputGradient(nnp_convolution_algorithm_ft8x8);
@@ -184,6 +197,7 @@ TEST(FT8x8, few_input_channels) {
 TEST(FT16x16, few_input_channels) {
 	ConvolutionTester tester;
 	tester.inputSize(14, 14)
+		.iterations(100)
 		.errorLimit(1.0e-2);
 	for (size_t inputChannels = 2; inputChannels <= 5; inputChannels++) {
 		tester.inputChannels(inputChannels).testInputGradient(nnp_convolution_algorithm_ft16x16);
@@ -193,6 +207,7 @@ TEST(FT16x16, few_input_channels) {
 TEST(WT8x8, few_input_channels) {
 	ConvolutionTester tester;
 	tester.inputSize(8, 8)
+		.iterations(100)
 		.errorLimit(1.0e-2);
 	for (size_t inputChannels = 2; inputChannels <= 5; inputChannels++) {
 		tester.inputChannels(inputChannels).testInputGradient(nnp_convolution_algorithm_wt8x8);
@@ -206,6 +221,7 @@ TEST(WT8x8, few_input_channels) {
 TEST(FT8x8, few_output_channels) {
 	ConvolutionTester tester;
 	tester.inputSize(6, 6)
+		.iterations(100)
 		.errorLimit(1.0e-5);
 	for (size_t outputChannels = 2; outputChannels <= 5; outputChannels++) {
 		tester.outputChannels(outputChannels).testInputGradient(nnp_convolution_algorithm_ft8x8);
@@ -215,6 +231,7 @@ TEST(FT8x8, few_output_channels) {
 TEST(FT16x16, few_output_channels) {
 	ConvolutionTester tester;
 	tester.inputSize(14, 14)
+		.iterations(100)
 		.errorLimit(1.0e-5);
 	for (size_t outputChannels = 2; outputChannels <= 5; outputChannels++) {
 		tester.outputChannels(outputChannels).testInputGradient(nnp_convolution_algorithm_ft16x16);
@@ -224,6 +241,7 @@ TEST(FT16x16, few_output_channels) {
 TEST(WT8x8, few_output_channels) {
 	ConvolutionTester tester;
 	tester.inputSize(8, 8)
+		.iterations(100)
 		.errorLimit(1.0e-3);
 	for (size_t outputChannels = 2; outputChannels <= 5; outputChannels++) {
 		tester.outputChannels(outputChannels).testInputGradient(nnp_convolution_algorithm_wt8x8);
@@ -238,6 +256,7 @@ TEST(FT8x8, non_square_kernel) {
 	ConvolutionTester tester;
 	tester.inputSize(8, 8)
 		.kernelSize(2, 3)
+		.iterations(100)
 		.errorLimit(1.0e-5)
 		.testInputGradient(nnp_convolution_algorithm_ft8x8);
 }
@@ -246,6 +265,7 @@ TEST(FT16x16, non_square_kernel) {
 	ConvolutionTester tester;
 	tester.inputSize(16, 16)
 		.kernelSize(2, 3)
+		.iterations(100)
 		.errorLimit(1.0e-5)
 		.testInputGradient(nnp_convolution_algorithm_ft16x16);
 }
@@ -257,6 +277,7 @@ TEST(FT16x16, non_square_kernel) {
 TEST(FT8x8, non_square_image) {
 	ConvolutionTester tester;
 	tester.inputSize(9, 10)
+		.iterations(100)
 		.errorLimit(1.0e-5)
 		.testInputGradient(nnp_convolution_algorithm_ft8x8);
 }
@@ -264,6 +285,7 @@ TEST(FT8x8, non_square_image) {
 TEST(FT16x16, non_square_image) {
 	ConvolutionTester tester;
 	tester.inputSize(17, 19)
+		.iterations(100)
 		.errorLimit(1.0e-5)
 		.testInputGradient(nnp_convolution_algorithm_ft16x16);
 }
@@ -271,6 +293,7 @@ TEST(FT16x16, non_square_image) {
 TEST(WT8x8, non_square_image) {
 	ConvolutionTester tester;
 	tester.inputSize(9, 10)
+		.iterations(100)
 		.errorLimit(1.0e-3)
 		.testInputGradient(nnp_convolution_algorithm_wt8x8);
 }
