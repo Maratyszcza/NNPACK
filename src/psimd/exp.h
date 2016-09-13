@@ -18,7 +18,7 @@ static inline v4f v4f_exp(v4f x) {
     const v4f c5 = v4f_splat(0x1.123CFEp-7f);
     const v4f c6 = v4f_splat(0x1.6ADCAEp-10f);
 
-    const v4i min_exponent = v4i_splat(-126 << 23);
+    const v4i min_exponent = v4i_splat((int32_t)((uint32_t) -126 << 23));
     const v4i max_exponent = v4i_splat(127 << 23);
     const v4i default_exponent = v4i_splat(0x3F800000);
 
