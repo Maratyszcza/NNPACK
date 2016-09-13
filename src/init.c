@@ -4,7 +4,7 @@
 
 #include <pthread.h>
 
-#ifdef __x86_64__
+#if defined(__i386__) || defined(__x86_64__)
 	#include <cpuid.h>
 	#ifndef bit_AVX2
 		#define bit_AVX2 0x00000020
@@ -24,7 +24,7 @@ struct hardware_info nnp_hwinfo = { };
 static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 
 
-#ifdef __x86_64__
+#if defined(__i386__) || defined(__x86_64__)
 
 	#ifndef __native_client__
 		/*
@@ -203,8 +203,8 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 	}
 #endif
 
-#ifdef __pnacl__
-	static void init_pnacl_hwinfo(void) {
+#if defined(__pnacl__) || defined(__arm__) || defined(__aarch64__) || defined(__mips__) || defined(__mips64__)
+	static void init_static_hwinfo(void) {
 		nnp_hwinfo.cache.l1 = (struct cache_info) {
 			.size = 16 * 1024,
 			.associativity = 4,
@@ -251,10 +251,10 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 #endif
 
 static void init_hwinfo(void) {
-	#if defined(__x86_64__)
+	#if defined(__i386__) || defined(__x86_64__)
 		init_x86_hwinfo();
-	#elif defined(__pnacl__)
-		init_pnacl_hwinfo();
+	#elif defined(__pnacl__) || defined(__arm__) || defined(__aarch64__) || defined(__mips__) || defined(__mips64__)
+		init_static_hwinfo();
 	#else
 		#error Unsupported host architecture
 	#endif
