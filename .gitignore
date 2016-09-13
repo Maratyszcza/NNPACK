@@ -6,6 +6,8 @@ build.ninja
 # Build objects and artifacts
 build/*
 bin/*
+obj/
+libs/
 *.o
 *.a
 *.pyc

@@ -16,6 +16,10 @@
 	#endif
 #endif
 
+#if defined(__ANDROID__) && defined(__arm__)
+	#include <cpu-features.h>
+#endif
+
 
 #include <nnpack.h>
 #include <nnpack/hwinfo.h>
@@ -24,7 +28,7 @@ struct hardware_info nnp_hwinfo = { };
 static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 
 
-#if defined(__i386__) || defined(__x86_64__)
+#if (defined(__i386__) || defined(__x86_64__)) && !defined(__ANDROID__)
 
 	#ifndef __native_client__
 		/*
@@ -203,7 +207,7 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 	}
 #endif
 
-#if defined(__pnacl__) || defined(__arm__) || defined(__aarch64__) || defined(__mips__) || defined(__mips64__)
+#if defined(__pnacl__) || defined(__ANDROID__)
 	static void init_static_hwinfo(void) {
 		nnp_hwinfo.cache.l1 = (struct cache_info) {
 			.size = 16 * 1024,
@@ -251,10 +255,10 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 #endif
 
 static void init_hwinfo(void) {
-	#if defined(__i386__) || defined(__x86_64__)
-		init_x86_hwinfo();
-	#elif defined(__pnacl__) || defined(__arm__) || defined(__aarch64__) || defined(__mips__) || defined(__mips64__)
+	#if defined(__pnacl__) || defined(__ANDROID__)
 		init_static_hwinfo();
+	#elif defined(__i386__) || defined(__x86_64__)
+		init_x86_hwinfo();
 	#else
 		#error Unsupported host architecture
 	#endif
@@ -393,7 +397,11 @@ static void init_hwinfo(void) {
 				.cX_conjb_transc_only_mr_x_nr = nnp_c4gemm_conjb_transc_only_2x2__psimd,
 				.cX_conjb_transc_upto_mr_x_nr = nnp_c4gemm_conjb_transc_upto_2x2__psimd,
 			};
-			nnp_hwinfo.supported = true;
+			#if defined(__ANDROID__) && defined(__arm__)
+				nnp_hwinfo.supported = (android_getCpuFeatures() & ANDROID_CPU_ARM_FEATURE_NEON) != 0;
+			#else
+				nnp_hwinfo.supported = true;
+			#endif
 		#else
 			#error Unsupported host architecture
 		#endif
