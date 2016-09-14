@@ -8,10 +8,16 @@ NNPACK is not intended to be directly used by machine learning researchers; inst
 
 ## Requirements
 
-- Linux or OS X system
-  - Additionally, NNPACK supports cross-compilation for Native Client to run inside Chrome browser
+### Host system
+- Linux or OS X host system
 - x86-64 processor with AVX2 instruction set
   - NNPACK is optimized for Intel Skylake, but can run on Haswell & Broadwell processors too
+  - SSE2 instruction set can be targeted using `--enable-psimd` configuration option, but for performance reasons it is not recommended for production use
+
+### Cross-compilation options:
+- Native Client (x86-64) to run as a packaged Google Chrome App
+- Portable Native Client to run inside Google Chrome (no packaging required)
+- Android with x86/x86-64 (SSE2), ARMv7 with NEON, or ARM64 architecture
 
 ## Features
 
@@ -100,6 +106,18 @@ You can optionally add `--enable-shared` argument for `configure.py` to addition
 - Download and setup Native Client SDK
 - Set `NACL_SDK_ROOT` variable to a versioned SDK directory (e.g. `~/nacl_sdk/pepper_49`).
 - Configure NNPACK with `--host=x86_64-nacl-glibc` or `--host=x86_64-nacl-newlib` (recommended) option.
+
+### Cross-compilation for Portable Native Client
+
+- Download and setup Native Client SDK
+- Set `NACL_SDK_ROOT` variable to a versioned SDK directory (e.g. `~/nacl_sdk/pepper_49`).
+- Configure NNPACK with `--host=pnacl-nacl-newlib` option.
+
+### Cross-compilation for Android
+
+- Download and setup Android NDK
+- Add `ndk-build` to `PATH` variable
+- Navigate to NNPACK directory and build NNPACK with `ndk-build` build system. **Note: an NDK project must be built with Clang toolchain to use NNPACK as a static libray**.
 
 ## Testing
 
