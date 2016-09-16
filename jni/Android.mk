@@ -22,7 +22,20 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/src/psimd/2d-wt-8x8-3x3.c \
 	$(LOCAL_PATH)/src/psimd/relu.c \
 	$(LOCAL_PATH)/src/psimd/softmax.c \
-	$(LOCAL_PATH)/src/psimd/fft-block-mac.c \
+	$(LOCAL_PATH)/src/psimd/fft-block-mac.c
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),armeabi-v7a arm64-v8a))
+LOCAL_SRC_FILES += \
+	$(LOCAL_PATH)/src/neon/blas/s4gemm.c \
+	$(LOCAL_PATH)/src/neon/blas/c4gemm.c \
+	$(LOCAL_PATH)/src/neon/blas/s4c2gemm.c \
+	$(LOCAL_PATH)/src/neon/blas/c4gemm-conjb.c \
+	$(LOCAL_PATH)/src/neon/blas/s4c2gemm-conjb.c \
+	$(LOCAL_PATH)/src/neon/blas/c4gemm-conjb-transc.c \
+	$(LOCAL_PATH)/src/neon/blas/s4c2gemm-conjb-transc.c \
+	$(LOCAL_PATH)/src/neon/blas/sgemm.c \
+	$(LOCAL_PATH)/src/neon/blas/sdotxf.c
+else
+LOCAL_SRC_FILES += \
 	$(LOCAL_PATH)/src/psimd/blas/s4gemm.c \
 	$(LOCAL_PATH)/src/psimd/blas/c4gemm.c \
 	$(LOCAL_PATH)/src/psimd/blas/s4c2gemm.c \
@@ -32,6 +45,7 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/src/psimd/blas/s4c2gemm-conjb-transc.c \
 	$(LOCAL_PATH)/src/psimd/blas/sgemm.c \
 	$(LOCAL_PATH)/src/psimd/blas/sdotxf.c
+endif
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include $(LOCAL_PATH)/src
 LOCAL_CFLAGS := -DNNP_ARCH_PSIMD=1
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
@@ -56,7 +70,9 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/src/relu-input-gradient.c
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
 LOCAL_C_INCLUDES := $(LOCAL_EXPORT_C_INCLUDES) $(LOCAL_PATH)/third-party/FXdiv/include $(LOCAL_PATH)/src
+ifneq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),armeabi-v7a arm64-v8a))
 LOCAL_CFLAGS := -DNNP_ARCH_PSIMD=1
+endif
 LOCAL_STATIC_LIBRARIES := nnpack_ukernels pthreadpool
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 LOCAL_STATIC_LIBRARIES += cpufeatures

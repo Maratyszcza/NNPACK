@@ -241,6 +241,17 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 		[6] = nnp_sdotxf7__avx2,
 		[7] = nnp_sdotxf8__avx2,
 	};
+#elif NNP_ARCH_ARM || NNP_ARCH_ARM64
+	static const nnp_sdotxf_function sdotxf[8] = {
+		[0] = nnp_sdotxf1__neon,
+		[1] = nnp_sdotxf2__neon,
+		[2] = nnp_sdotxf3__neon,
+		[3] = nnp_sdotxf4__neon,
+		[4] = nnp_sdotxf5__neon,
+		[5] = nnp_sdotxf6__neon,
+		[6] = nnp_sdotxf7__neon,
+		[7] = nnp_sdotxf8__neon,
+	};
 #elif NNP_ARCH_PSIMD
 	static const nnp_sdotxf_function sdotxf[8] = {
 		[0] = nnp_sdotxf1__psimd,
@@ -397,7 +408,62 @@ static void init_hwinfo(void) {
 				.cX_conjb_transc_only_mr_x_nr = nnp_c4gemm_conjb_transc_only_2x2__psimd,
 				.cX_conjb_transc_upto_mr_x_nr = nnp_c4gemm_conjb_transc_upto_2x2__psimd,
 			};
-			#if defined(__ANDROID__) && defined(__arm__)
+			nnp_hwinfo.supported = true;
+		#elif NNP_ARCH_ARM || NNP_ARCH_ARM64
+			nnp_hwinfo.simd_width = 4;
+			nnp_hwinfo.transforms.fft8x8_and_store = nnp_fft8x8__psimd;
+			nnp_hwinfo.transforms.fft8x8_and_stream = nnp_fft8x8__psimd;
+			nnp_hwinfo.transforms.ifft8x8 = nnp_ifft8x8__psimd;
+			nnp_hwinfo.transforms.ifft8x8_with_bias = nnp_ifft8x8_with_bias__psimd;
+			nnp_hwinfo.transforms.fft16x16_and_store = nnp_fft16x16__psimd;
+			nnp_hwinfo.transforms.fft16x16_and_stream = nnp_fft16x16__psimd;
+			nnp_hwinfo.transforms.ifft16x16 = nnp_ifft16x16__psimd;
+			nnp_hwinfo.transforms.ifft16x16_with_bias = nnp_ifft16x16_with_bias__psimd;
+			nnp_hwinfo.transforms.iwt_f6x6_3x3_and_store = nnp_iwt8x8_3x3__psimd;
+			nnp_hwinfo.transforms.iwt_f6x6_3x3_and_stream = nnp_iwt8x8_3x3__psimd;
+			nnp_hwinfo.transforms.kwt_f6x6_3x3 = nnp_kwt8x8_3x3__psimd;
+			nnp_hwinfo.transforms.kwt_f6x6_3Rx3R = nnp_kwt8x8_3Rx3R__psimd;
+			nnp_hwinfo.transforms.owt_f6x6_3x3 = nnp_owt8x8_3x3__psimd;
+			nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias = nnp_owt8x8_3x3_with_bias__psimd;
+			nnp_hwinfo.blockmac.fourier8x8_mac_with_conj = nnp_ft8x8gemmc__psimd;
+			nnp_hwinfo.blockmac.fourier16x16_mac_with_conj = nnp_ft16x16gemmc__psimd;
+			nnp_hwinfo.blockmac.winograd8x8_mac = nnp_s8x8gemm__psimd;
+			nnp_hwinfo.activations.inplace_relu = nnp_inplace_relu_forward__psimd;
+			nnp_hwinfo.activations.outplace_relu = nnp_outplace_relu_forward__psimd;
+			nnp_hwinfo.activations.outplace_grad_relu = nnp_relu_backward__psimd;
+			nnp_hwinfo.sdotxf = (struct sdotxf) {
+				.functions = sdotxf,
+				.fusion = NNP_COUNT_OF(sdotxf),
+			};
+			nnp_hwinfo.sgemm = (struct sgemm) {
+				.mr = 4,
+				.nr = 12,
+				.only_mr_x_nr = nnp_sgemm_only_4x12__neon,
+				.upto_mr_x_nr = nnp_sgemm_upto_4x12__neon,
+			};
+			nnp_hwinfo.sxgemm = (struct sxgemm) {
+				.mr = 3,
+				.nr = 4,
+				.only_mr_x_nr = nnp_s4gemm_only_3x4__neon,
+				.upto_mr_x_nr = nnp_s4gemm_upto_3x4__neon,
+			};
+			nnp_hwinfo.cxgemm = (struct cxgemm) {
+				.mr = 2,
+				.nr = 2,
+				.s4cX_only_mr_x_nr = nnp_s4c2gemm_only_2x2__neon,
+				.s4cX_upto_mr_x_nr = nnp_s4c2gemm_upto_2x2__neon,
+				.cX_only_mr_x_nr = nnp_c4gemm_only_2x2__neon,
+				.cX_upto_mr_x_nr = nnp_c4gemm_upto_2x2__neon,
+				.s4cX_conjb_only_mr_x_nr = nnp_s4c2gemm_conjb_only_2x2__neon,
+				.s4cX_conjb_upto_mr_x_nr = nnp_s4c2gemm_conjb_upto_2x2__neon,
+				.cX_conjb_only_mr_x_nr = nnp_c4gemm_conjb_only_2x2__neon,
+				.cX_conjb_upto_mr_x_nr = nnp_c4gemm_conjb_upto_2x2__neon,
+				.s4cX_conjb_transc_only_mr_x_nr = nnp_s4c2gemm_conjb_transc_only_2x2__neon,
+				.s4cX_conjb_transc_upto_mr_x_nr = nnp_s4c2gemm_conjb_transc_upto_2x2__neon,
+				.cX_conjb_transc_only_mr_x_nr = nnp_c4gemm_conjb_transc_only_2x2__neon,
+				.cX_conjb_transc_upto_mr_x_nr = nnp_c4gemm_conjb_transc_upto_2x2__neon,
+			};
+			#if defined(__ANDROID__) && NNP_ARCH_ARM
 				nnp_hwinfo.supported = (android_getCpuFeatures() & ANDROID_CPU_ARM_FEATURE_NEON) != 0;
 			#else
 				nnp_hwinfo.supported = true;
