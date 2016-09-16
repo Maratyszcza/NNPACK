@@ -91,8 +91,12 @@ inline static double read_timer() {
 
 inline static void* allocate_memory(size_t memory_size) {
 #if defined(__linux__)
-	/* Try to use large page TLB */
-	void* memory_block = mmap(NULL, memory_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_POPULATE | MAP_HUGETLB, -1, 0);
+	#if !defined(__ANDROID__)
+		/* Try to use large page TLB */
+		void* memory_block = mmap(NULL, memory_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_POPULATE | MAP_HUGETLB, -1, 0);
+	#else
+		void* memory_block = MAP_FAILED;
+	#endif
 	if (memory_block == MAP_FAILED) {
 		/* Fallback to standard pages */
 		memory_block = mmap(NULL, memory_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_POPULATE, -1, 0);
