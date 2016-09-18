@@ -13,8 +13,33 @@
  * @note The implementation doesn't use any floating-point operations.
  */
 static inline uint32_t fp16b_to_fp32b_ieee(uint16_t h) {
+	/*
+	 * Extend the half-precision floating-point number to 32 bits and shift to the upper part of the 32-bit word:
+	 *      +---+-----+------------+-------------------+
+	 *      | S |EEEEE|MM MMMM MMMM|0000 0000 0000 0000|
+	 *      +---+-----+------------+-------------------+
+	 * Bits  31  26-30    16-25            0-15
+	 *
+	 * S - sign bit, E - bits of the biased exponent, M - bits of the mantissa, 0 - zero bits.
+	 */
 	const uint32_t w = (uint32_t) h << 16;
+	/*
+	 * Extract the sign of the input number into the high bit of the 32-bit word:
+	 *
+	 *      +---+----------------------------------+
+	 *      | S |0000000 00000000 00000000 00000000|
+	 *      +---+----------------------------------+
+	 * Bits  31                 0-31
+	 */
 	const uint32_t sign    = w & UINT32_C(0x80000000);
+	/*
+	 * Extract mantissa and biased exponent of the input number into the bits 0-30 of the 32-bit word:
+	 *
+	 *      +---+-----+------------+-------------------+
+	 *      | 0 |EEEEE|MM MMMM MMMM|0000 0000 0000 0000|
+	 *      +---+-----+------------+-------------------+
+	 * Bits  30  27-31     17-26            0-16
+	 */
 	const uint32_t nonsign = w & UINT32_C(0x7FFFFFFF);
 	/*
 	 * Renorm shift is the number of bits to shift mantissa left to make the half-precision number normalized.
