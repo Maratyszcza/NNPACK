@@ -5,7 +5,7 @@
 #include <fp16/values.h>
 
 
-TEST(IEEE_FP16, normalized_powers_of_2) {
+TEST(IEEE_FP16_BITS, normalized_powers_of_2) {
 	const uint16_t min_po2_f16   = UINT16_C(0x0400);
 	const uint16_t eighths_f16   = UINT16_C(0x3000);
 	const uint16_t quarter_f16   = UINT16_C(0x3400);
@@ -105,7 +105,7 @@ TEST(IEEE_FP16, normalized_powers_of_2) {
 		"F32 = 0x" << std::setw(8) << max_po2_f32;
 }
 
-TEST(IEEE_FP16, denormalized_powers_of_2) {
+TEST(IEEE_FP16_BITS, denormalized_powers_of_2) {
 	const uint16_t exp2_minus_15_f16 = UINT16_C(0x0200);
 	const uint16_t exp2_minus_16_f16 = UINT16_C(0x0100);
 	const uint16_t exp2_minus_17_f16 = UINT16_C(0x0080);
@@ -133,9 +133,63 @@ TEST(IEEE_FP16, denormalized_powers_of_2) {
 		"F16 = 0x" << std::setw(4) << exp2_minus_15_f16 << ", " <<
 		"F32(F16) = 0x" << std::setw(8) << fp16b_to_fp32b_ieee(exp2_minus_15_f16) << ", " <<
 		"F32 = 0x" << std::setw(8) << exp2_minus_15_f32;
+
+	EXPECT_EQ(exp2_minus_16_f32, fp16b_to_fp32b_ieee(exp2_minus_16_f16)) <<
+		std::hex << std::uppercase << std::setfill('0') <<
+		"F16 = 0x" << std::setw(4) << exp2_minus_16_f16 << ", " <<
+		"F32(F16) = 0x" << std::setw(8) << fp16b_to_fp32b_ieee(exp2_minus_16_f16) << ", " <<
+		"F32 = 0x" << std::setw(8) << exp2_minus_16_f32;
+
+	EXPECT_EQ(exp2_minus_17_f32, fp16b_to_fp32b_ieee(exp2_minus_17_f16)) <<
+		std::hex << std::uppercase << std::setfill('0') <<
+		"F16 = 0x" << std::setw(4) << exp2_minus_17_f16 << ", " <<
+		"F32(F16) = 0x" << std::setw(8) << fp16b_to_fp32b_ieee(exp2_minus_17_f16) << ", " <<
+		"F32 = 0x" << std::setw(8) << exp2_minus_17_f32;
+
+	EXPECT_EQ(exp2_minus_18_f32, fp16b_to_fp32b_ieee(exp2_minus_18_f16)) <<
+		std::hex << std::uppercase << std::setfill('0') <<
+		"F16 = 0x" << std::setw(4) << exp2_minus_18_f16 << ", " <<
+		"F32(F16) = 0x" << std::setw(8) << fp16b_to_fp32b_ieee(exp2_minus_18_f16) << ", " <<
+		"F32 = 0x" << std::setw(8) << exp2_minus_18_f32;
+
+	EXPECT_EQ(exp2_minus_19_f32, fp16b_to_fp32b_ieee(exp2_minus_19_f16)) <<
+		std::hex << std::uppercase << std::setfill('0') <<
+		"F16 = 0x" << std::setw(4) << exp2_minus_19_f16 << ", " <<
+		"F32(F16) = 0x" << std::setw(8) << fp16b_to_fp32b_ieee(exp2_minus_19_f16) << ", " <<
+		"F32 = 0x" << std::setw(8) << exp2_minus_19_f32;
+
+	EXPECT_EQ(exp2_minus_20_f32, fp16b_to_fp32b_ieee(exp2_minus_20_f16)) <<
+		std::hex << std::uppercase << std::setfill('0') <<
+		"F16 = 0x" << std::setw(4) << exp2_minus_20_f16 << ", " <<
+		"F32(F16) = 0x" << std::setw(8) << fp16b_to_fp32b_ieee(exp2_minus_20_f16) << ", " <<
+		"F32 = 0x" << std::setw(8) << exp2_minus_20_f32;
+
+	EXPECT_EQ(exp2_minus_21_f32, fp16b_to_fp32b_ieee(exp2_minus_21_f16)) <<
+		std::hex << std::uppercase << std::setfill('0') <<
+		"F16 = 0x" << std::setw(4) << exp2_minus_21_f16 << ", " <<
+		"F32(F16) = 0x" << std::setw(8) << fp16b_to_fp32b_ieee(exp2_minus_21_f16) << ", " <<
+		"F32 = 0x" << std::setw(8) << exp2_minus_21_f32;
+
+	EXPECT_EQ(exp2_minus_22_f32, fp16b_to_fp32b_ieee(exp2_minus_22_f16)) <<
+		std::hex << std::uppercase << std::setfill('0') <<
+		"F16 = 0x" << std::setw(4) << exp2_minus_22_f16 << ", " <<
+		"F32(F16) = 0x" << std::setw(8) << fp16b_to_fp32b_ieee(exp2_minus_22_f16) << ", " <<
+		"F32 = 0x" << std::setw(8) << exp2_minus_22_f32;
+
+	EXPECT_EQ(exp2_minus_23_f32, fp16b_to_fp32b_ieee(exp2_minus_23_f16)) <<
+		std::hex << std::uppercase << std::setfill('0') <<
+		"F16 = 0x" << std::setw(4) << exp2_minus_23_f16 << ", " <<
+		"F32(F16) = 0x" << std::setw(8) << fp16b_to_fp32b_ieee(exp2_minus_23_f16) << ", " <<
+		"F32 = 0x" << std::setw(8) << exp2_minus_23_f32;
+
+	EXPECT_EQ(exp2_minus_24_f32, fp16b_to_fp32b_ieee(exp2_minus_24_f16)) <<
+		std::hex << std::uppercase << std::setfill('0') <<
+		"F16 = 0x" << std::setw(4) << exp2_minus_24_f16 << ", " <<
+		"F32(F16) = 0x" << std::setw(8) << fp16b_to_fp32b_ieee(exp2_minus_24_f16) << ", " <<
+		"F32 = 0x" << std::setw(8) << exp2_minus_24_f32;
 }
 
-TEST(IEEE_FP16, zero) {
+TEST(IEEE_FP16_BITS, zero) {
 	const uint16_t positive_zero_f16 = UINT16_C(0x0000);
 	const uint16_t negative_zero_f16 = UINT16_C(0x8000);
 
@@ -155,7 +209,7 @@ TEST(IEEE_FP16, zero) {
 		"F32 = 0x" << std::setw(8) << negative_zero_f32;
 }
 
-TEST(IEEE_FP16, infinity) {
+TEST(IEEE_FP16_BITS, infinity) {
 	const uint16_t positive_infinity_f16 = UINT16_C(0x7C00);
 	const uint16_t negative_infinity_f16 = UINT16_C(0xFC00);
 
@@ -175,7 +229,7 @@ TEST(IEEE_FP16, infinity) {
 		"F32 = 0x" << std::setw(8) << negative_infinity_f32;
 }
 
-TEST(IEEE_FP16, positive_nan) {
+TEST(IEEE_FP16_BITS, positive_nan) {
 	for (uint16_t m = UINT16_C(1); m < UINT16_C(0x0400); m++) {
 		const uint16_t nan_f16 = UINT16_C(0x7C00) | m;
 		const uint32_t nan_f32 = fp16b_to_fp32b_ieee(nan_f16);
@@ -200,7 +254,7 @@ TEST(IEEE_FP16, positive_nan) {
 	}
 }
 
-TEST(IEEE_FP16, negative_nan) {
+TEST(IEEE_FP16_BITS, negative_nan) {
 	for (uint16_t m = UINT16_C(1); m < UINT16_C(0x0400); m++) {
 		const uint16_t nan_f16 = UINT16_C(0xFC00) | m;
 		const uint32_t nan_f32 = fp16b_to_fp32b_ieee(nan_f16);
@@ -225,7 +279,7 @@ TEST(IEEE_FP16, negative_nan) {
 	}
 }
 
-TEST(IEEE_FP16, positive_normalized_values) {
+TEST(IEEE_FP16_BITS, positive_normalized_values) {
 	const uint32_t exponentBias = 15;
 	for (int32_t e = -14; e <= 15; e++) {
 		for (uint16_t h = 0; h < 0x0400; h++) {
@@ -240,7 +294,7 @@ TEST(IEEE_FP16, positive_normalized_values) {
 	}
 }
 
-TEST(IEEE_FP16, negative_normalized_values) {
+TEST(IEEE_FP16_BITS, negative_normalized_values) {
 	const uint32_t exponentBias = 15;
 	for (int32_t e = -14; e <= 15; e++) {
 		for (uint16_t h = 0; h < 0x0400; h++) {
@@ -255,7 +309,7 @@ TEST(IEEE_FP16, negative_normalized_values) {
 	}
 }
 
-TEST(IEEE_FP16, positive_denormalized_values) {
+TEST(IEEE_FP16_BITS, positive_denormalized_values) {
 	for (uint16_t h = 0; h < 0x0400; h++) {
 		EXPECT_EQ(fp16::denormalizedValues[h], fp16b_to_fp32b_ieee(h)) <<
 			std::hex << std::uppercase << std::setfill('0') <<
@@ -265,7 +319,7 @@ TEST(IEEE_FP16, positive_denormalized_values) {
 	}
 }
 
-TEST(IEEE_FP16, negative_denormalized_values) {
+TEST(IEEE_FP16_BITS, negative_denormalized_values) {
 	for (uint16_t h = 0; h < 0x0400; h++) {
 		const uint16_t fp16 = h ^ UINT16_C(0x8000);
 		const uint32_t fp32 = fp16::denormalizedValues[h] ^ UINT32_C(0x80000000);
