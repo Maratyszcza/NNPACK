@@ -131,6 +131,7 @@ Binary packages need to distribute two files: `include/nnpack.h` and `lib/libnnp
 
 ## Bindings
 
+### Deep Learning Frameworks
 - [Caffe2](https://github.com/caffe2/caffe2) natively supports NNPACK
 - `nnpack-pr` branch in [ajtulloch/caffe](https://github.com/ajtulloch/caffe/tree/nnpack-pr) - new integration of NNPACK (convolutional, fully-connected, and max-pooling layers) into Caffe.
 - [Maratyszcza/caffe-nnpack](https://github.com/Maratyszcza/caffe-nnpack) - older and unmaintained integration of NNPACK (convolutional layers only) into Caffe.
@@ -138,6 +139,10 @@ Binary packages need to distribute two files: `include/nnpack.h` and `lib/libnnp
 - [tiny-cnn](https://github.com/nyanp/tiny-cnn) - header-only deep learning framework in C++11, which natively supports NNPACK in `feat/generic-computational-graph` branch. See [PR #198](https://github.com/nyanp/tiny-cnn/pull/198).
 - [MXNet](https://github.com/dmlc/mxnet) - integration of NNPACK is being discussed in [Issue #2986](https://github.com/dmlc/mxnet/issues/2986)
 - See also discussion in [Issue #1](https://github.com/Maratyszcza/NNPACK/issues/1)
+
+### Languages and Environments
+- [node-nnpack](https://www.npmjs.com/package/node-nnpack) - Node.js bindings
+- [peterhj/libnnpack](https://github.com/peterhj/libnnpack) - Rust bindings
 
 ## Acknowledgements
 
