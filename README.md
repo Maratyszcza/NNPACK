@@ -144,6 +144,11 @@ Binary packages need to distribute two files: `include/nnpack.h` and `lib/libnnp
 - [node-nnpack](https://www.npmjs.com/package/node-nnpack) - Node.js bindings
 - [peterhj/libnnpack](https://github.com/peterhj/libnnpack) - Rust bindings
 
+### Users
+
+- [Facebook](https://www.facebook.com) uses NNPACK in production.
+- [Prisma](https://prisma-ai.com) uses NNPACK in the mobile app.
+
 ## Acknowledgements
 
 [![HPC Garage logo](https://github.com/Maratyszcza/PeachPy/blob/master/logo/hpcgarage.png)](http://hpcgarage.org)
