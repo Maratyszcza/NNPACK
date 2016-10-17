@@ -59,7 +59,7 @@ def load_with_padding(ymm_data, reg_data, reg_stride, reg_row_offset, reg_row_co
                     JZ(load_rows.end)
 
 
-def store_packed(ymm_data, reg_data, reg_stride, reg_row_count, reg_column_end, reg_row_offset=None, reg_column_start=None):
+def store_packed(ymm_data, reg_data, reg_stride, reg_row_count, reg_column_end, reg_row_offset=None, reg_column_start=None, relu=False):
     assert isinstance(ymm_data, list) and all(isinstance(ymm_row, YMMRegister) for ymm_row in ymm_data)
     assert isinstance(reg_data, GeneralPurposeRegister64)
     assert isinstance(reg_stride, GeneralPurposeRegister64)
@@ -96,12 +96,19 @@ def store_packed(ymm_data, reg_data, reg_stride, reg_row_count, reg_column_end, 
     # stride is in elements; multiply by sizeof(float) to get stride in bytes
     SHL(reg_stride, 2)
 
+    if relu:
+        ymm_zero = YMMRegister()
+        VMOVAPS(ymm_zero, Constant.float32x8(-0.0))
+
     with Block() as store_rows:
         for i, ymm_row in enumerate(ymm_data):
             with Block() as store_row:
                 if reg_row_offset is not None:
                     CMP(reg_row_offset, i)
                     JA(store_row.end)
+
+                if relu:
+                    VMAXPS(ymm_row, ymm_zero, ymm_row)
 
                 VMASKMOVPS([reg_data], ymm_store_mask, ymm_row)
 
@@ -110,4 +117,3 @@ def store_packed(ymm_data, reg_data, reg_stride, reg_row_count, reg_column_end, 
 
                     SUB(reg_row_count, 1)
                     JZ(store_rows.end)
-

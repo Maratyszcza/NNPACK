@@ -43,17 +43,23 @@ struct transforms {
 	nnp_transform_2d fft8x8_and_store;
 	nnp_transform_2d fft8x8_and_stream;
 	nnp_transform_2d ifft8x8;
+	nnp_transform_2d ifft8x8_with_relu;
 	nnp_transform_2d_with_bias ifft8x8_with_bias;
+	nnp_transform_2d_with_bias ifft8x8_with_bias_with_relu;
 	nnp_transform_2d fft16x16_and_store;
 	nnp_transform_2d fft16x16_and_stream;
 	nnp_transform_2d ifft16x16;
+	nnp_transform_2d ifft16x16_with_relu;
 	nnp_transform_2d_with_bias ifft16x16_with_bias;
+	nnp_transform_2d_with_bias ifft16x16_with_bias_with_relu;
 	nnp_transform_2d iwt_f6x6_3x3_and_store;
 	nnp_transform_2d iwt_f6x6_3x3_and_stream;
 	nnp_transform_2d kwt_f6x6_3x3;
 	nnp_transform_2d kwt_f6x6_3Rx3R;
 	nnp_transform_2d owt_f6x6_3x3;
+	nnp_transform_2d owt_f6x6_3x3_with_relu;
 	nnp_transform_2d_with_bias owt_f6x6_3x3_with_bias;
+	nnp_transform_2d_with_bias owt_f6x6_3x3_with_bias_with_relu;
 };
 
 struct blockmac {

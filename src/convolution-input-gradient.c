@@ -395,6 +395,8 @@ enum nnp_status nnp_convolution_input_gradient(
 	const float grad_output[],
 	const float kernel[],
 	float grad_input[],
+	enum nnp_activation activation,
+	const void* activation_parameters,
 	pthreadpool_t threadpool,
 	struct nnp_profile* profile)
 {
@@ -404,8 +406,19 @@ enum nnp_status nnp_convolution_input_gradient(
 	/* Basic validation of parameters. This check detects invalid, but not unsupported parameters. */
 	enum nnp_status status = validate_convolution_arguments(
 		batch_size, input_channels, output_channels,
-		input_size, input_padding, kernel_size, (struct nnp_size) { 1, 1 });
+		input_size, input_padding, kernel_size, (struct nnp_size) { 1, 1 },
+		activation, activation_parameters);
 	if (status != nnp_status_success) {
+		goto cleanup;
+	}
+
+	if (activation != nnp_activation_identity) {
+		status = nnp_status_unsupported_activation;
+		goto cleanup;
+	}
+
+	if (activation_parameters != NULL) {
+		status = nnp_status_unsupported_activation_parameters;
 		goto cleanup;
 	}
 

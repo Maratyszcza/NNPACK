@@ -1,5 +1,7 @@
 #pragma once
 
+#include <math.h>
+
 #include <nnpack.h>
 #include <nnpack/utils.h>
 #include <nnpack/hwinfo.h>
@@ -7,7 +9,8 @@
 static inline enum nnp_status validate_convolution_arguments(
 	size_t batch_size, size_t input_channels, size_t output_channels,
 	struct nnp_size input_size, struct nnp_padding input_padding,
-	struct nnp_size kernel_size, struct nnp_size output_subsampling)
+	struct nnp_size kernel_size, struct nnp_size output_subsampling,
+	enum nnp_activation activation, const void* activation_parameters)
 {
 	if (!nnp_hwinfo.initialized) {
 		return nnp_status_uninitialized;
@@ -47,6 +50,24 @@ static inline enum nnp_status validate_convolution_arguments(
 
 	if (min(output_subsampling.height, output_subsampling.width) == 0) {
 		return nnp_status_invalid_output_subsampling;
+	}
+
+	switch (activation) {
+		case nnp_activation_identity:
+			if (activation_parameters != NULL) {
+				return nnp_status_invalid_activation_parameters;
+			}
+			break;
+		case nnp_activation_relu:
+			if (activation_parameters != NULL) {
+				const float negative_slope = *((const float*) activation_parameters);
+				if (!isfinite(negative_slope) || negative_slope < 0.0f) {
+					return nnp_status_invalid_activation_parameters;
+				}
+			}
+			break;
+		default:
+			return nnp_status_invalid_activation;
 	}
 
 	return nnp_status_success;

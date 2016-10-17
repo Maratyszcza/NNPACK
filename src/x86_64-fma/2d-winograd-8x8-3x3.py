@@ -154,54 +154,55 @@ arg_column_count = Argument(uint32_t, name="column_count")
 arg_row_offset = Argument(uint32_t, name="row_offset")
 arg_column_offset = Argument(uint32_t, name="column_offset")
 for with_bias in [False, True]:
-    if with_bias:
-        owt8x8_arguments = (arg_m_pointer, arg_s_pointer, arg_bias, arg_m_stride, arg_s_stride, arg_row_count, arg_column_count)
-    else:
-        owt8x8_arguments = (arg_m_pointer, arg_s_pointer, arg_m_stride, arg_s_stride, arg_row_count, arg_column_count, arg_row_offset, arg_column_offset)
-    with Function("nnp_owt8x8_3x3{with_bias}__avx2".format(with_bias="_with_bias" if with_bias else ""),
-        owt8x8_arguments, target=uarch.default + isa.fma3 + isa.avx2):
-
-        reg_m = GeneralPurposeRegister64()
-        LOAD.ARGUMENT(reg_m, arg_m_pointer)
-
-        reg_s = GeneralPurposeRegister64()
-        LOAD.ARGUMENT(reg_s, arg_s_pointer)
-
+    for with_relu in [False, True]:
         if with_bias:
-            reg_bias = GeneralPurposeRegister64()
-            LOAD.ARGUMENT(reg_bias, arg_bias)
+            owt8x8_arguments = (arg_m_pointer, arg_s_pointer, arg_bias, arg_m_stride, arg_s_stride, arg_row_count, arg_column_count)
+        else:
+            owt8x8_arguments = (arg_m_pointer, arg_s_pointer, arg_m_stride, arg_s_stride, arg_row_count, arg_column_count, arg_row_offset, arg_column_offset)
+        with Function("nnp_owt8x8_3x3{with_bias}{with_relu}__avx2".format(with_bias="_with_bias" if with_bias else "", with_relu="_with_relu" if with_relu else ""),
+            owt8x8_arguments, target=uarch.default + isa.fma3 + isa.avx2):
 
-            xmm_bias = XMMRegister()
-            VINSERTPS(xmm_bias, xmm_bias, [reg_bias], 0b1101 | 1<<4)
+            reg_m = GeneralPurposeRegister64()
+            LOAD.ARGUMENT(reg_m, arg_m_pointer)
 
-        reg_m_stride = GeneralPurposeRegister64()
-        LOAD.ARGUMENT(reg_m_stride, arg_m_stride)
+            reg_s = GeneralPurposeRegister64()
+            LOAD.ARGUMENT(reg_s, arg_s_pointer)
 
-        reg_s_stride = GeneralPurposeRegister64()
-        LOAD.ARGUMENT(reg_s_stride, arg_s_stride)
+            if with_bias:
+                reg_bias = GeneralPurposeRegister64()
+                LOAD.ARGUMENT(reg_bias, arg_bias)
 
-        reg_row_count = GeneralPurposeRegister32()
-        LOAD.ARGUMENT(reg_row_count, arg_row_count)
+                xmm_bias = XMMRegister()
+                VINSERTPS(xmm_bias, xmm_bias, [reg_bias], 0b1101 | 1<<4)
 
-        reg_column_count = GeneralPurposeRegister32()
-        LOAD.ARGUMENT(reg_column_count, arg_column_count)
+            reg_m_stride = GeneralPurposeRegister64()
+            LOAD.ARGUMENT(reg_m_stride, arg_m_stride)
 
-        ymm_m = [YMMRegister() for _ in range(8)]
-        for ymm in ymm_m:
-            if with_bias and ymm is ymm_m[1]:
-                VADDPS(ymm, xmm_bias.as_ymm, [reg_m])
-            else:
-                VMOVAPS(ymm, [reg_m])
+            reg_s_stride = GeneralPurposeRegister64()
+            LOAD.ARGUMENT(reg_s_stride, arg_s_stride)
 
-            if ymm is not ymm_m[-1]:
-                ADD(reg_m, reg_m_stride)
+            reg_row_count = GeneralPurposeRegister32()
+            LOAD.ARGUMENT(reg_row_count, arg_row_count)
 
-        ymm_t = winograd.o6x6k3x3.output_transform(ymm_m)
+            reg_column_count = GeneralPurposeRegister32()
+            LOAD.ARGUMENT(reg_column_count, arg_column_count)
 
-        ymm_tt = winograd.o6x6k3x3.transpose6x8(ymm_t)
+            ymm_m = [YMMRegister() for _ in range(8)]
+            for ymm in ymm_m:
+                if with_bias and ymm is ymm_m[1]:
+                    VADDPS(ymm, xmm_bias.as_ymm, [reg_m])
+                else:
+                    VMOVAPS(ymm, [reg_m])
 
-        ymm_s = winograd.o6x6k3x3.output_transform(ymm_tt)
+                if ymm is not ymm_m[-1]:
+                    ADD(reg_m, reg_m_stride)
 
-        block8x8.store_packed(ymm_s, reg_s, reg_s_stride, reg_row_count, reg_column_count)
+            ymm_t = winograd.o6x6k3x3.output_transform(ymm_m)
 
-        RETURN()
+            ymm_tt = winograd.o6x6k3x3.transpose6x8(ymm_t)
+
+            ymm_s = winograd.o6x6k3x3.output_transform(ymm_tt)
+
+            block8x8.store_packed(ymm_s, reg_s, reg_s_stride, reg_row_count, reg_column_count, None, None, with_relu)
+
+            RETURN()

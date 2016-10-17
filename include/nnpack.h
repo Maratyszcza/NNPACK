@@ -48,6 +48,10 @@ enum nnp_status {
 	nnp_status_invalid_transform_strategy = 17,
 	/** NNPACK function was called with output_subsampling.height == 0 or output_subsampling.width == 0 */
 	nnp_status_invalid_output_subsampling = 13,
+	/** NNPACK function was called with activation not in nnp_activation enum */
+	nnp_status_invalid_activation = 14,
+	/** NNPACK function was called with invalid activation parameters */
+	nnp_status_invalid_activation_parameters = 15,
 
 	/** NNPACK does not support the particular input size for the function */
 	nnp_status_unsupported_input_size = 20,
@@ -65,6 +69,10 @@ enum nnp_status {
 	nnp_status_unsupported_algorithm = 26,
 	/** NNPACK does not support the particular convolution transform strategy for the algorithm */
 	nnp_status_unsupported_transform_strategy = 27,
+	/** NNPACK does not support the particular activation function for the function */
+	nnp_status_unsupported_activation = 28,
+	/** NNPACK does not support the particular activation function parameters for the function */
+	nnp_status_unsupported_activation_parameters = 29, 
 
 	/** NNPACK function was called before the library was initialized */
 	nnp_status_uninitialized = 50,
@@ -73,6 +81,18 @@ enum nnp_status {
 	/** NNPACK failed to allocate memory for temporary buffers */
 	nnp_status_out_of_memory = 52
 };
+
+/**
+ * @brief Activation applied applied after a convolutional or fully-connected layer.
+ */
+enum nnp_activation {
+	/** Identity activation f(x) := x, i.e. no transformation */
+	nnp_activation_identity = 0,
+	/** ReLU activation f(x) := max(0, x) */
+	nnp_activation_relu = 1,
+};
+
+
 
 /**
  * @brief Algorithm for computing convolutional layers.
@@ -174,6 +194,7 @@ enum nnp_status nnp_deinitialize(void);
  * @param[out] profile An optional pointer to profiling structure.
  *                     If provided, the structure would record time spent in different phases of the computation.
  */
+
 enum nnp_status nnp_convolution_output(
 	enum nnp_convolution_algorithm algorithm,
 	size_t batch_size,
@@ -186,6 +207,8 @@ enum nnp_status nnp_convolution_output(
 	const float kernel[],
 	const float bias[],
 	float output[],
+	enum nnp_activation activation,
+	const void* activation_parameters,
 	pthreadpool_t threadpool,
 	struct nnp_profile* profile);
 
@@ -233,6 +256,8 @@ enum nnp_status nnp_convolution_input_gradient(
 	const float grad_output[],
 	const float kernel[],
 	float grad_input[],
+	enum nnp_activation activation,
+	const void* activation_parameters,
 	pthreadpool_t threadpool,
 	struct nnp_profile* profile);
 
@@ -279,6 +304,8 @@ enum nnp_status nnp_convolution_kernel_gradient(
 	const float input[],
 	const float grad_output[],
 	float grad_kernel[],
+	enum nnp_activation activation,
+	const void* activation_parameters,
 	pthreadpool_t threadpool,
 	struct nnp_profile* profile);
 
@@ -335,6 +362,8 @@ enum nnp_status nnp_convolution_inference(
 	const float kernel[],
 	const float bias[],
 	float output[],
+	enum nnp_activation activation,
+	const void* activation_parameters,
 	pthreadpool_t threadpool,
 	struct nnp_profile* profile);
 

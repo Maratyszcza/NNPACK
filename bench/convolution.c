@@ -47,15 +47,11 @@ struct nnp_profile benchmark_convolution(
 				nnp_convolution_output(
 					algorithm,
 					batch_size,
-					input_channels,
-					output_channels,
-					input_size,
-					input_padding,
+					input_channels, output_channels,
+					input_size, input_padding,
 					kernel_size,
-					input,
-					kernel,
-					bias,
-					output,
+					input, kernel, bias, output,
+					nnp_activation_identity, NULL,
 					threadpool,
 					&computation_profile[iteration]);
 				break;
@@ -63,14 +59,11 @@ struct nnp_profile benchmark_convolution(
 				nnp_convolution_input_gradient(
 					algorithm,
 					batch_size,
-					input_channels,
-					output_channels,
-					input_size,
-					input_padding,
+					input_channels, output_channels,
+					input_size, input_padding,
 					kernel_size,
-					output,
-					kernel,
-					input,
+					output, kernel, input,
+					nnp_activation_identity, NULL,
 					threadpool,
 					&computation_profile[iteration]);
 				break;
@@ -78,14 +71,11 @@ struct nnp_profile benchmark_convolution(
 				nnp_convolution_kernel_gradient(
 					algorithm,
 					batch_size,
-					input_channels,
-					output_channels,
-					input_size,
-					input_padding,
+					input_channels, output_channels,
+					input_size, input_padding,
 					kernel_size,
-					input,
-					output,
-					kernel,
+					input, output, kernel,
+					nnp_activation_identity, NULL,
 					threadpool,
 					&computation_profile[iteration]);
 				break;
@@ -93,16 +83,12 @@ struct nnp_profile benchmark_convolution(
 				nnp_convolution_inference(
 					algorithm,
 					transform_strategy,
-					input_channels,
-					output_channels,
-					input_size,
-					input_padding,
+					input_channels, output_channels,
+					input_size, input_padding,
 					kernel_size,
 					output_subsampling,
-					input,
-					kernel,
-					bias,
-					output,
+					input, kernel, bias, output,
+					nnp_activation_identity, NULL,
 					threadpool,
 					&computation_profile[iteration]);
 				break;

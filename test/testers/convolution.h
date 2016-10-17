@@ -14,6 +14,8 @@
 #include <nnpack.h>
 #include <nnpack/reference.h>
 
+#include <testers/relu.h>
+
 class ConvolutionTester {
 public:
 	ConvolutionTester() :
@@ -192,9 +194,9 @@ public:
 		return this->inputPadding_;
 	}
 
-	void testOutput(enum nnp_convolution_algorithm algorithm) const {
+	void testOutput(enum nnp_convolution_algorithm algorithm, enum nnp_activation activation = nnp_activation_identity) const {
 		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
-		auto rng = std::bind(std::uniform_real_distribution<float>(), std::mt19937(seed));
+		auto rng = std::bind(std::uniform_real_distribution<float>(-0.1, 1.0), std::mt19937(seed));
 
 		std::vector<float> input(batchSize() * inputChannels() * inputHeight() * inputWidth());
 		std::vector<float> kernel(outputChannels() * inputChannels() * kernelHeight() * kernelWidth());
@@ -217,11 +219,25 @@ public:
 				input.data(), kernel.data(), bias.data(), referenceOutput.data(),
 				this->threadpool);
 
+			switch (activation) {
+				case nnp_activation_identity:
+					break;
+				case nnp_activation_relu:
+					nnp_relu_output__reference(
+						batchSize(), outputChannels() * outputSize().height * outputSize().width,
+						referenceOutput.data(), referenceOutput.data(), 0.0,
+						this->threadpool);
+					break;
+				default:
+					break;
+			}
+
 			enum nnp_status status = nnp_convolution_output(
 				algorithm,
 				batchSize(), inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(),
 				input.data(), kernel.data(), bias.data(), output.data(),
+				activation, NULL,
 				this->threadpool, nullptr);
 			ASSERT_EQ(nnp_status_success, status);
 
@@ -232,7 +248,7 @@ public:
 		EXPECT_LT(median(maxErrors), errorLimit());
 	}
 
-	void testInputGradient(enum nnp_convolution_algorithm algorithm) const {
+	void testInputGradient(enum nnp_convolution_algorithm algorithm, enum nnp_activation activation = nnp_activation_identity) const {
 		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
 		auto rng = std::bind(std::uniform_real_distribution<float>(), std::mt19937(seed));
 
@@ -260,6 +276,7 @@ public:
 				batchSize(), inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(),
 				outputGradient.data(), kernel.data(), inputGradient.data(),
+				nnp_activation_identity, NULL,
 				this->threadpool, nullptr);
 			ASSERT_EQ(nnp_status_success, status);
 
@@ -270,7 +287,7 @@ public:
 		EXPECT_LT(median(maxErrors), errorLimit());
 	}
 
-	void testKernelGradient(enum nnp_convolution_algorithm algorithm) const {
+	void testKernelGradient(enum nnp_convolution_algorithm algorithm, enum nnp_activation activation = nnp_activation_identity) const {
 		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
 		auto rng = std::bind(std::uniform_real_distribution<float>(), std::mt19937(seed));
 
@@ -297,6 +314,7 @@ public:
 				batchSize(), inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(),
 				input.data(), outputGradient.data(), kernelGradient.data(),
+				nnp_activation_identity, NULL,
 				this->threadpool,
 				NULL);
 			ASSERT_EQ(nnp_status_success, status);
@@ -308,11 +326,12 @@ public:
 		EXPECT_LT(median(maxErrors), errorLimit());
 	}
 
-	void testInference(enum nnp_convolution_algorithm algorithm, enum nnp_convolution_transform_strategy transform_strategy) const {
+	void testInference(enum nnp_convolution_algorithm algorithm, enum nnp_convolution_transform_strategy transform_strategy,
+		enum nnp_activation activation = nnp_activation_identity) const {
 		ASSERT_EQ(1, batchSize());
 
 		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
-		auto rng = std::bind(std::uniform_real_distribution<float>(), std::mt19937(seed));
+		auto rng = std::bind(std::uniform_real_distribution<float>(-0.1, 1.0), std::mt19937(seed));
 
 		std::vector<float> input(inputChannels() * inputHeight() * inputWidth());
 		std::vector<float> kernel(outputChannels() * inputChannels() * kernelHeight() * kernelWidth());
@@ -335,11 +354,25 @@ public:
 				input.data(), kernel.data(), bias.data(), referenceOutput.data(),
 				this->threadpool);
 
+			switch (activation) {
+				case nnp_activation_identity:
+					break;
+				case nnp_activation_relu:
+					nnp_relu_output__reference(
+						batchSize(), outputChannels() * outputSize().height * outputSize().width,
+						referenceOutput.data(), referenceOutput.data(), 0.0,
+						this->threadpool);
+					break;
+				default:
+					break;
+			}
+
 			enum nnp_status status = nnp_convolution_inference(
 				algorithm, transform_strategy,
 				inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(), outputSubsampling(),
 				input.data(), kernel.data(), bias.data(), output.data(),
+				activation, NULL,
 				this->threadpool, nullptr);
 			ASSERT_EQ(nnp_status_success, status);
 
