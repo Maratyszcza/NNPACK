@@ -290,7 +290,7 @@ def forward_vfft(reg_t0, reg_t8, reg_t_stride, data_out, reg_row_start=None, reg
     store_ymm_result(out_imag[5], ymm_two_w5_imag)
 
 
-def inverse_vfft(reg_t0, reg_t8, reg_t_stride, data_in, reg_row_start=None, reg_row_end=None, store_mask=None):
+def inverse_vfft(reg_t0, reg_t8, reg_t_stride, data_in, reg_row_start=None, reg_row_end=None, store_mask=None, relu=False):
     assert isinstance(reg_t0, GeneralPurposeRegister64)
     assert isinstance(reg_t8, GeneralPurposeRegister64)
     assert isinstance(reg_t_stride, GeneralPurposeRegister64)
@@ -487,6 +487,7 @@ def inverse_vfft(reg_t0, reg_t8, reg_t_stride, data_in, reg_row_start=None, reg_
     if store_mask:
         VMOVAPS(ymm_store_mask, store_mask)
 
+
     # FFT8: butterfly
     with Block() as store_data:
         for i, (data_lo, data_hi) in enumerate(zip(data[0:8], data[8:16])):
@@ -499,6 +500,10 @@ def inverse_vfft(reg_t0, reg_t8, reg_t_stride, data_in, reg_row_start=None, reg_
                     negate_b=fft8_negate_b.get(id(data_hi), False),
                     writeback=False)
 
+            if relu:
+                ymm_zero = YMMRegister()
+                VMOVAPS(ymm_zero, Constant.uint32x8(0))
+
             with Block() as store_data_lo:
                 if reg_row_start:
                     CMP(reg_row_start, row_lo)
@@ -509,6 +514,8 @@ def inverse_vfft(reg_t0, reg_t8, reg_t_stride, data_in, reg_row_start=None, reg_
                 elif reg_row_end:
                     CMP(reg_row_end, row_lo)
                     JBE(store_data.end)
+                if relu:
+                    VBLENDVPS(ymm_data_lo, ymm_data_lo, ymm_zero, ymm_data_lo)
                 if store_mask:
                     VMASKMOVPS([reg_t0], ymm_store_mask, ymm_data_lo)
                 else:
@@ -523,6 +530,8 @@ def inverse_vfft(reg_t0, reg_t8, reg_t_stride, data_in, reg_row_start=None, reg_
                 if reg_row_end:
                     CMP(reg_row_end, row_hi)
                     JBE(store_data_hi.end)
+                if relu:
+                    VBLENDVPS(ymm_data_hi, ymm_data_hi, ymm_zero, ymm_data_hi)
                 if store_mask:
                     VMASKMOVPS([reg_t8], ymm_store_mask, ymm_data_hi)
                 else:

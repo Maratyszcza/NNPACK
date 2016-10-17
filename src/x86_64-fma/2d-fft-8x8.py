@@ -72,6 +72,7 @@ arg_row_offset = Argument(uint32_t, name="row_offset")
 arg_row_count = Argument(uint32_t, name="row_count")
 arg_column_offset = Argument(uint32_t, name="column_offset")
 arg_column_count = Argument(uint32_t, name="column_count")
+arg_relu = Argument(uint32_t, name="relu")
 for with_bias in [False, True]:
     if with_bias:
         ifft8x8_arguments = (arg_f_pointer, arg_t_pointer, arg_bias, arg_f_stride, arg_t_stride, arg_row_count, arg_column_count)
@@ -134,6 +135,6 @@ for with_bias in [False, True]:
         fft.complex_soa.fft8_within_rows(ymm_real, ymm_imag, transformation="inverse")
         fft.complex_soa_perm_to_real.ifft8_across_rows(ymm_data)
 
-        block8x8.store_packed(ymm_data, reg_t, reg_t_stride, reg_row_count, reg_column_end, reg_row_start, reg_column_start)
+        block8x8.store_packed(ymm_data, reg_t, reg_t_stride, reg_row_count, reg_column_end, reg_row_start, reg_column_start, arg_relu)
 
         RETURN()

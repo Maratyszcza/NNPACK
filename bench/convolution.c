@@ -57,7 +57,8 @@ struct nnp_profile benchmark_convolution(
 					bias,
 					output,
 					threadpool,
-					&computation_profile[iteration]);
+					&computation_profile[iteration],
+                                        false);
 				break;
 			case mode_input_gradient:
 				nnp_convolution_input_gradient(

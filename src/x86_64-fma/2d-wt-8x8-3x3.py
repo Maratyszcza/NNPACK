@@ -153,6 +153,7 @@ arg_row_count = Argument(uint32_t, name="row_count")
 arg_column_count = Argument(uint32_t, name="column_count")
 arg_row_offset = Argument(uint32_t, name="row_offset")
 arg_column_offset = Argument(uint32_t, name="column_offset")
+arg_relu = Argument(uint32_t, name="relu")
 for with_bias in [False, True]:
     if with_bias:
         owt8x8_arguments = (arg_m_pointer, arg_s_pointer, arg_bias, arg_m_stride, arg_s_stride, arg_row_count, arg_column_count)
@@ -202,6 +203,6 @@ for with_bias in [False, True]:
 
         ymm_s = winograd.o6x6k3x3.output_transform(ymm_tt)
 
-        block8x8.store_packed(ymm_s, reg_s, reg_s_stride, reg_row_count, reg_column_count)
+        block8x8.store_packed(ymm_s, reg_s, reg_s_stride, reg_row_count, reg_column_count, None, None, arg_relu)
 
         RETURN()

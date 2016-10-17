@@ -142,6 +142,7 @@ arg_row_count = Argument(uint32_t, name="row_count")
 arg_column_count = Argument(uint32_t, name="column_count")
 arg_row_offset = Argument(uint32_t, name="row_offset")
 arg_column_offset = Argument(uint32_t, name="column_offset")
+arg_relu = Argument(uint32_t, name="relu")
 for with_bias in [False, True]:
     if with_bias:
         ifft16x16_arguments = (arg_f_pointer, arg_t_pointer, arg_bias, arg_f_stride, arg_t_stride, arg_row_count, arg_column_count)
@@ -292,8 +293,7 @@ for with_bias in [False, True]:
             CMP(reg_column_end, 8)
             JB(store_columns_8_to_16.end)
 
-            fft16x16.inverse_vfft(reg_t0_column_8, reg_t8_column_8, reg_t_stride, data_in=vfft_columns_8_to_16,
-                reg_row_start=reg_row_start, reg_row_end=reg_row_end, store_mask=store_mask_columns_8_to_16)
-
+            fft16x16.inverse_vfft(reg_t0_column_8, reg_t8_column_8, reg_t_stride, data_in=vfft_columns_8_to_16, \
+                reg_row_start=reg_row_start, reg_row_end=reg_row_end, store_mask=store_mask_columns_8_to_16, relu=arg_relu)
 
         RETURN()

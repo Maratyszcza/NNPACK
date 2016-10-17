@@ -113,6 +113,7 @@ static void compute_input_transform(
 }
 
 struct NNP_CACHE_ALIGN output_transform_context {
+        bool relu;
 	nnp_transform_2d_with_bias transform_function;
 	float* output;
 	const float* output_transform;
@@ -238,6 +239,7 @@ static void compute_matrix_multiplication(
 }
 
 static void compute_convolution_output(
+        bool relu,
 	bool fourier_transform,
 	size_t tuple_elements,
 	size_t batch_size,
@@ -378,6 +380,7 @@ static void compute_convolution_output(
 				.output_size = output_size,
 				.row_count = min(output_tile.height, output_size.height - y),
 				.column_count = min(output_tile.width, output_size.width - x),
+                                .relu = relu,
 			};
 			pthreadpool_compute_2d_tiled(threadpool,
 				(pthreadpool_function_2d_tiled_t) compute_output_transform,
@@ -402,7 +405,8 @@ enum nnp_status nnp_convolution_output(
 	const float bias[],
 	float output[],
 	pthreadpool_t threadpool,
-	struct nnp_profile* profile)
+	struct nnp_profile* profile,
+        bool relu)
 {
 	void* memory_block = NULL;
 	NNP_TOTAL_START(profile)
@@ -531,7 +535,7 @@ enum nnp_status nnp_convolution_output(
 	};
 
 	compute_convolution_output(
-		fourier_transform, tuple_elements,
+                relu, fourier_transform, tuple_elements,
 		batch_size, batch_block_max,batch_subblock_max,
 		input_channels, input_channels_block_max,
 		output_channels, output_channels_block_max, output_channels_subblock_max,

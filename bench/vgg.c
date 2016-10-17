@@ -105,7 +105,7 @@ double benchmark_vgg(
 								layers[layer_index].convolutional_layer.kernel,
 								layers[layer_index].convolutional_layer.bias,
 								layers[layer_index].output,
-								threadpool, NULL);
+								threadpool, NULL, false);
 							break;
 						case layer_type_fully_connected:
 							status = nnp_fully_connected_output(

@@ -20,6 +20,7 @@ namespace VGG_A {
 	inline ConvolutionTester conv1() {
 		return std::move(ConvolutionTester()
 			.multithreading(true)
+			.relu(false)
 			.inputChannels(3)
 			.outputChannels(64)
 			.inputSize(224, 224)
@@ -50,6 +51,7 @@ namespace VGG_A {
 	inline ConvolutionTester conv2() {
 		return std::move(ConvolutionTester()
 			.multithreading(true)
+			.relu(false)
 			.inputChannels(64)
 			.outputChannels(128)
 			.inputSize(112, 112)
@@ -80,6 +82,7 @@ namespace VGG_A {
 	inline ConvolutionTester conv3() {
 		return std::move(ConvolutionTester()
 			.multithreading(true)
+			.relu(false)
 			.inputChannels(128)
 			.outputChannels(256)
 			.inputSize(56, 56)
@@ -110,6 +113,7 @@ namespace VGG_A {
 	inline ConvolutionTester conv4() {
 		return std::move(ConvolutionTester()
 			.multithreading(true)
+			.relu(false)
 			.inputChannels(256)
 			.outputChannels(256)
 			.inputSize(56, 56)
@@ -128,6 +132,7 @@ namespace VGG_A {
 	inline ConvolutionTester conv5() {
 		return std::move(ConvolutionTester()
 			.multithreading(true)
+			.relu(false)
 			.inputChannels(256)
 			.outputChannels(512)
 			.inputSize(28, 28)
@@ -158,6 +163,7 @@ namespace VGG_A {
 	inline ConvolutionTester conv6() {
 		return std::move(ConvolutionTester()
 			.multithreading(true)
+			.relu(false)
 			.inputChannels(512)
 			.outputChannels(512)
 			.inputSize(28, 28)
@@ -176,6 +182,7 @@ namespace VGG_A {
 	inline ConvolutionTester conv8() {
 		return std::move(ConvolutionTester()
 			.multithreading(true)
+			.relu(false)
 			.inputChannels(512)
 			.outputChannels(512)
 			.inputSize(14, 14)

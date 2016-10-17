@@ -20,6 +20,7 @@ public:
 		iterations_(1),
 		errorLimit_(1.0e-5),
 		multithreading_(false),
+                relu_(false),
 		batchSize_(1),
 		inputChannels_(1),
 		outputChannels_(1)
@@ -38,6 +39,7 @@ public:
 		iterations_(tester.iterations_),
 		errorLimit_(tester.errorLimit_),
 		multithreading_(tester.multithreading_),
+		relu_(tester.relu_),
 		batchSize_(tester.batchSize_),
 		inputChannels_(tester.inputChannels_),
 		outputChannels_(tester.outputChannels_),
@@ -91,6 +93,15 @@ public:
 	inline bool multithreading() const {
 		return this->multithreading_;
 	}
+
+        inline ConvolutionTester& relu(bool relu) {
+                this->relu_ = relu;
+                return *this; 
+        }
+
+        inline bool relu() const {
+                return this->relu_; 
+        }
 
 	inline ConvolutionTester& batchSize(size_t batchSize) {
 		this->batchSize_ = batchSize;
@@ -215,14 +226,14 @@ public:
 				batchSize(), inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(), outputSubsampling(),
 				input.data(), kernel.data(), bias.data(), referenceOutput.data(),
-				this->threadpool);
+				this->threadpool, relu());
 
 			enum nnp_status status = nnp_convolution_output(
 				algorithm,
 				batchSize(), inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(),
 				input.data(), kernel.data(), bias.data(), output.data(),
-				this->threadpool, nullptr);
+				this->threadpool, nullptr, relu());
 			ASSERT_EQ(nnp_status_success, status);
 
 			const float maxError = std::inner_product(referenceOutput.cbegin(), referenceOutput.cend(), output.cbegin(), 0.0f,
@@ -333,7 +344,7 @@ public:
 				1, inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(), outputSubsampling(),
 				input.data(), kernel.data(), bias.data(), referenceOutput.data(),
-				this->threadpool);
+				this->threadpool, relu());
 
 			enum nnp_status status = nnp_convolution_inference(
 				algorithm, transform_strategy,
@@ -366,6 +377,7 @@ private:
 	size_t iterations_;
 	float errorLimit_;
 	bool multithreading_;
+        bool relu_;
 
 	size_t batchSize_;
 	size_t inputChannels_;
