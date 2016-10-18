@@ -12,7 +12,7 @@
 TEST(FT8x8, conv2) {
 	AlexNet::conv2()
 		.batchSize(128)
-                .relu(true)
+		.relu(true)
 		.errorLimit(1.0e-5)
 		.testOutput(nnp_convolution_algorithm_ft8x8);
 }
@@ -20,7 +20,7 @@ TEST(FT8x8, conv2) {
 TEST(FT16x16, conv2) {
 	AlexNet::conv2()
 		.batchSize(128)
-                .relu(true)
+		.relu(true)
 		.errorLimit(1.0e-5)
 		.testOutput(nnp_convolution_algorithm_ft16x16);
 }
@@ -32,7 +32,7 @@ TEST(FT16x16, conv2) {
 TEST(FT8x8, conv3) {
 	AlexNet::conv3()
 		.batchSize(128)
-                .relu(true)
+		.relu(true)
 		.errorLimit(1.0e-5)
 		.testOutput(nnp_convolution_algorithm_ft8x8);
 }
@@ -40,7 +40,7 @@ TEST(FT8x8, conv3) {
 TEST(FT16x16, conv3) {
 	AlexNet::conv3()
 		.batchSize(128)
-                .relu(true)
+		.relu(true)
 		.errorLimit(1.0e-5)
 		.testOutput(nnp_convolution_algorithm_ft16x16);
 }
@@ -48,7 +48,7 @@ TEST(FT16x16, conv3) {
 TEST(WT8x8, conv3) {
 	AlexNet::conv3()
 		.batchSize(128)
-                .relu(true)
+		.relu(true)
 		.errorLimit(1.0e-5)
 		.testOutput(nnp_convolution_algorithm_wt8x8);
 }
@@ -60,7 +60,7 @@ TEST(WT8x8, conv3) {
 TEST(FT8x8, conv4) {
 	AlexNet::conv4()
 		.batchSize(128)
-                .relu(true)
+		.relu(true)
 		.errorLimit(1.0e-5)
 		.testOutput(nnp_convolution_algorithm_ft8x8);
 }
@@ -68,7 +68,7 @@ TEST(FT8x8, conv4) {
 TEST(FT16x16, conv4) {
 	AlexNet::conv4()
 		.batchSize(128)
-                .relu(true)
+		.relu(true)
 		.errorLimit(1.0e-5)
 		.testOutput(nnp_convolution_algorithm_ft16x16);
 }
@@ -76,7 +76,7 @@ TEST(FT16x16, conv4) {
 TEST(WT8x8, conv4) {
 	AlexNet::conv4()
 		.batchSize(128)
-                .relu(true)
+		.relu(true)
 		.errorLimit(1.0e-5)
 		.testOutput(nnp_convolution_algorithm_wt8x8);
 }
@@ -88,7 +88,7 @@ TEST(WT8x8, conv4) {
 TEST(FT8x8, conv5) {
 	AlexNet::conv5()
 		.batchSize(128)
-                .relu(true)
+		.relu(true)
 		.errorLimit(1.0e-5)
 		.testOutput(nnp_convolution_algorithm_ft8x8);
 }
@@ -96,7 +96,7 @@ TEST(FT8x8, conv5) {
 TEST(FT16x16, conv5) {
 	AlexNet::conv5()
 		.batchSize(128)
-                .relu(true)
+		.relu(true)
 		.errorLimit(1.0e-5)
 		.testOutput(nnp_convolution_algorithm_ft16x16);
 }
@@ -104,7 +104,7 @@ TEST(FT16x16, conv5) {
 TEST(WT8x8, conv5) {
 	AlexNet::conv5()
 		.batchSize(128)
-                .relu(true)
+		.relu(true)
 		.errorLimit(1.0e-5)
 		.testOutput(nnp_convolution_algorithm_wt8x8);
 }

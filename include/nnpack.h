@@ -188,7 +188,7 @@ enum nnp_status nnp_convolution_output(
 	float output[],
 	pthreadpool_t threadpool,
 	struct nnp_profile* profile,
-        bool relu);
+	bool relu);
 
 /**
  * @brief Computes gradient of input of a 2D convolutional layer from gradient of output and kernel tensors.

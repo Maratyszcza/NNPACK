@@ -21,7 +21,7 @@ void nnp_convolution_output__reference(
 	const float bias[],
 	float output_pointer[],
 	pthreadpool_t threadpool,
-        bool relu);
+	bool relu);
 
 void nnp_convolution_input_gradient__reference(
 	size_t batch_size,

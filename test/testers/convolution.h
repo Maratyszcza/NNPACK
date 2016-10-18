@@ -20,7 +20,7 @@ public:
 		iterations_(1),
 		errorLimit_(1.0e-5),
 		multithreading_(false),
-                relu_(false),
+		relu_(false),
 		batchSize_(1),
 		inputChannels_(1),
 		outputChannels_(1)
@@ -94,14 +94,14 @@ public:
 		return this->multithreading_;
 	}
 
-        inline ConvolutionTester& relu(bool relu) {
-                this->relu_ = relu;
-                return *this; 
-        }
+	inline ConvolutionTester& relu(bool relu) {
+		this->relu_ = relu;
+		return *this; 
+	}
 
-        inline bool relu() const {
-                return this->relu_; 
-        }
+	inline bool relu() const {
+		return this->relu_; 
+	}
 
 	inline ConvolutionTester& batchSize(size_t batchSize) {
 		this->batchSize_ = batchSize;

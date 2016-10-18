@@ -626,10 +626,10 @@ def main():
             config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/overfeat-fast_with_relu.cc")] + gtest_objects,
                 "convolution-output-overfeat-fast-with-relu-test")
         config.phony("convolution-output-test",
-            [convolution_output_smoke_test, convolution_output_alexnet_test, \
-               convolution_output_alexnet_with_relu_test, convolution_output_vgg_a_test, \
-               convolution_output_vgg_a_with_relu_test, convolution_output_overfeat_fast_test, \
-               convolution_output_overfeat_fast_with_relu_test])
+            [convolution_output_smoke_test, convolution_output_alexnet_test, 
+                convolution_output_alexnet_with_relu_test, convolution_output_vgg_a_test,
+                convolution_output_vgg_a_with_relu_test, convolution_output_overfeat_fast_test, 
+                convolution_output_overfeat_fast_with_relu_test])
 
         convolution_input_gradient_smoke_test = \
             config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-input-gradient/smoke.cc")] + gtest_objects,
