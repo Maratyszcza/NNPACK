@@ -13,18 +13,12 @@ struct convolution_output_context {
 	const float* kernel_pointer;
 	const float* bias;
 	float* output_pointer;
-	bool relu;
 };
-
-static inline float do_relu(float data, float negative_slope) {
-	return data > 0.0f ? data : data * negative_slope;
-}
 
 static void compute_convolution_output(
 	const struct convolution_output_context context[restrict static 1],
 	size_t sample, size_t output_channel)
 {
-	bool apply_relu = context->relu;
 	const size_t input_channels              = context->input_channels;
 	const size_t output_channels             = context->output_channels;
 	const struct nnp_size input_size         = context->input_size;
@@ -56,11 +50,7 @@ static void compute_convolution_output(
 					}
 				}
 			}
-			if (apply_relu) {
-				output[sample][output_channel][y][x] = do_relu(v + context->bias[output_channel], 0.0f);
-			} else {
-				output[sample][output_channel][y][x] = v + context->bias[output_channel];
-			}
+			output[sample][output_channel][y][x] = v + context->bias[output_channel];
 		}
 	}
 }
@@ -77,8 +67,7 @@ void nnp_convolution_output__reference(
 	const float kernel_pointer[],
 	const float bias[],
 	float output_pointer[],
-	pthreadpool_t threadpool,
-	bool relu)
+	pthreadpool_t threadpool)
 {
 	const struct nnp_size output_size = {
 		.width = (input_padding.left + input_size.width + input_padding.right - kernel_size.width) / output_subsampling.width + 1,
@@ -95,8 +84,7 @@ void nnp_convolution_output__reference(
 		.input_pointer = input_pointer,
 		.kernel_pointer = kernel_pointer,
 		.bias = bias,
-		.output_pointer = output_pointer,
-		.relu = relu
+		.output_pointer = output_pointer
 	};
 
 	pthreadpool_compute_2d(threadpool,

@@ -45,6 +45,7 @@ struct nnp_profile benchmark_convolution(
 		switch (mode) {
 			case mode_output:
 				nnp_convolution_output(
+					nnp_activation_identity,
 					algorithm,
 					batch_size,
 					input_channels,
@@ -57,8 +58,7 @@ struct nnp_profile benchmark_convolution(
 					bias,
 					output,
 					threadpool,
-					&computation_profile[iteration],
-                                        false);
+					&computation_profile[iteration]);
 				break;
 			case mode_input_gradient:
 				nnp_convolution_input_gradient(

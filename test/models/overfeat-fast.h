@@ -21,7 +21,6 @@ namespace OverFeat_Fast {
 	inline ConvolutionTester conv1() {
 		return std::move(ConvolutionTester()
 			.multithreading(true)
-                        .relu(false)
 			.inputChannels(3)
 			.outputChannels(96)
 			.inputSize(231, 231)
@@ -52,7 +51,6 @@ namespace OverFeat_Fast {
 	inline ConvolutionTester conv2() {
 		return std::move(ConvolutionTester()
 			.multithreading(true)
-			.relu(false)
 			.inputChannels(96)
 			.outputChannels(256)
 			.inputSize(24, 24)
@@ -82,7 +80,6 @@ namespace OverFeat_Fast {
 	inline ConvolutionTester conv3() {
 		return std::move(ConvolutionTester()
 			.multithreading(true)
-			.relu(false)
 			.inputChannels(256)
 			.outputChannels(512)
 			.inputSize(12, 12)
@@ -113,7 +110,6 @@ namespace OverFeat_Fast {
 	inline ConvolutionTester conv4() {
 		return std::move(ConvolutionTester()
 			.multithreading(true)
-			.relu(false)
 			.inputChannels(512)
 			.outputChannels(1024)
 			.inputSize(12, 12)
@@ -144,7 +140,6 @@ namespace OverFeat_Fast {
 	inline ConvolutionTester conv5() {
 		return std::move(ConvolutionTester()
 			.multithreading(true)
-			.relu(false)
 			.inputChannels(1024)
 			.outputChannels(1024)
 			.inputSize(12, 12)

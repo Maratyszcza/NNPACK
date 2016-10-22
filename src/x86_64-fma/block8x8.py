@@ -98,7 +98,7 @@ def store_packed(ymm_data, reg_data, reg_stride, reg_row_count, reg_column_end, 
 
     if relu:
         ymm_zero = YMMRegister()
-        VMOVAPS(ymm_zero, Constant.uint32x8(0))
+        VMOVAPS(ymm_zero, Constant.float32x8(-0.0))
 
     with Block() as store_rows:
         for i, ymm_row in enumerate(ymm_data):
@@ -108,7 +108,7 @@ def store_packed(ymm_data, reg_data, reg_stride, reg_row_count, reg_column_end, 
                     JA(store_row.end)
 
                 if relu:
-                    VBLENDVPS(ymm_row, ymm_row, ymm_zero, ymm_row)
+                    VMAXPS(ymm_row, ymm_zero, ymm_row)
 		
                 VMASKMOVPS([reg_data], ymm_store_mask, ymm_row)
 

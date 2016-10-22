@@ -174,8 +174,15 @@ enum nnp_status nnp_deinitialize(void);
  * @param[out] profile An optional pointer to profiling structure.
  *                     If provided, the structure would record time spent in different phases of the computation.
  */
+
+enum nnp_activation {
+	nnp_activation_identity = 0,
+	nnp_activation_relu = 1,
+};
+
 enum nnp_status nnp_convolution_output(
 	enum nnp_convolution_algorithm algorithm,
+	enum nnp_activation activation,
 	size_t batch_size,
 	size_t input_channels,
 	size_t output_channels,
@@ -187,8 +194,7 @@ enum nnp_status nnp_convolution_output(
 	const float bias[],
 	float output[],
 	pthreadpool_t threadpool,
-	struct nnp_profile* profile,
-	bool relu);
+	struct nnp_profile* profile);
 
 /**
  * @brief Computes gradient of input of a 2D convolutional layer from gradient of output and kernel tensors.

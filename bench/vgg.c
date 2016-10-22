@@ -94,7 +94,9 @@ double benchmark_vgg(
 				for (size_t layer_index = 0; layer_index < layers_count; layer_index++) {
 					switch (layers[layer_index].type) {
 						case layer_type_convolutional:
-							status = nnp_convolution_output(nnp_convolution_algorithm_auto,
+							status = nnp_convolution_output(
+								nnp_activation_identity,
+								nnp_convolution_algorithm_auto,
 								batch_size,
 								layers[layer_index].convolutional_layer.input_channels,
 								layers[layer_index].convolutional_layer.output_channels,
@@ -105,7 +107,7 @@ double benchmark_vgg(
 								layers[layer_index].convolutional_layer.kernel,
 								layers[layer_index].convolutional_layer.bias,
 								layers[layer_index].output,
-								threadpool, NULL, false);
+								threadpool, NULL);
 							break;
 						case layer_type_fully_connected:
 							status = nnp_fully_connected_output(

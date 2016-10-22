@@ -113,7 +113,6 @@ static void compute_input_transform(
 }
 
 struct NNP_CACHE_ALIGN output_transform_context {
-	bool relu;
 	nnp_transform_2d_with_bias transform_function;
 	float* output;
 	const float* output_transform;
@@ -239,7 +238,6 @@ static void compute_matrix_multiplication(
 }
 
 static void compute_convolution_output(
-	bool relu,
 	bool fourier_transform,
 	size_t tuple_elements,
 	size_t batch_size,
@@ -380,7 +378,6 @@ static void compute_convolution_output(
 				.output_size = output_size,
 				.row_count = min(output_tile.height, output_size.height - y),
 				.column_count = min(output_tile.width, output_size.width - x),
-				.relu = relu,
 			};
 			pthreadpool_compute_2d_tiled(threadpool,
 				(pthreadpool_function_2d_tiled_t) compute_output_transform,
@@ -394,6 +391,7 @@ static void compute_convolution_output(
 
 enum nnp_status nnp_convolution_output(
 	enum nnp_convolution_algorithm algorithm,
+	enum nnp_activation activation,
 	size_t batch_size,
 	size_t input_channels,
 	size_t output_channels,
@@ -405,8 +403,7 @@ enum nnp_status nnp_convolution_output(
 	const float bias[],
 	float output[],
 	pthreadpool_t threadpool,
-	struct nnp_profile* profile,
-	bool relu)
+	struct nnp_profile* profile)
 {
 	void* memory_block = NULL;
 	NNP_TOTAL_START(profile)
@@ -458,14 +455,32 @@ enum nnp_status nnp_convolution_output(
 		case nnp_convolution_algorithm_ft8x8:
 			input_transform_function = nnp_hwinfo.transforms.fft8x8_and_stream;
 			kernel_transform_function = nnp_hwinfo.transforms.fft8x8_and_stream;
-			output_transform_function = nnp_hwinfo.transforms.ifft8x8_with_bias;
+			switch (activation) {
+				case nnp_activation_relu:
+					output_transform_function = nnp_hwinfo.transforms.ifft8x8_with_bias_with_relu;
+					break;
+				case nnp_activation_identity:
+					output_transform_function = nnp_hwinfo.transforms.ifft8x8_with_bias;
+					break;
+				default:
+					goto cleanup;
+			}
 			transform_tile = (struct nnp_size) { .height = 8, .width = 8 };
 			fourier_transform = true;
 			break;
 		case nnp_convolution_algorithm_ft16x16:
 			input_transform_function = nnp_hwinfo.transforms.fft16x16_and_stream;
 			kernel_transform_function = nnp_hwinfo.transforms.fft16x16_and_stream;
-			output_transform_function = nnp_hwinfo.transforms.ifft16x16_with_bias;
+			switch (activation) {
+				case nnp_activation_relu:
+					output_transform_function = nnp_hwinfo.transforms.ifft16x16_with_bias_with_relu;
+					break;
+				case nnp_activation_identity:
+					output_transform_function = nnp_hwinfo.transforms.ifft16x16_with_bias;
+					break;
+				default:
+					goto cleanup;
+			}
 			transform_tile = (struct nnp_size) { .height = 16, .width = 16 };
 			fourier_transform = true;
 			break;
@@ -477,6 +492,16 @@ enum nnp_status nnp_convolution_output(
 			input_transform_function = nnp_hwinfo.transforms.iwt_f6x6_3x3_and_stream;
 			kernel_transform_function = nnp_hwinfo.transforms.kwt_f6x6_3x3;
 			output_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias;
+			switch (activation) {
+				case nnp_activation_relu:
+					output_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias_with_relu;
+					break;
+				case nnp_activation_identity:
+					output_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias;
+					break;
+				default:
+					goto cleanup;
+			}
 			transform_tile = (struct nnp_size) { .height = 8, .width = 8 };
 			fourier_transform = false;
 			break;
@@ -535,7 +560,7 @@ enum nnp_status nnp_convolution_output(
 	};
 
 	compute_convolution_output(
-		relu, fourier_transform, tuple_elements,
+		fourier_transform, tuple_elements,
 		batch_size, batch_block_max,batch_subblock_max,
 		input_channels, input_channels_block_max,
 		output_channels, output_channels_block_max, output_channels_subblock_max,

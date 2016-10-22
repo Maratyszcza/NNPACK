@@ -21,7 +21,6 @@ namespace AlexNet {
 	inline ConvolutionTester conv1() {
 		return std::move(ConvolutionTester()
 			.multithreading(true)
-			.relu(false)
 			.inputChannels(3)
 			.outputChannels(64)
 			.inputSize(224, 224)
@@ -53,7 +52,6 @@ namespace AlexNet {
 	inline ConvolutionTester conv2() {
 		return std::move(ConvolutionTester()
 			.multithreading(true)
-			.relu(false)
 			.inputChannels(64)
 			.outputChannels(192)
 			.inputSize(27, 27)
@@ -84,7 +82,6 @@ namespace AlexNet {
 	inline ConvolutionTester conv3() {
 		return std::move(ConvolutionTester()
 			.multithreading(true)
-			.relu(false)
 			.inputChannels(192)
 			.outputChannels(384)
 			.inputSize(13, 13)
@@ -115,7 +112,6 @@ namespace AlexNet {
 	inline ConvolutionTester conv4() {
 		return std::move(ConvolutionTester()
 			.multithreading(true)
-			.relu(false)
 			.inputChannels(384)
 			.outputChannels(256)
 			.inputSize(13, 13)
@@ -146,7 +142,6 @@ namespace AlexNet {
 	inline ConvolutionTester conv5() {
 		return std::move(ConvolutionTester()
 			.multithreading(true)
-			.relu(false)
 			.inputChannels(256)
 			.outputChannels(256)
 			.inputSize(13, 13)

@@ -12,25 +12,22 @@
 TEST(FT8x8, conv1) {
 	VGG_A::conv1()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft8x8);
+		.testOutput(nnp_convolution_algorithm_ft8x8, nnp_activation_relu);
 }
 
 TEST(FT16x16, conv1) {
 	VGG_A::conv1()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft16x16);
+		.testOutput(nnp_convolution_algorithm_ft16x16, nnp_activation_relu);
 }
 
 TEST(WT8x8, conv1) {
 	VGG_A::conv1()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(3.0e-5)
-		.testOutput(nnp_convolution_algorithm_wt8x8);
+		.testOutput(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
 }
 
 /*
@@ -40,25 +37,22 @@ TEST(WT8x8, conv1) {
 TEST(FT8x8, conv2) {
 	VGG_A::conv2()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft8x8);
+		.testOutput(nnp_convolution_algorithm_ft8x8, nnp_activation_relu);
 }
 
 TEST(FT16x16, conv2) {
 	VGG_A::conv2()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft16x16);
+		.testOutput(nnp_convolution_algorithm_ft16x16, nnp_activation_relu);
 }
 
 TEST(WT8x8, conv2) {
 	VGG_A::conv2()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_wt8x8);
+		.testOutput(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
 }
 
 /*
@@ -68,25 +62,22 @@ TEST(WT8x8, conv2) {
 TEST(FT8x8, conv3) {
 	VGG_A::conv3()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft8x8);
+		.testOutput(nnp_convolution_algorithm_ft8x8, nnp_activation_relu);
 }
 
 TEST(FT16x16, conv3) {
 	VGG_A::conv3()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft16x16);
+		.testOutput(nnp_convolution_algorithm_ft16x16, nnp_activation_relu);
 }
 
 TEST(WT8x8, conv3) {
 	VGG_A::conv3()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_wt8x8);
+		.testOutput(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
 }
 
 /*
@@ -96,25 +87,22 @@ TEST(WT8x8, conv3) {
 TEST(FT8x8, conv4) {
 	VGG_A::conv4()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft8x8);
+		.testOutput(nnp_convolution_algorithm_ft8x8, nnp_activation_relu);
 }
 
 TEST(FT16x16, conv4) {
 	VGG_A::conv4()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft16x16);
+		.testOutput(nnp_convolution_algorithm_ft16x16, nnp_activation_relu);
 }
 
 TEST(WT8x8, conv4) {
 	VGG_A::conv4()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_wt8x8);
+		.testOutput(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
 }
 
 /*
@@ -124,25 +112,22 @@ TEST(WT8x8, conv4) {
 TEST(FT8x8, conv5) {
 	VGG_A::conv5()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft8x8);
+		.testOutput(nnp_convolution_algorithm_ft8x8, nnp_activation_relu);
 }
 
 TEST(FT16x16, conv5) {
 	VGG_A::conv5()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft16x16);
+		.testOutput(nnp_convolution_algorithm_ft16x16, nnp_activation_relu);
 }
 
 TEST(WT8x8, conv5) {
 	VGG_A::conv5()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_wt8x8);
+		.testOutput(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
 }
 
 /*
@@ -152,25 +137,22 @@ TEST(WT8x8, conv5) {
 TEST(FT8x8, conv6) {
 	VGG_A::conv6()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft8x8);
+		.testOutput(nnp_convolution_algorithm_ft8x8, nnp_activation_relu);
 }
 
 TEST(FT16x16, conv6) {
 	VGG_A::conv6()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft16x16);
+		.testOutput(nnp_convolution_algorithm_ft16x16, nnp_activation_relu);
 }
 
 TEST(WT8x8, conv6) {
 	VGG_A::conv6()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_wt8x8);
+		.testOutput(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
 }
 
 /*
@@ -180,25 +162,22 @@ TEST(WT8x8, conv6) {
 TEST(FT8x8, conv8) {
 	VGG_A::conv8()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft8x8);
+		.testOutput(nnp_convolution_algorithm_ft8x8, nnp_activation_relu);
 }
 
 TEST(FT16x16, conv8) {
 	VGG_A::conv8()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft16x16);
+		.testOutput(nnp_convolution_algorithm_ft16x16, nnp_activation_relu);
 }
 
 TEST(WT8x8, conv8) {
 	VGG_A::conv8()
 		.batchSize(64)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_wt8x8);
+		.testOutput(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
 }
 
 int main(int argc, char* argv[]) {

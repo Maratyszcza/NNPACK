@@ -14,13 +14,14 @@
 #include <nnpack.h>
 #include <nnpack/reference.h>
 
+#include <testers/relu.h>
+
 class ConvolutionTester {
 public:
 	ConvolutionTester() :
 		iterations_(1),
 		errorLimit_(1.0e-5),
 		multithreading_(false),
-		relu_(false),
 		batchSize_(1),
 		inputChannels_(1),
 		outputChannels_(1)
@@ -39,7 +40,6 @@ public:
 		iterations_(tester.iterations_),
 		errorLimit_(tester.errorLimit_),
 		multithreading_(tester.multithreading_),
-		relu_(tester.relu_),
 		batchSize_(tester.batchSize_),
 		inputChannels_(tester.inputChannels_),
 		outputChannels_(tester.outputChannels_),
@@ -92,15 +92,6 @@ public:
 
 	inline bool multithreading() const {
 		return this->multithreading_;
-	}
-
-	inline ConvolutionTester& relu(bool relu) {
-		this->relu_ = relu;
-		return *this; 
-	}
-
-	inline bool relu() const {
-		return this->relu_; 
 	}
 
 	inline ConvolutionTester& batchSize(size_t batchSize) {
@@ -203,7 +194,7 @@ public:
 		return this->inputPadding_;
 	}
 
-	void testOutput(enum nnp_convolution_algorithm algorithm) const {
+	void testOutput(enum nnp_convolution_algorithm algorithm, enum nnp_activation activation = nnp_activation_identity) const {
 		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
 		auto rng = std::bind(std::uniform_real_distribution<float>(), std::mt19937(seed));
 
@@ -226,14 +217,27 @@ public:
 				batchSize(), inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(), outputSubsampling(),
 				input.data(), kernel.data(), bias.data(), referenceOutput.data(),
-				this->threadpool, relu());
+				this->threadpool);
+
+			switch (activation) {
+				case nnp_activation_identity:
+					break;
+				case nnp_activation_relu:
+					nnp_relu_output__reference(
+						batchSize(), outputChannels() * outputSize().height * outputSize().width,
+						referenceOutput.data(), referenceOutput.data(), 0.0,
+						this->threadpool);
+					break;
+				default:
+					break;
+			}
 
 			enum nnp_status status = nnp_convolution_output(
-				algorithm,
+				algorithm, activation,
 				batchSize(), inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(),
 				input.data(), kernel.data(), bias.data(), output.data(),
-				this->threadpool, nullptr, relu());
+				this->threadpool, nullptr);
 			ASSERT_EQ(nnp_status_success, status);
 
 			const float maxError = std::inner_product(referenceOutput.cbegin(), referenceOutput.cend(), output.cbegin(), 0.0f,
@@ -344,7 +348,7 @@ public:
 				1, inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(), outputSubsampling(),
 				input.data(), kernel.data(), bias.data(), referenceOutput.data(),
-				this->threadpool, relu());
+				this->threadpool);
 
 			enum nnp_status status = nnp_convolution_inference(
 				algorithm, transform_strategy,
@@ -377,7 +381,6 @@ private:
 	size_t iterations_;
 	float errorLimit_;
 	bool multithreading_;
-        bool relu_;
 
 	size_t batchSize_;
 	size_t inputChannels_;

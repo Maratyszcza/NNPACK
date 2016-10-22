@@ -12,17 +12,15 @@
 TEST(FT8x8, conv2) {
 	OverFeat_Fast::conv2()
 		.batchSize(128)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft8x8);
+		.testOutput(nnp_convolution_algorithm_ft8x8, nnp_activation_relu);
 }
 
 TEST(FT16x16, conv2) {
 	OverFeat_Fast::conv2()
 		.batchSize(128)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft16x16);
+		.testOutput(nnp_convolution_algorithm_ft16x16, nnp_activation_relu);
 }
 
 /*
@@ -32,25 +30,22 @@ TEST(FT16x16, conv2) {
 TEST(FT8x8, conv3) {
 	OverFeat_Fast::conv3()
 		.batchSize(128)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft8x8);
+		.testOutput(nnp_convolution_algorithm_ft8x8, nnp_activation_relu);
 }
 
 TEST(FT16x16, conv3) {
 	OverFeat_Fast::conv3()
 		.batchSize(128)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft16x16);
+		.testOutput(nnp_convolution_algorithm_ft16x16, nnp_activation_relu);
 }
 
 TEST(WT8x8, conv3) {
 	OverFeat_Fast::conv3()
 		.batchSize(128)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_wt8x8);
+		.testOutput(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
 }
 
 /*
@@ -60,25 +55,22 @@ TEST(WT8x8, conv3) {
 TEST(FT8x8, conv4) {
 	OverFeat_Fast::conv4()
 		.batchSize(128)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft8x8);
+		.testOutput(nnp_convolution_algorithm_ft8x8, nnp_activation_relu);
 }
 
 TEST(FT16x16, conv4) {
 	OverFeat_Fast::conv4()
 		.batchSize(128)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft16x16);
+		.testOutput(nnp_convolution_algorithm_ft16x16, nnp_activation_relu);
 }
 
 TEST(WT8x8, conv4) {
 	OverFeat_Fast::conv4()
 		.batchSize(128)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_wt8x8);
+		.testOutput(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
 }
 
 /*
@@ -88,25 +80,22 @@ TEST(WT8x8, conv4) {
 TEST(FT8x8, conv5) {
 	OverFeat_Fast::conv5()
 		.batchSize(128)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft8x8);
+		.testOutput(nnp_convolution_algorithm_ft8x8, nnp_activation_relu);
 }
 
 TEST(FT16x16, conv5) {
 	OverFeat_Fast::conv5()
 		.batchSize(128)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_ft16x16);
+		.testOutput(nnp_convolution_algorithm_ft16x16, nnp_activation_relu);
 }
 
 TEST(WT8x8, conv5) {
 	OverFeat_Fast::conv5()
 		.batchSize(128)
-		.relu(true)
 		.errorLimit(1.0e-5)
-		.testOutput(nnp_convolution_algorithm_wt8x8);
+		.testOutput(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
 }
 
 int main(int argc, char* argv[]) {
