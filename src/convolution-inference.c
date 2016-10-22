@@ -607,7 +607,12 @@ cleanup:
 	return status;
 }
 
+static inline float relu(float data) {
+	return data > 0.0f ? data : 0.0f;
+}
+
 static enum nnp_status compute_direct_convolution_inference(
+	enum nnp_activation activation,
 	const size_t input_channels,
 	const size_t output_channels,
 	const struct nnp_size input_size,
@@ -734,7 +739,12 @@ static enum nnp_status compute_direct_convolution_inference(
 	for (size_t output_channel = 0; output_channel < output_channels; output_channel += 1) {
 		const float bias_value = bias[output_channel];
 		for (size_t index = 0; index < output_image_size; index += 1) {
-			output[output_channel * output_image_size + index] += bias_value;
+			if (activation == nnp_activation_relu) {
+				output[output_channel * output_image_size + index] =
+					relu(output[output_channel * output_image_size + index] + bias_value);
+			} else {
+				output[output_channel * output_image_size + index] += bias_value;
+			}
 		}
 	}
 	NNP_OUTPUT_TRANSFORM_END(profile)
@@ -747,6 +757,7 @@ cleanup:
 enum nnp_status nnp_convolution_inference(
 	enum nnp_convolution_algorithm algorithm,
 	enum nnp_convolution_transform_strategy transform_strategy,
+	enum nnp_activation activation,
 	size_t input_channels,
 	size_t output_channels,
 	struct nnp_size input_size,
@@ -817,21 +828,48 @@ enum nnp_status nnp_convolution_inference(
 			tile_size = (struct nnp_size) { .height = 8, .width = 8 };
 			input_transform_function = nnp_hwinfo.transforms.iwt_f6x6_3x3_and_stream;
 			kernel_transform_function = nnp_hwinfo.transforms.kwt_f6x6_3x3;
-			output_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias;
+			switch (activation) {
+				case nnp_activation_relu:
+					output_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias_with_relu;
+					break;
+				case nnp_activation_identity:
+					output_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias;
+					break;
+				default:
+					goto cleanup;
+			}
 			fourier_transform = false;
 			break;
 		case nnp_convolution_algorithm_ft8x8:
 			tile_size = (struct nnp_size) { .height = 8, .width = 8 };
 			input_transform_function = nnp_hwinfo.transforms.fft8x8_and_stream;
 			kernel_transform_function = nnp_hwinfo.transforms.fft8x8_and_stream;
-			output_transform_function = nnp_hwinfo.transforms.ifft8x8_with_bias;
+			switch (activation) {
+				case nnp_activation_relu:
+					output_transform_function = nnp_hwinfo.transforms.ifft8x8_with_bias_with_relu;
+					break;
+				case nnp_activation_identity:
+					output_transform_function = nnp_hwinfo.transforms.ifft8x8_with_bias;
+					break;
+				default:
+					goto cleanup;
+			}
 			fourier_transform = true;
 			break;
 		case nnp_convolution_algorithm_ft16x16:
 			tile_size = (struct nnp_size) { .height = 16, .width = 16 };
 			input_transform_function = nnp_hwinfo.transforms.fft16x16_and_stream;
 			kernel_transform_function = nnp_hwinfo.transforms.fft16x16_and_stream;
-			output_transform_function = nnp_hwinfo.transforms.ifft16x16_with_bias;
+			switch (activation) {
+				case nnp_activation_relu:
+					output_transform_function = nnp_hwinfo.transforms.ifft16x16_with_bias_with_relu;
+					break;
+				case nnp_activation_identity:
+					output_transform_function = nnp_hwinfo.transforms.ifft16x16_with_bias;
+					break;
+				default:
+					goto cleanup;
+			}
 			fourier_transform = true;
 			break;
 		case nnp_convolution_algorithm_implicit_gemm:
@@ -861,6 +899,7 @@ enum nnp_status nnp_convolution_inference(
 			break;
 		case nnp_convolution_algorithm_implicit_gemm:
 			status = compute_direct_convolution_inference(
+				activation,
 				input_channels, output_channels,
 				input_size, input_padding, kernel_size, output_size, output_subsampling,
 				input, kernel, bias, output,

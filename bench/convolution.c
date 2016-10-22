@@ -45,8 +45,8 @@ struct nnp_profile benchmark_convolution(
 		switch (mode) {
 			case mode_output:
 				nnp_convolution_output(
-					nnp_activation_identity,
 					algorithm,
+					nnp_activation_identity,
 					batch_size,
 					input_channels,
 					output_channels,
@@ -94,6 +94,7 @@ struct nnp_profile benchmark_convolution(
 				nnp_convolution_inference(
 					algorithm,
 					transform_strategy,
+					nnp_activation_identity,
 					input_channels,
 					output_channels,
 					input_size,
