@@ -621,7 +621,7 @@ def main():
                 "convolution-output-alexnet-with-relu-test")
         convolution_output_vgg_a_with_relu_test = \
             config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/vgg-a_with_relu.cc")] + gtest_objects,
-                "convolution-output-vgg-a-test-with-relu-test")
+                "convolution-output-vgg-a-with-relu-test")
         convolution_output_overfeat_fast_with_relu_test = \
             config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/overfeat-fast_with_relu.cc")] + gtest_objects,
                 "convolution-output-overfeat-fast-with-relu-test")
