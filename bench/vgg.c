@@ -95,8 +95,8 @@ double benchmark_vgg(
 					switch (layers[layer_index].type) {
 						case layer_type_convolutional:
 							status = nnp_convolution_output(
-								nnp_activation_identity,
 								nnp_convolution_algorithm_auto,
+								nnp_activation_identity,
 								batch_size,
 								layers[layer_index].convolutional_layer.input_channels,
 								layers[layer_index].convolutional_layer.output_channels,

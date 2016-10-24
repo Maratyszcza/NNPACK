@@ -233,6 +233,7 @@ enum nnp_status nnp_convolution_output(
  */
 enum nnp_status nnp_convolution_input_gradient(
 	enum nnp_convolution_algorithm algorithm,
+	enum nnp_activation activation,
 	size_t batch_size,
 	size_t input_channels,
 	size_t output_channels,
@@ -279,6 +280,7 @@ enum nnp_status nnp_convolution_input_gradient(
  */
 enum nnp_status nnp_convolution_kernel_gradient(
 	enum nnp_convolution_algorithm algorithm,
+	enum nnp_activation activation,
 	size_t batch_size,
 	size_t input_channels,
 	size_t output_channels,

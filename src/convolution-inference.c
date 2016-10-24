@@ -777,7 +777,8 @@ enum nnp_status nnp_convolution_inference(
 	/* Basic validation of parameters. This check detects invalid, but not unsupported parameters. */
 	enum nnp_status status = validate_convolution_arguments(
 		1, input_channels, output_channels,
-		input_size, input_padding, kernel_size, output_subsampling);
+		input_size, input_padding, kernel_size, output_subsampling,
+		activation);
 	if (status != nnp_status_success) {
 		goto cleanup;
 	}
@@ -836,7 +837,7 @@ enum nnp_status nnp_convolution_inference(
 					output_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias;
 					break;
 				default:
-					goto cleanup;
+					NNP_UNREACHABLE;
 			}
 			fourier_transform = false;
 			break;
@@ -852,7 +853,7 @@ enum nnp_status nnp_convolution_inference(
 					output_transform_function = nnp_hwinfo.transforms.ifft8x8_with_bias;
 					break;
 				default:
-					goto cleanup;
+					NNP_UNREACHABLE;
 			}
 			fourier_transform = true;
 			break;
@@ -868,7 +869,7 @@ enum nnp_status nnp_convolution_inference(
 					output_transform_function = nnp_hwinfo.transforms.ifft16x16_with_bias;
 					break;
 				default:
-					goto cleanup;
+					NNP_UNREACHABLE;
 			}
 			fourier_transform = true;
 			break;

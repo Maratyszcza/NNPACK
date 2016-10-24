@@ -675,13 +675,13 @@ def main():
                 "convolution-inference-overfeat-fast-test")
         convolution_inference_alexnet_with_relu_test = \
             config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-inference/alexnet_with_relu.cc")] + gtest_objects,
-                "convolution-inference-alexnet_with_relu-test")
+                "convolution-inference-alexnet-with-relu-test")
         convolution_inference_vgg_a_with_relu_test = \
             config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-inference/vgg-a_with_relu.cc")] + gtest_objects,
-                "convolution-inference-vgg-a_with_relu-test")
+                "convolution-inference-vgg-a-with-relu-test")
         convolution_inference_overfeat_fast_with_relu_test = \
             config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-inference/overfeat-fast_with_relu.cc")] + gtest_objects,
-                "convolution-inference-overfeat-fast_with_relu-test")
+                "convolution-inference-overfeat-fast-with-relu-test")
         config.phony("convolution-inference-test",
             [convolution_inference_smoke_test, convolution_inference_alexnet_test, convolution_inference_alexnet_with_relu_test,
                 convolution_inference_vgg_a_test, convolution_inference_vgg_a_with_relu_test,

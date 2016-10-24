@@ -196,7 +196,7 @@ public:
 
 	void testOutput(enum nnp_convolution_algorithm algorithm, enum nnp_activation activation = nnp_activation_identity) const {
 		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
-		auto rng = std::bind(std::uniform_real_distribution<float>(), std::mt19937(seed));
+		auto rng = std::bind(std::uniform_real_distribution<float>(-0.1, 1), std::mt19937(seed));
 
 		std::vector<float> input(batchSize() * inputChannels() * inputHeight() * inputWidth());
 		std::vector<float> kernel(outputChannels() * inputChannels() * kernelHeight() * kernelWidth());
@@ -247,7 +247,7 @@ public:
 		EXPECT_LT(median(maxErrors), errorLimit());
 	}
 
-	void testInputGradient(enum nnp_convolution_algorithm algorithm) const {
+	void testInputGradient(enum nnp_convolution_algorithm algorithm, enum nnp_activation activation = nnp_activation_identity) const {
 		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
 		auto rng = std::bind(std::uniform_real_distribution<float>(), std::mt19937(seed));
 
@@ -271,7 +271,7 @@ public:
 				this->threadpool);
 
 			enum nnp_status status = nnp_convolution_input_gradient(
-				algorithm,
+				algorithm, nnp_activation_identity,
 				batchSize(), inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(),
 				outputGradient.data(), kernel.data(), inputGradient.data(),
@@ -285,7 +285,7 @@ public:
 		EXPECT_LT(median(maxErrors), errorLimit());
 	}
 
-	void testKernelGradient(enum nnp_convolution_algorithm algorithm) const {
+	void testKernelGradient(enum nnp_convolution_algorithm algorithm, enum nnp_activation activation = nnp_activation_identity) const {
 		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
 		auto rng = std::bind(std::uniform_real_distribution<float>(), std::mt19937(seed));
 
@@ -308,7 +308,7 @@ public:
 				this->threadpool);
 
 			enum nnp_status status = nnp_convolution_kernel_gradient(
-				algorithm,
+				algorithm, nnp_activation_identity,
 				batchSize(), inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(),
 				input.data(), outputGradient.data(), kernelGradient.data(),

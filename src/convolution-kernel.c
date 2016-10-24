@@ -378,6 +378,7 @@ static void compute_convolution_kernel_gradient(
 
 enum nnp_status nnp_convolution_kernel_gradient(
 	enum nnp_convolution_algorithm algorithm,
+	enum nnp_activation activation,
 	size_t batch_size,
 	size_t input_channels,
 	size_t output_channels,
@@ -396,7 +397,8 @@ enum nnp_status nnp_convolution_kernel_gradient(
 	/* Basic validation of parameters. This check detects invalid, but not unsupported parameters. */
 	enum nnp_status status = validate_convolution_arguments(
 		batch_size, input_channels, output_channels,
-		input_size, input_padding, kernel_size, (struct nnp_size) { 1, 1 });
+		input_size, input_padding, kernel_size, (struct nnp_size) { 1, 1 },
+		activation);
 	if (status != nnp_status_success) {
 		goto cleanup;
 	}
