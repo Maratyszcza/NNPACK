@@ -781,7 +781,7 @@ enum nnp_status nnp_convolution_inference(
 			(max(output_subsampling.width, output_subsampling.height) > 1))
 		{
 			algorithm = nnp_convolution_algorithm_implicit_gemm;
-		} if (max(kernel_size.width, kernel_size.height) > 8) {
+		} else if (max(kernel_size.width, kernel_size.height) > 8) {
 			algorithm = nnp_convolution_algorithm_ft16x16;
 		} else {
 			const size_t tile_count_8x8 =
