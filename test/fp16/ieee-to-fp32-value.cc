@@ -1,8 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <math.h>
+#include <cmath>
 
-#include <nnpack.h>
 #include <nnpack/fp16.h>
 #include <fp16/values.h>
 

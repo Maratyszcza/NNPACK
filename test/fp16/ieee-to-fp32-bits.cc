@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <nnpack.h>
 #include <nnpack/fp16.h>
 #include <fp16/values.h>
 
