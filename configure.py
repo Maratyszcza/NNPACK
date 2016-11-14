@@ -603,6 +603,9 @@ def main():
         fp16_ieee_to_fp32_value_test = \
             config.unittest([config.cxx("fp16/ieee-to-fp32-value.cc"), fp16_values] + gtest_objects,
                 "fp16-ieee-to-fp32-value-test")
+        fp32_to_fp16_ieee_value_test = \
+            config.unittest([config.cxx("fp16/fp32-to-ieee-value.cc"), fp16_values] + gtest_objects,
+                "fp32-to-fp16-ieee-value-test")
 
         convolution_output_smoke_test = \
             config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/smoke.cc")] + gtest_objects,
