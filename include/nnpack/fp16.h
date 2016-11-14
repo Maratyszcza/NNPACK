@@ -2,8 +2,10 @@
 
 #ifdef __cplusplus
 	#include <cstdint>
+	#include <cmath>
 #else
 	#include <stdint.h>
+	#include <math.h>
 #endif
 
 /*
@@ -206,4 +208,38 @@ static inline float fp16b_to_fp32_ieee(uint16_t h) {
 		.as_uint32 = sign | (two_w < denormalized_cutoff ? denormalized_value.as_uint32 : normalized_value.as_uint32)
 	};
 	return result.as_float;
+}
+
+/*
+ * Convert a 32-bit floating-point number in IEEE single-precision format to a 16-bit floating-point number in
+ * IEEE half-precision format, in bit representation.
+ *
+ * @note The implementation relies on IEEE-like (no assumption about rounding mode and no operations on denormals)
+ * floating-point operations and bitcasts between integer and floating-point variables.
+ */
+static inline uint16_t fp32_to_fp16b_ieee(float f) {
+	float base = fabsf(f);
+	const float scale_to_inf = 0x1.0p+112f;
+	base *= scale_to_inf;
+	const float scale_to_zero = 0x1.0p-112f * 0x1.0p+2f;
+	base *= scale_to_zero;
+	if (!(base == base)) {
+		base = nanf("0x200");
+	}
+
+	union {
+		float as_float;
+		uint32_t as_uint32;
+	} bias = {
+		.as_float = f
+	};
+	const uint32_t sign = bias.as_uint32 & UINT32_C(0x80000000);
+	bias.as_float *= 0x1.0p+23f * 0x1.0p-10f * 0x1.0p+2f;
+	bias.as_uint32 = bias.as_uint32 & UINT32_C(0x7F800000);
+	if (bias.as_float < 0x1p-1f * 0x1.0p+2f) {
+		bias.as_float = 0x1p-1f * 0x1.0p+2f;
+	}
+	bias.as_float += base;
+	const uint32_t exp_f = (bias.as_uint32 >> 13);// - (((0x7F - 0xF) + (23 - 10 + 1 + 2)) << 10);
+	return (sign >> 16) | ((exp_f & UINT32_C(0x00007C00)) + (bias.as_uint32 & UINT32_C(0x00000FFF)));
 }
