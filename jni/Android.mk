@@ -103,6 +103,7 @@ include $(BUILD_STATIC_LIBRARY)
 include $(CLEAR_VARS)
 LOCAL_MODULE := fp16_utils
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/fp16/values.cc
+LOCAL_CFLAGS := -D__STDINT_MACROS
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/test
 LOCAL_C_INCLUDES := $(LOCAL_EXPORT_C_INCLUDES)
 include $(BUILD_STATIC_LIBRARY)
@@ -110,6 +111,7 @@ include $(BUILD_STATIC_LIBRARY)
 include $(CLEAR_VARS)
 LOCAL_MODULE := fp16-ieee-to-fp32-bits-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/fp16/ieee-to-fp32-bits.cc
+LOCAL_CFLAGS := -D__STDINT_MACROS
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 LOCAL_STATIC_LIBRARIES := fp16_utils gtest
 include $(BUILD_EXECUTABLE)
@@ -117,6 +119,7 @@ include $(BUILD_EXECUTABLE)
 include $(CLEAR_VARS)
 LOCAL_MODULE := fp16-ieee-to-fp32-value-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/fp16/ieee-to-fp32-value.cc
+LOCAL_CFLAGS := -D__STDINT_MACROS
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 LOCAL_STATIC_LIBRARIES := fp16_utils gtest
 include $(BUILD_EXECUTABLE)
@@ -124,6 +127,7 @@ include $(BUILD_EXECUTABLE)
 include $(CLEAR_VARS)
 LOCAL_MODULE := fp32-to-fp16-ieee-value-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/fp16/fp32-to-ieee-value.cc
+LOCAL_CFLAGS := -D__STDINT_MACROS
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 LOCAL_STATIC_LIBRARIES := fp16_utils gtest
 include $(BUILD_EXECUTABLE)

@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <cstdint>
+
 #include <nnpack/fp16.h>
 #include <fp16/values.h>
 

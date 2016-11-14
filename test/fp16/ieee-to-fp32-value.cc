@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cstdint>
 #include <cmath>
 
 #include <nnpack/fp16.h>
@@ -309,6 +310,8 @@ TEST(IEEE_FP16_VALUE, infinity) {
 }
 
 TEST(IEEE_FP16_VALUE, positive_nan) {
+	using std::signbit;
+	using std::isnan;
 	for (uint16_t m = UINT16_C(1); m < UINT16_C(0x0400); m++) {
 		const uint16_t nan_f16 = UINT16_C(0x7C00) | m;
 		const float nan_f32 = fp16b_to_fp32_ieee(nan_f16);
@@ -330,6 +333,8 @@ TEST(IEEE_FP16_VALUE, positive_nan) {
 }
 
 TEST(IEEE_FP16_VALUE, negative_nan) {
+	using std::signbit;
+	using std::isnan;
 	for (uint16_t m = UINT16_C(1); m < UINT16_C(0x0400); m++) {
 		const uint16_t nan_f16 = UINT16_C(0xFC00) | m;
 		const float nan_f32 = fp16b_to_fp32_ieee(nan_f16);
