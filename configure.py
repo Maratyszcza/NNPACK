@@ -51,10 +51,10 @@ class Configuration:
 
         cflags = ["-g", "-std=gnu99"]
         cxxflags = ["-g", "-std=gnu++0x"]
-	if options.use_rpi:
+        if options.use_rpi:
             cflags += ["-mfpu=neon", "-mfloat-abi=hard", "-D__ARM_NEON"]
             cxxflags += ["-mfpu=neon", "-mfloat-abi=hard", "-D__ARM_NEON"]
-	else:
+        else:
             if options.use_psimd or self.host == "pnacl-nacl-newlib":
                 cflags += ["-DNNP_ARCH_PSIMD"]
 
@@ -69,7 +69,7 @@ class Configuration:
             self.writer.variable("imageformat", "elf")
             self.writer.variable("abi", "sysv")
             self.writer.variable("ar", "ar")
-            if options.use_psimd:
+            if options.use_psimd or options.use_rpi:
                 self.writer.variable("cc", "clang")
                 self.writer.variable("cxx", "clang++")
             else:
@@ -440,7 +440,7 @@ def main():
         config.cc("relu-input-gradient.c"),
     ]
 
-    if config.host.startswith("x86_64-") and not options.use_psimd:
+    if config.host.startswith("x86_64-") and not options.use_psimd and not options.use_rpi:
         arch_nnpack_objects = [
             # Transformations
             config.peachpy("x86_64-fma/2d-fft-8x8.py"),
@@ -486,7 +486,7 @@ def main():
             config.cc("neon/blas/sdotxf.c"),
         ]
     else:
-	arch_nnpack_objects = [
+        arch_nnpack_objects = [
             # Transformations
             config.cc("psimd/2d-fourier-8x8.c"),
             config.cc("psimd/2d-fourier-16x16.c"),
@@ -528,7 +528,7 @@ def main():
         config.cc("ref/fft/inverse-dualreal.c"),
     ]
 
-    if config.host.startswith("x86_64-") and not options.use_psimd:
+    if config.host.startswith("x86_64-") and not options.use_psimd and not options.use_rpi:
         arch_fft_stub_objects = [
             config.peachpy("x86_64-fma/fft-soa.py"),
             config.peachpy("x86_64-fma/fft-aos.py"),
@@ -597,7 +597,7 @@ def main():
             config.unittest(reference_fft_objects + [config.cxx("fourier/reference.cc")] + gtest_objects,
                 "fourier-reference-test")
 
-        if config.host.startswith("x86_64-") and not options.use_psimd:
+        if config.host.startswith("x86_64-") and not options.use_psimd and not options.use_rpi:
             fourier_x86_64_avx2_test = \
                 config.unittest(reference_fft_objects + arch_fft_stub_objects + [config.cxx("fourier/x86_64-avx2.cc")] + gtest_objects,
                     "fourier-x86_64-avx2-test")
@@ -826,7 +826,7 @@ def main():
         config.phony("vgg-bench", vgg_bench_binary)
         config.default([vgg_bench_binary])
 
-    if config.host.startswith("x86_64-") and not options.use_psimd:
+    if config.host.startswith("x86_64-") and not options.use_psimd and not options.use_rpi:
         #ugemm_bench_binary = config.ccld_executable([config.cc("ugemm.c")] + arch_nnpack_objects + bench_support_objects, "ugemm-bench", libs=["m"])
         #config.default(ugemm_bench_binary)
         if options.use_mkl:
