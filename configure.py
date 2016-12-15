@@ -50,9 +50,14 @@ class Configuration:
             self.dynamic_library_ext = ".so"
 
         cflags = ["-g", "-std=gnu99"]
-        if options.use_psimd or self.host == "pnacl-nacl-newlib":
-            cflags += ["-DNNP_ARCH_PSIMD"]
         cxxflags = ["-g", "-std=gnu++0x"]
+        if options.use_rpi:
+            cflags += ["-mfpu=neon", "-mfloat-abi=hard", "-D__ARM_NEON"]
+            cxxflags += ["-mfpu=neon", "-mfloat-abi=hard", "-D__ARM_NEON"]
+        else:
+            if options.use_psimd or self.host == "pnacl-nacl-newlib":
+                cflags += ["-DNNP_ARCH_PSIMD"]
+
         ldflags = ["-g"]
         ldlibs = ["m"]
         if self.host in ["x86_64-linux-gnu", "x86_64-nacl-glibc", "x86_64-nacl-newlib", "pnacl-nacl-newlib"]:
@@ -64,7 +69,7 @@ class Configuration:
             self.writer.variable("imageformat", "elf")
             self.writer.variable("abi", "sysv")
             self.writer.variable("ar", "ar")
-            if options.use_psimd:
+            if options.use_psimd or options.use_rpi:
                 self.writer.variable("cc", "clang")
                 self.writer.variable("cxx", "clang++")
             else:
@@ -390,7 +395,7 @@ parser.add_argument("--enable-blis", dest="use_blis", action="store_true")
 parser.add_argument("--enable-psimd", dest="use_psimd", action="store_true")
 parser.add_argument("--disable-static", dest="build_static", action="store_false", default=True)
 parser.add_argument("--enable-shared", dest="build_shared", action="store_true", default=False)
-
+parser.add_argument("--enable-rpi", dest="use_rpi", action="store_true")
 
 def main():
     options = parser.parse_args()
@@ -435,7 +440,7 @@ def main():
         config.cc("relu-input-gradient.c"),
     ]
 
-    if config.host.startswith("x86_64-") and not options.use_psimd:
+    if config.host.startswith("x86_64-") and not options.use_psimd and not options.use_rpi:
         arch_nnpack_objects = [
             # Transformations
             config.peachpy("x86_64-fma/2d-fft-8x8.py"),
@@ -456,6 +461,29 @@ def main():
             # BLAS microkernels
             config.peachpy("x86_64-fma/blas/sgemm.py"),
             config.peachpy("x86_64-fma/blas/sdotxf.py"),
+        ]
+    elif options.use_rpi:
+        arch_nnpack_objects = [
+            # Transformations
+            config.cc("psimd/2d-fourier-8x8.c"),
+            config.cc("psimd/2d-fourier-16x16.c"),
+            config.cc("psimd/2d-wt-8x8-3x3.c"),
+            # ReLU and Softmax
+            config.cc("psimd/relu.c"),
+            config.cc("psimd/softmax.c"),
+            # FFT block accumulation
+            config.cc("psimd/fft-block-mac.c"),
+            # Tuple GEMM
+            config.cc("neon/blas/s4gemm.c"),
+            config.cc("neon/blas/c4gemm.c"),
+            config.cc("neon/blas/s4c2gemm.c"),
+            config.cc("neon/blas/c4gemm-conjb.c"),
+            config.cc("neon/blas/s4c2gemm-conjb.c"),
+            config.cc("neon/blas/c4gemm-conjb-transc.c"),
+            config.cc("neon/blas/s4c2gemm-conjb-transc.c"),
+            # BLAS microkernels
+            config.cc("neon/blas/sgemm.c"),
+            config.cc("neon/blas/sdotxf.c"),
         ]
     else:
         arch_nnpack_objects = [
@@ -480,7 +508,6 @@ def main():
             config.cc("psimd/blas/sgemm.c"),
             config.cc("psimd/blas/sdotxf.c"),
         ]
-
     reference_layer_objects = [
         config.cc("ref/convolution-output.c"),
         config.cc("ref/convolution-input-gradient.c"),
@@ -501,7 +528,7 @@ def main():
         config.cc("ref/fft/inverse-dualreal.c"),
     ]
 
-    if config.host.startswith("x86_64-") and not options.use_psimd:
+    if config.host.startswith("x86_64-") and not options.use_psimd and not options.use_rpi:
         arch_fft_stub_objects = [
             config.peachpy("x86_64-fma/fft-soa.py"),
             config.peachpy("x86_64-fma/fft-aos.py"),
@@ -570,7 +597,7 @@ def main():
             config.unittest(reference_fft_objects + [config.cxx("fourier/reference.cc")] + gtest_objects,
                 "fourier-reference-test")
 
-        if config.host.startswith("x86_64-") and not options.use_psimd:
+        if config.host.startswith("x86_64-") and not options.use_psimd and not options.use_rpi:
             fourier_x86_64_avx2_test = \
                 config.unittest(reference_fft_objects + arch_fft_stub_objects + [config.cxx("fourier/x86_64-avx2.cc")] + gtest_objects,
                     "fourier-x86_64-avx2-test")
@@ -583,7 +610,7 @@ def main():
                 config.unittest(nnpack_objects + [config.cxx("sgemm/x86_64-fma3.cc")] + gtest_objects,
                     "sgemm-x86_64-fma3-test")
 
-        if config.host.startswith("pnacl-") or options.use_psimd:
+        if not options.use_rpi and (config.host.startswith("pnacl-") or options.use_psimd):
             fourier_psimd_test = \
                 config.unittest(reference_fft_objects + arch_fft_stub_objects + [config.cxx("fourier/psimd.cc")] + gtest_objects,
                     "fourier-psimd-test")
@@ -757,11 +784,12 @@ def main():
     config.artifact_dir = os.path.join(root_dir, "bin")
     config.include_dirs = [os.path.join(root_dir, "include"), os.path.join(pthreadpool_dir, "include"), os.path.join(root_dir, "bench")]
     bench_support_objects = [config.cc("median.c")]
-    if config.host.startswith("x86_64-"):
-        bench_support_objects.append(config.peachpy("memread.py"))
+    if not options.use_rpi:
+        if config.host.startswith("x86_64-"):
+            bench_support_objects.append(config.peachpy("memread.py"))
 
-    if config.host == "x86_64-linux-gnu":
-        bench_support_objects.append(config.cc("perf_counter.c"))
+        if config.host == "x86_64-linux-gnu":
+            bench_support_objects.append(config.cc("perf_counter.c"))
     extra_cflags = []
     extra_lib_dirs = []
     extra_ldlibs = []
@@ -772,31 +800,33 @@ def main():
         extra_lib_dirs.append("/opt/intel/mkl/lib/intel64")
         extra_ldlibs = ["mkl_intel_lp64", "mkl_core", "mkl_sequential"]
         extra_ldflags.append("-Wl,--no-as-needed")
-    transform_bench_binary = config.ccld_executable([config.cc("transform.c", extra_cflags=extra_cflags)] + nnpack_objects + bench_support_objects, "transform-bench",
+
+    if not options.use_rpi:
+        transform_bench_binary = config.ccld_executable([config.cc("transform.c", extra_cflags=extra_cflags)] + nnpack_objects + bench_support_objects, "transform-bench",
         lib_dirs=extra_lib_dirs, extra_ldlibs=extra_ldlibs, extra_ldflags=extra_ldflags)
-    config.phony("transform-bench", transform_bench_binary)
-    config.default(transform_bench_binary)
+        config.phony("transform-bench", transform_bench_binary)
+        config.default(transform_bench_binary)
 
-    convolution_bench_binary = config.ccld_executable([config.cc("convolution.c")] + nnpack_objects + bench_support_objects,
+        convolution_bench_binary = config.ccld_executable([config.cc("convolution.c")] + nnpack_objects + bench_support_objects,
         "convolution-benchmark")
-    config.phony("convolution-bench", convolution_bench_binary)
-    fully_connected_bench_binary = config.ccld_executable([config.cc("fully-connected.c")] + nnpack_objects + bench_support_objects,
+        config.phony("convolution-bench", convolution_bench_binary)
+        fully_connected_bench_binary = config.ccld_executable([config.cc("fully-connected.c")] + nnpack_objects + bench_support_objects,
         "fully-connected-benchmark")
-    config.phony("fully-connected-bench", fully_connected_bench_binary)
-    pooling_bench_binary = config.ccld_executable([config.cc("pooling.c")] + nnpack_objects + bench_support_objects,
+        config.phony("fully-connected-bench", fully_connected_bench_binary)
+        pooling_bench_binary = config.ccld_executable([config.cc("pooling.c")] + nnpack_objects + bench_support_objects,
         "pooling-benchmark")
-    config.phony("pooling-bench", pooling_bench_binary)
-    relu_bench_binary = config.ccld_executable([config.cc("relu.c")] + nnpack_objects + bench_support_objects,
+        config.phony("pooling-bench", pooling_bench_binary)
+        relu_bench_binary = config.ccld_executable([config.cc("relu.c")] + nnpack_objects + bench_support_objects,
         "relu-benchmark")
-    config.phony("relu-bench", relu_bench_binary)
-    config.default([convolution_bench_binary, fully_connected_bench_binary, pooling_bench_binary, relu_bench_binary])
+        config.phony("relu-bench", relu_bench_binary)
+        config.default([convolution_bench_binary, fully_connected_bench_binary, pooling_bench_binary, relu_bench_binary])
 
-    vgg_bench_binary = config.ccld_executable([config.cc("vgg.c")] + nnpack_objects + bench_support_objects,
+        vgg_bench_binary = config.ccld_executable([config.cc("vgg.c")] + nnpack_objects + bench_support_objects,
         "vgg-benchmark")
-    config.phony("vgg-bench", vgg_bench_binary)
-    config.default([vgg_bench_binary])
+        config.phony("vgg-bench", vgg_bench_binary)
+        config.default([vgg_bench_binary])
 
-    if config.host.startswith("x86_64-") and not options.use_psimd:
+    if config.host.startswith("x86_64-") and not options.use_psimd and not options.use_rpi:
         #ugemm_bench_binary = config.ccld_executable([config.cc("ugemm.c")] + arch_nnpack_objects + bench_support_objects, "ugemm-bench", libs=["m"])
         #config.default(ugemm_bench_binary)
         if options.use_mkl:

@@ -207,7 +207,7 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 	}
 #endif
 
-#if defined(__pnacl__) || defined(__ANDROID__)
+#if defined(__pnacl__) || defined(__ANDROID__) || defined(__arm__)
 	static void init_static_hwinfo(void) {
 		nnp_hwinfo.cache.l1 = (struct cache_info) {
 			.size = 16 * 1024,
@@ -266,7 +266,7 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 #endif
 
 static void init_hwinfo(void) {
-	#if defined(__pnacl__) || defined(__ANDROID__)
+	#if defined(__pnacl__) || defined(__ANDROID__) || defined(__arm__)
 		init_static_hwinfo();
 	#elif defined(__i386__) || defined(__x86_64__)
 		init_x86_hwinfo();
