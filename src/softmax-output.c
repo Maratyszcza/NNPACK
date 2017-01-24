@@ -70,6 +70,8 @@ enum nnp_status nnp_softmax_output(
             .softmax_function = nnp_inplace_softmax__avx2,
         #elif NNP_ARCH_PSIMD
             .softmax_function = nnp_inplace_softmax__psimd,
+        #elif NNP_ARCH_SCALAR
+            .softmax_function = nnp_inplace_softmax__scalar,
         #endif
             .channels = channels,
             .data = output,
@@ -85,6 +87,8 @@ enum nnp_status nnp_softmax_output(
             .softmax_function = nnp_outplace_softmax__avx2,
         #elif NNP_ARCH_PSIMD
             .softmax_function = nnp_outplace_softmax__psimd,
+        #elif NNP_ARCH_SCALAR
+            .softmax_function = nnp_outplace_softmax__scalar,
         #endif
             .channels = channels,
             .input = input,

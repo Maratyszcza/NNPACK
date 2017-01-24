@@ -533,7 +533,7 @@ static enum nnp_status compute_fast_convolution_inference(
 					nnp_full_tuple_gemm_function full_gemm_function;
 					nnp_fast_tuple_gemm_function fast_gemm_function;
 					if (fourier_transform) {
-						if (tuple_index == 0) {
+						if (tuple_index < NNP_COMPLEX_TUPLE_INDEX) {
 							fast_gemm_function = nnp_hwinfo.cxgemm.s4cX_conjb_only_mr_x_nr;
 							full_gemm_function = nnp_hwinfo.cxgemm.s4cX_conjb_upto_mr_x_nr;
 						} else {

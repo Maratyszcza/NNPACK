@@ -19,6 +19,9 @@ void nnp_sgemm_upto_4x8__psimd(uint32_t mr, uint32_t nr, size_t k, size_t update
 void nnp_sgemm_only_4x12__neon(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 void nnp_sgemm_upto_4x12__neon(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 
+void nnp_sgemm_only_4x3__scalar(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+void nnp_sgemm_upto_4x3__scalar(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+
 typedef void (*nnp_fast_tuple_gemm_function)(size_t, size_t, const float*, const float*, float*, size_t);
 typedef void (*nnp_full_tuple_gemm_function)(uint32_t, uint32_t, size_t, size_t, const float*, const float*, float*, size_t);
 
@@ -85,6 +88,21 @@ void nnp_s4c2gemm_conjb_upto_2x2__neon(uint32_t mr, uint32_t nr, size_t k, size_
 void nnp_s4c2gemm_conjb_transc_only_2x2__neon(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 void nnp_s4c2gemm_conjb_transc_upto_2x2__neon(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 
+void nnp_s2gemm_only_2x2__scalar(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+void nnp_s2gemm_upto_2x2__scalar(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+
+void nnp_s2gemm_transc_only_2x2__scalar(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+void nnp_s2gemm_transc_upto_2x2__scalar(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+
+void nnp_cgemm_only_2x2__scalar(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+void nnp_cgemm_upto_2x2__scalar(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+
+void nnp_cgemm_conjb_only_2x2__scalar(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+void nnp_cgemm_conjb_upto_2x2__scalar(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+
+void nnp_cgemm_conjb_transc_only_2x2__scalar(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+void nnp_cgemm_conjb_transc_upto_2x2__scalar(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+
 typedef void (*nnp_sdotxf_function)(const float*, const float*, size_t, float*, size_t);
 void nnp_sdotxf1__avx2(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
 void nnp_sdotxf2__avx2(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
@@ -112,6 +130,15 @@ void nnp_sdotxf5__neon(const float* x, const float* y, size_t stride_y, float* s
 void nnp_sdotxf6__neon(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
 void nnp_sdotxf7__neon(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
 void nnp_sdotxf8__neon(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
+
+void nnp_sdotxf1__scalar(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
+void nnp_sdotxf2__scalar(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
+void nnp_sdotxf3__scalar(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
+void nnp_sdotxf4__scalar(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
+void nnp_sdotxf5__scalar(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
+void nnp_sdotxf6__scalar(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
+void nnp_sdotxf7__scalar(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
+void nnp_sdotxf8__scalar(const float* x, const float* y, size_t stride_y, float* sum, size_t n);
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -16,26 +16,39 @@
 	#if !(NNP_ARCH_PSIMD)
 		#error NNP_ARCH_PSIMD predefined as 0
 	#endif
+	#define NNP_ARCH_SCALAR 0
+	#define NNP_ARCH_X86_64 0
+	#define NNP_ARCH_ARM 0
+	#define NNP_ARCH_ARM64 0
+#elif defined(NNP_ARCH_SCALAR)
+	#if !(NNP_ARCH_SCALAR)
+		#error NNP_ARCH_SCALAR predefined as 0
+	#endif
+	#define NNP_ARCH_PSIMD 0
 	#define NNP_ARCH_X86_64 0
 	#define NNP_ARCH_ARM 0
 	#define NNP_ARCH_ARM64 0
 #elif defined(__pnacl__)
 	#define NNP_ARCH_PSIMD 1
+	#define NNP_ARCH_SCALAR 0
 	#define NNP_ARCH_X86_64 0
 	#define NNP_ARCH_ARM 0
 	#define NNP_ARCH_ARM64 0
 #elif defined(__arm__)
 	#define NNP_ARCH_ARM 1
+	#define NNP_ARCH_SCALAR 0
 	#define NNP_ARCH_PSIMD 0
 	#define NNP_ARCH_X86_64 0
 	#define NNP_ARCH_ARM64 0
 #elif defined(__aarch64__)
 	#define NNP_ARCH_ARM64 1
+	#define NNP_ARCH_SCALAR 0
 	#define NNP_ARCH_PSIMD 0
 	#define NNP_ARCH_X86_64 0
 	#define NNP_ARCH_ARM 0
 #elif defined(__x86_64__)
 	#define NNP_ARCH_X86_64 1
+	#define NNP_ARCH_SCALAR 0
 	#define NNP_ARCH_PSIMD 0
 	#define NNP_ARCH_ARM 0
 	#define NNP_ARCH_ARM64 0

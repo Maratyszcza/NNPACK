@@ -50,7 +50,9 @@ class Configuration:
             self.dynamic_library_ext = ".so"
 
         cflags = ["-g", "-std=gnu99"]
-        if options.use_psimd or self.host == "pnacl-nacl-newlib":
+        if options.use_scalar:
+            cflags += ["-DNNP_ARCH_SCALAR"]
+        elif options.use_psimd or self.host == "pnacl-nacl-newlib":
             cflags += ["-DNNP_ARCH_PSIMD"]
         cxxflags = ["-g", "-std=gnu++0x"]
         ldflags = ["-g"]
@@ -388,6 +390,7 @@ parser.add_argument("--enable-mkl", dest="use_mkl", action="store_true")
 parser.add_argument("--enable-openblas", dest="use_openblas", action="store_true")
 parser.add_argument("--enable-blis", dest="use_blis", action="store_true")
 parser.add_argument("--enable-psimd", dest="use_psimd", action="store_true")
+parser.add_argument("--enable-scalar", dest="use_scalar", action="store_true")
 parser.add_argument("--disable-static", dest="build_static", action="store_false", default=True)
 parser.add_argument("--enable-shared", dest="build_shared", action="store_true", default=False)
 
@@ -435,7 +438,7 @@ def main():
         config.cc("relu-input-gradient.c"),
     ]
 
-    if config.host.startswith("x86_64-") and not options.use_psimd:
+    if config.host.startswith("x86_64-") and not options.use_psimd and not options.use_scalar:
         arch_nnpack_objects = [
             # Transformations
             config.peachpy("x86_64-fma/2d-fft-8x8.py"),
@@ -457,7 +460,28 @@ def main():
             config.peachpy("x86_64-fma/blas/sgemm.py"),
             config.peachpy("x86_64-fma/blas/sdotxf.py"),
         ]
-    else:
+    elif options.use_scalar:
+        arch_nnpack_objects = [
+            # Transformations
+            config.cc("scalar/2d-fourier-8x8.c"),
+            config.cc("scalar/2d-fourier-16x16.c"),
+            config.cc("scalar/2d-winograd-8x8-3x3.c"),
+            # ReLU and Softmax
+            config.cc("scalar/relu.c"),
+            config.cc("scalar/softmax.c"),
+            # FFT block accumulation
+            # config.cc("scalar/fft-block-mac.c"),
+            # Tuple GEMM
+            config.cc("scalar/blas/s2gemm.c"),
+            config.cc("scalar/blas/s2gemm-transc.c"),
+            config.cc("scalar/blas/cgemm.c"),
+            config.cc("scalar/blas/cgemm-conjb.c"),
+            config.cc("scalar/blas/cgemm-conjb-transc.c"),
+            # BLAS microkernels
+            config.cc("scalar/blas/sgemm.c"),
+            config.cc("scalar/blas/sdotxf.c"),
+        ]
+    elif options.use_psimd:
         arch_nnpack_objects = [
             # Transformations
             config.cc("psimd/2d-fourier-8x8.c"),
@@ -501,7 +525,7 @@ def main():
         config.cc("ref/fft/inverse-dualreal.c"),
     ]
 
-    if config.host.startswith("x86_64-") and not options.use_psimd:
+    if config.host.startswith("x86_64-") and not options.use_psimd and not options.use_scalar:
         arch_fft_stub_objects = [
             config.peachpy("x86_64-fma/fft-soa.py"),
             config.peachpy("x86_64-fma/fft-aos.py"),
@@ -517,7 +541,14 @@ def main():
 
         arch_math_stub_objects = [
         ]
-    else:
+    elif options.use_scalar:
+        arch_fft_stub_objects = [
+            config.cc("scalar/fft-aos.c"),
+            config.cc("scalar/fft-soa.c"),
+            config.cc("scalar/fft-real.c"),
+            config.cc("scalar/fft-dualreal.c"),
+        ]
+    elif options.use_psimd:
         arch_fft_stub_objects = [
             config.cc("psimd/fft-aos.c"),
             config.cc("psimd/fft-soa.c"),
@@ -570,7 +601,7 @@ def main():
             config.unittest(reference_fft_objects + [config.cxx("fourier/reference.cc")] + gtest_objects,
                 "fourier-reference-test")
 
-        if config.host.startswith("x86_64-") and not options.use_psimd:
+        if config.host.startswith("x86_64-") and not options.use_psimd and not options.use_scalar:
             fourier_x86_64_avx2_test = \
                 config.unittest(reference_fft_objects + arch_fft_stub_objects + [config.cxx("fourier/x86_64-avx2.cc")] + gtest_objects,
                     "fourier-x86_64-avx2-test")
@@ -583,7 +614,7 @@ def main():
                 config.unittest(nnpack_objects + [config.cxx("sgemm/x86_64-fma3.cc")] + gtest_objects,
                     "sgemm-x86_64-fma3-test")
 
-        if config.host.startswith("pnacl-") or options.use_psimd:
+        if config.host.startswith("pnacl-") and not options.use_scalar or options.use_psimd:
             fourier_psimd_test = \
                 config.unittest(reference_fft_objects + arch_fft_stub_objects + [config.cxx("fourier/psimd.cc")] + gtest_objects,
                     "fourier-psimd-test")
@@ -595,6 +626,16 @@ def main():
             sgemm_psimd_test = \
                 config.unittest(nnpack_objects + [config.cxx("sgemm/psimd.cc")] + gtest_objects,
                     "sgemm-psimd-test")
+
+        if options.use_scalar:
+            fourier_scalar_test = \
+                config.unittest(reference_fft_objects + arch_fft_stub_objects + [config.cxx("fourier/scalar.cc")] + gtest_objects,
+                    "fourier-scalar-test")
+
+            sgemm_scalar_test = \
+                config.unittest(nnpack_objects + [config.cxx("sgemm/scalar.cc")] + gtest_objects,
+                    "sgemm-scalar-test")
+
 
         fp16_values = config.cxx("fp16/values.cc")
         fp16_ieee_to_fp32_bits_test = \
@@ -796,7 +837,7 @@ def main():
     config.phony("vgg-bench", vgg_bench_binary)
     config.default([vgg_bench_binary])
 
-    if config.host.startswith("x86_64-") and not options.use_psimd:
+    if config.host.startswith("x86_64-") and not options.use_psimd and not options.use_scalar:
         #ugemm_bench_binary = config.ccld_executable([config.cc("ugemm.c")] + arch_nnpack_objects + bench_support_objects, "ugemm-bench", libs=["m"])
         #config.default(ugemm_bench_binary)
         if options.use_mkl:

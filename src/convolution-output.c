@@ -344,7 +344,7 @@ static void compute_convolution_output(
 								batch_block_start * output_channels * tuple_elements,
 						};
 						if (fourier_transform) {
-							if (tuple_index == 0) {
+							if (tuple_index < NNP_COMPLEX_TUPLE_INDEX) {
 								matrix_multiplication_context.fast_gemm = nnp_hwinfo.cxgemm.s4cX_conjb_only_mr_x_nr;
 								matrix_multiplication_context.full_gemm = nnp_hwinfo.cxgemm.s4cX_conjb_upto_mr_x_nr;
 							} else {

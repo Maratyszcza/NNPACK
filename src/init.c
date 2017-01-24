@@ -263,6 +263,17 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 		[6] = nnp_sdotxf7__psimd,
 		[7] = nnp_sdotxf8__psimd,
 	};
+#elif NNP_ARCH_SCALAR
+	static const nnp_sdotxf_function sdotxf[8] = {
+		[0] = nnp_sdotxf1__scalar,
+		[1] = nnp_sdotxf2__scalar,
+		[2] = nnp_sdotxf3__scalar,
+		[3] = nnp_sdotxf4__scalar,
+		[4] = nnp_sdotxf5__scalar,
+		[5] = nnp_sdotxf6__scalar,
+		[6] = nnp_sdotxf7__scalar,
+		[7] = nnp_sdotxf8__scalar,
+	};
 #endif
 
 static void init_hwinfo(void) {
@@ -468,6 +479,61 @@ static void init_hwinfo(void) {
 			#else
 				nnp_hwinfo.supported = true;
 			#endif
+		#elif NNP_ARCH_SCALAR
+			nnp_hwinfo.simd_width = 1;
+			nnp_hwinfo.transforms.fft8x8_and_store = nnp_fft8x8__scalar;
+			nnp_hwinfo.transforms.fft8x8_and_stream = nnp_fft8x8__scalar;
+			nnp_hwinfo.transforms.ifft8x8 = nnp_ifft8x8__scalar;
+			nnp_hwinfo.transforms.ifft8x8_with_bias = nnp_ifft8x8_with_bias__scalar;
+			nnp_hwinfo.transforms.fft16x16_and_store = nnp_fft16x16__scalar;
+			nnp_hwinfo.transforms.fft16x16_and_stream = nnp_fft16x16__scalar;
+			nnp_hwinfo.transforms.ifft16x16 = nnp_ifft16x16__scalar;
+			nnp_hwinfo.transforms.ifft16x16_with_bias = nnp_ifft16x16_with_bias__scalar;
+			nnp_hwinfo.transforms.iwt_f6x6_3x3_and_store = nnp_iwt8x8_3x3__scalar;
+			nnp_hwinfo.transforms.iwt_f6x6_3x3_and_stream = nnp_iwt8x8_3x3__scalar;
+			nnp_hwinfo.transforms.kwt_f6x6_3x3 = nnp_kwt8x8_3x3__scalar;
+			nnp_hwinfo.transforms.kwt_f6x6_3Rx3R = nnp_kwt8x8_3Rx3R__scalar;
+			nnp_hwinfo.transforms.owt_f6x6_3x3 = nnp_owt8x8_3x3__scalar;
+			nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias = nnp_owt8x8_3x3_with_bias__scalar;
+			// nnp_hwinfo.blockmac.fourier8x8_mac_with_conj = nnp_ft8x8gemmc__psimd;
+			// nnp_hwinfo.blockmac.fourier16x16_mac_with_conj = nnp_ft16x16gemmc__psimd;
+			// nnp_hwinfo.blockmac.winograd8x8_mac = nnp_s8x8gemm__psimd;
+			nnp_hwinfo.activations.inplace_relu = nnp_inplace_relu_forward__scalar;
+			nnp_hwinfo.activations.outplace_relu = nnp_outplace_relu_forward__scalar;
+			nnp_hwinfo.activations.outplace_grad_relu = nnp_relu_backward__scalar;
+			nnp_hwinfo.sdotxf = (struct sdotxf) {
+				.functions = sdotxf,
+				.fusion = NNP_COUNT_OF(sdotxf),
+			};
+			nnp_hwinfo.sgemm = (struct sgemm) {
+				.mr = 4,
+				.nr = 3,
+				.only_mr_x_nr = nnp_sgemm_only_4x3__scalar,
+				.upto_mr_x_nr = nnp_sgemm_upto_4x3__scalar,
+			};
+			nnp_hwinfo.sxgemm = (struct sxgemm) {
+				.mr = 4,
+				.nr = 3,
+				.only_mr_x_nr = nnp_sgemm_only_4x3__scalar,
+				.upto_mr_x_nr = nnp_sgemm_upto_4x3__scalar,
+			};
+			nnp_hwinfo.cxgemm = (struct cxgemm) {
+				.mr = 2,
+				.nr = 2,
+				.s4cX_only_mr_x_nr = nnp_s2gemm_only_2x2__scalar,
+				.s4cX_upto_mr_x_nr = nnp_s2gemm_upto_2x2__scalar,
+				.cX_only_mr_x_nr = nnp_cgemm_only_2x2__scalar,
+				.cX_upto_mr_x_nr = nnp_cgemm_upto_2x2__scalar,
+				.s4cX_conjb_only_mr_x_nr = nnp_s2gemm_only_2x2__scalar,
+				.s4cX_conjb_upto_mr_x_nr = nnp_s2gemm_upto_2x2__scalar,
+				.cX_conjb_only_mr_x_nr = nnp_cgemm_conjb_only_2x2__scalar,
+				.cX_conjb_upto_mr_x_nr = nnp_cgemm_conjb_upto_2x2__scalar,
+				.s4cX_conjb_transc_only_mr_x_nr = nnp_s2gemm_transc_only_2x2__scalar,
+				.s4cX_conjb_transc_upto_mr_x_nr = nnp_s2gemm_transc_upto_2x2__scalar,
+				.cX_conjb_transc_only_mr_x_nr = nnp_cgemm_conjb_transc_only_2x2__scalar,
+				.cX_conjb_transc_upto_mr_x_nr = nnp_cgemm_conjb_transc_upto_2x2__scalar,
+			};
+			nnp_hwinfo.supported = true;
 		#else
 			#error Unsupported host architecture
 		#endif

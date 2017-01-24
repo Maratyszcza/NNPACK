@@ -343,7 +343,7 @@ static void compute_convolution_input_gradient(
 							.grad_input_transform = grad_input_transform + tuple_index * tuple_elements * batch_size * input_channels,
 						};
 						if (fourier_transform) {
-							if (tuple_index == 0) {
+							if (tuple_index < NNP_COMPLEX_TUPLE_INDEX) {
 								matrix_multiplication_context.fast_gemm = nnp_hwinfo.cxgemm.s4cX_only_mr_x_nr;
 								matrix_multiplication_context.full_gemm = nnp_hwinfo.cxgemm.s4cX_upto_mr_x_nr;
 							} else {

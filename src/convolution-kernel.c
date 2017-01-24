@@ -335,7 +335,7 @@ static void compute_convolution_kernel_gradient(
 							.grad_kernel_transform = grad_kernel_transform +
 								tuple_index * tuple_elements * output_channels * input_channels,
 						};
-						if (tuple_index == 0) {
+						if (tuple_index < NNP_COMPLEX_TUPLE_INDEX) {
 							matrix_multiplication_context.fast_gemm = nnp_hwinfo.cxgemm.s4cX_conjb_transc_only_mr_x_nr;
 							matrix_multiplication_context.full_gemm = nnp_hwinfo.cxgemm.s4cX_conjb_transc_upto_mr_x_nr;
 						} else {
