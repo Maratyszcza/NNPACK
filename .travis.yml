@@ -15,7 +15,7 @@ install:
  - pip install --user --upgrade .
  - popd
 before_script:
- - python ./configure.py --enable-psimd
+ - python ./configure.py --backend=psimd
  - ninja
 script:
  - ninja smoketest
