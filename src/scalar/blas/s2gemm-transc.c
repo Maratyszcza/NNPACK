@@ -107,15 +107,15 @@ void nnp_s2gemm_transc_upto_2x2__scalar(
 	if (update != 0) {
 		c[0] += acc00r;
 		c[1] += acc00i;
-		if (nr > 1) {
+		if (mr > 1) {
 			c[2] += acc10r;
 			c[3] += acc10i;
 		}
-		if (mr > 1) {
+		if (nr > 1) {
 			c += row_stride_c;
 			c[0] += acc01r;
 			c[1] += acc01i;
-			if (nr > 1) {
+			if (mr > 1) {
 				c[2] += acc11r;
 				c[3] += acc11i;
 			}
@@ -123,15 +123,15 @@ void nnp_s2gemm_transc_upto_2x2__scalar(
 	} else {
 		c[0] = acc00r;
 		c[1] = acc00i;
-		if (nr > 1) {
+		if (mr > 1) {
 			c[2] = acc10r;
 			c[3] = acc10i;
 		}
-		if (mr > 1) {
+		if (nr > 1) {
 			c += row_stride_c;
 			c[0] = acc01r;
 			c[1] = acc01i;
-			if (nr > 1) {
+			if (mr > 1) {
 				c[2] = acc11r;
 				c[3] = acc11i;
 			}
