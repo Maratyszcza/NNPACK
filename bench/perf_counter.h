@@ -10,6 +10,8 @@
 	#include <linux/perf_event.h>
 #elif defined(__native_client__)
 	#include <sys/time.h>
+#elif defined(EMSCRIPTEN)
+	#include <emscripten.h>
 #else
 	#if defined(__MACH__)
 		#include <mach/mach.h>
@@ -44,7 +46,7 @@ static inline bool disable_perf_counter(int file_descriptor) {
 static inline bool read_perf_counter(int file_descriptor, unsigned long long output[restrict static 1]) {
 #if defined(__linux__)
 	return read(file_descriptor, output, sizeof(*output)) == sizeof(*output);
-#elif defined(__native_client__) && !defined(__x86_64__)
+#elif defined(EMSCRIPTEN) || (defined(__native_client__) && !defined(__x86_64__))
 	return false;
 #elif defined(__native_client__)
 	unsigned int lo, hi;
@@ -90,6 +92,9 @@ static inline bool read_timer(unsigned long long output[restrict static 1]) {
 	} else {
 		return false;
 	}
+#elif defined(EMSCRIPTEN)
+	*output = (unsigned long long) (emscripten_get_now() * 1.0e+6);
+	return true;
 #else
 	#error No implementation available
 #endif

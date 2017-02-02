@@ -25,15 +25,17 @@ class Configuration:
         if self.backend == "auto":
             if self.host.startswith("x86_64-"):
                 self.backend = "x86_64"
+            elif self.host == "asmjs-unknown-emscripten":
+                self.backend = "scalar"
             else:
                 self.backend = "psimd"
 
         self.build_static = options.build_static
         self.build_shared = options.build_shared and self.host in ["x86_64-linux-gnu", "x86_64-osx"]
-        if self.host == "pnacl-nacl-newlib":
+        if self.host in ["pnacl-nacl-newlib", "asmjs-unknown-emscripten"]:
             self.object_ext = ".bc"
             self.pic_object_ext = None
-            self.executable_ext = ".pexe"
+            self.executable_ext = ".pexe" if self.host == "pnacl-nacl-newlib" else ".js"
             self.static_library_ext = ".a"
             self.dynamic_library_ext = None
         elif self.host in ["x86_64-nacl-glibc", "x86_64-nacl-newlib"]:
@@ -128,6 +130,19 @@ class Configuration:
                 self.writer.variable("translate", os.path.join("$nacl_toolchain_dir", "bin", "pnacl-translate"))
             if self.build in ["x86_64-linux-gnu", "x86_64-osx"]:
                 self.writer.variable("sel_ldr", os.path.join("$nacl_sdk_dir", "tools", "sel_ldr.py"))
+        elif self.host == "asmjs-unknown-emscripten":
+            self.writer.variable("ar", "emar")
+            self.writer.variable("cc", "emcc")
+            self.writer.variable("cxx", "em++")
+            self.writer.variable("emscripten_dir", os.getenv("EMSCRIPTEN"))
+            cxxflags.append("-I" + os.path.join("$emscripten_dir", "system", "lib", "libcxxabi", "include"))
+            emflags = list()
+            emflags.append("EMULATE_FUNCTION_POINTER_CASTS=1")
+            emflags.append("TOTAL_MEMORY=537395200")
+            emflags.append("DEMANGLE_SUPPORT=1")
+            emflags.append("ASSERTIONS=2")
+            self.writer.variable("emflags", " ".join("-s " + flag for flag in emflags))
+            ldflags.append("--memory-init-file 0")
         elif self.host == "x86_64-osx":
             self.writer.variable("imageformat", "mach-o")
             self.writer.variable("abi", "sysv")
@@ -140,9 +155,9 @@ class Configuration:
 
         self.writer.variable("cflags", " ".join(cflags))
         self.writer.variable("cxxflags", " ".join(cxxflags))
+        self.writer.variable("optflags", "-O3")
         self.writer.variable("ldflags", " ".join(ldflags))
         self.writer.variable("ldlibs", " ".join("-l" + lib for lib in ldlibs))
-        self.writer.variable("optflags", "-O3")
         self.writer.variable("python2", "python")
 
         # Rules
@@ -154,10 +169,16 @@ class Configuration:
         self.writer.rule("cxx", "$cxx -o $out -c $in -MMD -MF $out.d $optflags $cxxflags $includes",
             deps="gcc", depfile="$out.d",
             description="CXX $descpath")
-        self.writer.rule("ccld", "$cc $ldflags $libdirs -o $out $in $ldlibs",
-            description="CCLD $descpath")
-        self.writer.rule("cxxld", "$cxx $ldflags $libdirs -o $out $in $ldlibs",
-            description="CXXLD $descpath")
+        if self.host == "asmjs-unknown-emscripten":
+            self.writer.rule("ccld", "$cc $optflags $emflags $ldflags $libdirs -o $out $in $ldlibs",
+                description="CCLD $descpath")
+            self.writer.rule("cxxld", "$cxx $optflags $emflags $ldflags $libdirs -o $out $in $ldlibs",
+                description="CXXLD $descpath")
+        else:
+            self.writer.rule("ccld", "$cc $ldflags $libdirs -o $out $in $ldlibs",
+                description="CCLD $descpath")
+            self.writer.rule("cxxld", "$cxx $ldflags $libdirs -o $out $in $ldlibs",
+                description="CXXLD $descpath")
         if self.host.startswith("x86_64-"):
             self.writer.rule("peachpy", "$python2 -m peachpy.x86_64 -mabi=$abi -g4 -mimage-format=$imageformat $peachpyincludes -MMD -MF $object.d -emit-c-header $header -o $object $in",
                 deps="gcc", depfile="$object.d",
@@ -169,6 +190,9 @@ class Configuration:
                 description="TRANSLATE $descpath")
         if self.host in ["x86_64-nacl-newlib", "x86_64-nacl-glibc", "pnacl-nacl-newlib"]:
             self.writer.rule("run", "$sel_ldr -- $in $args",
+                description="RUN $descpath", pool="console")
+        elif self.host == "asmjs-unknown-emscripten":
+            self.writer.rule("run", "node $in $args",
                 description="RUN $descpath", pool="console")
         else:
             self.writer.rule("run", "$in $args",
@@ -250,7 +274,6 @@ class Configuration:
     def cxx(self, source_file, object_file=None, extra_cxxflags=[]):
         return self._compile("cxx", source_file, object_file, extra_flags={"cxxflags": extra_cxxflags}), None
 
-
     def _link(self, rule, object_files, binary_file, binary_dir, lib_dirs, extra_ldlibs=None, extra_ldflags=None):
         if not os.path.isabs(binary_file):
             binary_file = os.path.join(binary_dir, binary_file)
@@ -268,7 +291,6 @@ class Configuration:
         self.writer.build(binary_file, rule, object_files, variables=variables)
         return binary_file
 
-
     def ccld_executable(self, object_files, binary_file, lib_dirs=[], extra_ldlibs=[], extra_ldflags=[]):
         object_files = [nonpic_object for nonpic_object, pic_object in object_files]
         if self.host == "pnacl-nacl-newlib":
@@ -277,7 +299,7 @@ class Configuration:
             native_file = self.translate(portable_file, os.path.join(self.artifact_dir, binary_file + ".nexe"))
             return native_file
         else:
-            return self._link("ccld", object_files, binary_file, self.artifact_dir, lib_dirs, extra_ldlibs, extra_ldflags)
+            return self._link("ccld", object_files, binary_file + self.executable_ext, self.artifact_dir, lib_dirs, extra_ldlibs, extra_ldflags)
 
     @staticmethod
     def _prepare_library_path(library_file, library_dir, library_ext):
@@ -391,7 +413,8 @@ class Configuration:
 
 
 parser = argparse.ArgumentParser(description="NNPACK configuration script")
-parser.add_argument("--host", dest="host", choices=("x86_64-linux-gnu", "x86_64-osx", "x86_64-nacl-newlib", "x86_64-nacl-glibc", "pnacl-nacl-newlib"))
+parser.add_argument("--host", dest="host",
+    choices=("x86_64-linux-gnu", "x86_64-osx", "x86_64-nacl-newlib", "x86_64-nacl-glibc", "pnacl-nacl-newlib", "asmjs-unknown-emscripten"))
 parser.add_argument("--enable-mkl", dest="use_mkl", action="store_true")
 parser.add_argument("--enable-openblas", dest="use_openblas", action="store_true")
 parser.add_argument("--enable-blis", dest="use_blis", action="store_true")

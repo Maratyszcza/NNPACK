@@ -8,11 +8,11 @@
 	#include <time.h>
 	#include <unistd.h>
 	#include <sys/mman.h>
-#else
-	#if defined(__MACH__)
-		#include <mach/mach.h>
-		#include <mach/mach_time.h>
-	#endif
+#elif defined(__MACH__)
+	#include <mach/mach.h>
+	#include <mach/mach_time.h>
+#elif defined(EMSCRIPTEN)
+	#include <emscripten.h>
 #endif
 
 inline static double read_timer() {
@@ -28,6 +28,8 @@ inline static double read_timer() {
 	}
 
 	return ((double) (mach_absolute_time() * timebase_info.numer / timebase_info.denom)) * 1.0e-9;
+#elif defined(EMSCRIPTEN)
+	return emscripten_get_now() * 1.0e-3;
 #else
 	#error No implementation available
 #endif

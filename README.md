@@ -17,6 +17,7 @@ NNPACK is not intended to be directly used by machine learning researchers; inst
 ### Cross-compilation options:
 - Native Client (x86-64) to run as a packaged Google Chrome App
 - Portable Native Client to run inside Google Chrome (no packaging required)
+- Emscripten/Asm.js to run inside any modern Web browser
 - Android with x86/x86-64 (SSE2), ARMv7 with NEON, or ARM64 architecture
 
 ## Features
@@ -112,6 +113,12 @@ You can optionally add `--enable-shared` argument for `configure.py` to addition
 - Download and setup Native Client SDK
 - Set `NACL_SDK_ROOT` variable to a versioned SDK directory (e.g. `~/nacl_sdk/pepper_49`).
 - Configure NNPACK with `--host=pnacl-nacl-newlib` option.
+
+### Cross-compilation for Emscripten/Asm.js
+
+- Download and setup Emscripten SDK
+- Using `emsdk`, download, build and activate one of the environments, and setup environment variables. `$EMSCRIPTEN` should specify the path to activated Emscripten environment.
+- Configure NNPACK with `--host=asmjs-unknown-emscripten` option.
 
 ### Cross-compilation for Android
 
