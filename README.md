@@ -12,7 +12,7 @@ NNPACK is not intended to be directly used by machine learning researchers; inst
 - Linux or OS X host system
 - x86-64 processor with AVX2 instruction set
   - NNPACK is optimized for Intel Skylake, but can run on Haswell & Broadwell processors too
-  - SSE2 instruction set can be targeted using `--enable-psimd` configuration option, but for performance reasons it is not recommended for production use
+  - SSE2 instruction set can be targeted using `--backend=psimd` or `--backend=scalar` configuration options, but for performance reasons it is not recommended for production use
 
 ### Cross-compilation options:
 - Native Client (x86-64) to run as a packaged Google Chrome App

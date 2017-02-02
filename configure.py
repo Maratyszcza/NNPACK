@@ -21,6 +21,12 @@ class Configuration:
 
         # Variables
         self.build, self.host = Configuration.detect_system(options.host)
+        self.backend = options.backend
+        if self.backend == "auto":
+            if self.host.startswith("x86_64-"):
+                self.backend = "x86_64"
+            else:
+                self.backend = "psimd"
 
         self.build_static = options.build_static
         self.build_shared = options.build_shared and self.host in ["x86_64-linux-gnu", "x86_64-osx"]
@@ -50,9 +56,9 @@ class Configuration:
             self.dynamic_library_ext = ".so"
 
         cflags = ["-g", "-std=gnu99"]
-        if options.use_scalar:
+        if self.backend == "scalar":
             cflags += ["-DNNP_ARCH_SCALAR"]
-        elif options.use_psimd or self.host == "pnacl-nacl-newlib":
+        elif self.backend == "psimd":
             cflags += ["-DNNP_ARCH_PSIMD"]
         cxxflags = ["-g", "-std=gnu++0x"]
         ldflags = ["-g"]
@@ -66,7 +72,7 @@ class Configuration:
             self.writer.variable("imageformat", "elf")
             self.writer.variable("abi", "sysv")
             self.writer.variable("ar", "ar")
-            if options.use_psimd:
+            if self.backend == "psimd":
                 self.writer.variable("cc", "clang")
                 self.writer.variable("cxx", "clang++")
             else:
@@ -389,8 +395,8 @@ parser.add_argument("--host", dest="host", choices=("x86_64-linux-gnu", "x86_64-
 parser.add_argument("--enable-mkl", dest="use_mkl", action="store_true")
 parser.add_argument("--enable-openblas", dest="use_openblas", action="store_true")
 parser.add_argument("--enable-blis", dest="use_blis", action="store_true")
-parser.add_argument("--enable-psimd", dest="use_psimd", action="store_true")
-parser.add_argument("--enable-scalar", dest="use_scalar", action="store_true")
+parser.add_argument("--backend", dest="backend", default="auto",
+    choices=("auto", "psimd", "scalar"))
 parser.add_argument("--disable-static", dest="build_static", action="store_false", default=True)
 parser.add_argument("--enable-shared", dest="build_shared", action="store_true", default=False)
 
@@ -438,7 +444,7 @@ def main():
         config.cc("relu-input-gradient.c"),
     ]
 
-    if config.host.startswith("x86_64-") and not options.use_psimd and not options.use_scalar:
+    if config.backend == "x86_64":
         arch_nnpack_objects = [
             # Transformations
             config.peachpy("x86_64-fma/2d-fft-8x8.py"),
@@ -460,7 +466,7 @@ def main():
             config.peachpy("x86_64-fma/blas/sgemm.py"),
             config.peachpy("x86_64-fma/blas/sdotxf.py"),
         ]
-    elif options.use_scalar:
+    elif config.backend == "scalar":
         arch_nnpack_objects = [
             # Transformations
             config.cc("scalar/2d-fourier-8x8.c"),
@@ -481,7 +487,7 @@ def main():
             config.cc("scalar/blas/sgemm.c"),
             config.cc("scalar/blas/sdotxf.c"),
         ]
-    elif options.use_psimd:
+    elif config.backend == "psimd":
         arch_nnpack_objects = [
             # Transformations
             config.cc("psimd/2d-fourier-8x8.c"),
@@ -525,7 +531,7 @@ def main():
         config.cc("ref/fft/inverse-dualreal.c"),
     ]
 
-    if config.host.startswith("x86_64-") and not options.use_psimd and not options.use_scalar:
+    if config.backend == "x86_64":
         arch_fft_stub_objects = [
             config.peachpy("x86_64-fma/fft-soa.py"),
             config.peachpy("x86_64-fma/fft-aos.py"),
@@ -541,14 +547,14 @@ def main():
 
         arch_math_stub_objects = [
         ]
-    elif options.use_scalar:
+    elif config.backend == "scalar":
         arch_fft_stub_objects = [
             config.cc("scalar/fft-aos.c"),
             config.cc("scalar/fft-soa.c"),
             config.cc("scalar/fft-real.c"),
             config.cc("scalar/fft-dualreal.c"),
         ]
-    elif options.use_psimd:
+    elif config.backend == "psimd":
         arch_fft_stub_objects = [
             config.cc("psimd/fft-aos.c"),
             config.cc("psimd/fft-soa.c"),
@@ -601,7 +607,7 @@ def main():
             config.unittest(reference_fft_objects + [config.cxx("fourier/reference.cc")] + gtest_objects,
                 "fourier-reference-test")
 
-        if config.host.startswith("x86_64-") and not options.use_psimd and not options.use_scalar:
+        if config.backend == "x86_64":
             fourier_x86_64_avx2_test = \
                 config.unittest(reference_fft_objects + arch_fft_stub_objects + [config.cxx("fourier/x86_64-avx2.cc")] + gtest_objects,
                     "fourier-x86_64-avx2-test")
@@ -614,7 +620,7 @@ def main():
                 config.unittest(nnpack_objects + [config.cxx("sgemm/x86_64-fma3.cc")] + gtest_objects,
                     "sgemm-x86_64-fma3-test")
 
-        if config.host.startswith("pnacl-") and not options.use_scalar or options.use_psimd:
+        if config.backend == "psimd":
             fourier_psimd_test = \
                 config.unittest(reference_fft_objects + arch_fft_stub_objects + [config.cxx("fourier/psimd.cc")] + gtest_objects,
                     "fourier-psimd-test")
@@ -627,7 +633,7 @@ def main():
                 config.unittest(nnpack_objects + [config.cxx("sgemm/psimd.cc")] + gtest_objects,
                     "sgemm-psimd-test")
 
-        if options.use_scalar:
+        if config.backend == "scalar":
             fourier_scalar_test = \
                 config.unittest(reference_fft_objects + arch_fft_stub_objects + [config.cxx("fourier/scalar.cc")] + gtest_objects,
                     "fourier-scalar-test")
@@ -832,12 +838,7 @@ def main():
     config.phony("relu-bench", relu_bench_binary)
     config.default([convolution_bench_binary, fully_connected_bench_binary, pooling_bench_binary, relu_bench_binary])
 
-    vgg_bench_binary = config.ccld_executable([config.cc("vgg.c")] + nnpack_objects + bench_support_objects,
-        "vgg-benchmark")
-    config.phony("vgg-bench", vgg_bench_binary)
-    config.default([vgg_bench_binary])
-
-    if config.host.startswith("x86_64-") and not options.use_psimd and not options.use_scalar:
+    if config.backend == "x86_64":
         #ugemm_bench_binary = config.ccld_executable([config.cc("ugemm.c")] + arch_nnpack_objects + bench_support_objects, "ugemm-bench", libs=["m"])
         #config.default(ugemm_bench_binary)
         if options.use_mkl:
@@ -862,4 +863,4 @@ def main():
             config.default(blis_gemm_bench_binary)
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
