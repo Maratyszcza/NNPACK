@@ -587,7 +587,7 @@ def main():
         module_source_files = ["nacl/entry.c", "nacl/instance.c", "nacl/interfaces.c", "nacl/messaging.c", "nacl/stringvars.c", "nacl/benchmark.c"]
         nacl_module_objects = [config.cc(source_file, extra_cflags="-I$pepper_include_dir") for source_file in module_source_files]
         nacl_module_binary = \
-            config.module(nnpack_objects + nacl_module_objects, "nnpack", lib_dirs=["$pepper_lib_dir"], libs=["ppapi"])
+            config.module(nnpack_objects + nacl_module_objects, "nnpack", lib_dirs=["$pepper_lib_dir"], extra_ldlibs=["ppapi"])
         config.default(nacl_module_binary)
 
     # Build unit tests
