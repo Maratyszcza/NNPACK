@@ -1,8 +1,3 @@
-#include <stdint.h>
-#include <stddef.h>
-#include <complex.h>
-#include <assert.h>
-
 #include <scalar/fft/soa.h>
 
 

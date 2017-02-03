@@ -1,7 +1,7 @@
 #pragma once
 
 #include <nnpack/simd.h>
-#include <nnpack/fft-defs.h>
+#include <nnpack/fft-constants.h>
 #include <psimd/butterfly.h>
 #include <psimd/fft/soa.h>
 

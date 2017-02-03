@@ -1,8 +1,12 @@
 #pragma once
 
+#include <stddef.h>
+#include <stdint.h>
+
 #include <nnpack/simd.h>
-#include <nnpack/fft-defs.h>
+#include <nnpack/fft-constants.h>
 #include <psimd/butterfly.h>
+
 
 static inline void v4f_fft4_aos(
 	const float t_lo[restrict static 16],

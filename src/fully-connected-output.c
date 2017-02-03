@@ -1,17 +1,13 @@
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <assert.h>
+#include <stddef.h>
 
 #include <nnpack.h>
-#include <nnpack/system.h>
+#include <nnpack/macros.h>
 #include <nnpack/utils.h>
-#include <nnpack/simd.h>
+#include <nnpack/system.h>
 
+#include <nnpack/hwinfo.h>
 #include <nnpack/validation.h>
-#include <nnpack/blas.h>
+
 
 struct NNP_CACHE_ALIGN input_packing_context {
 	const float* matrix;

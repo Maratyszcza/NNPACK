@@ -1,11 +1,9 @@
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
+#include <stddef.h>
 
 #include <nnpack.h>
-#include <nnpack/softmax.h>
+#include <nnpack/macros.h>
 #include <nnpack/utils.h>
+#include <nnpack/softmax.h>
 
 #include <nnpack/validation.h>
 

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <nnpack/fft-defs.h>
-#include <scalar/butterfly.h>
+#include <nnpack/fft-constants.h>
 #include <scalar/fft/soa.h>
 
 

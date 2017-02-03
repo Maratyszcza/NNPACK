@@ -1,8 +1,3 @@
-#include <stdint.h>
-#include <stddef.h>
-#include <complex.h>
-#include <assert.h>
-
 #include <psimd/winograd/f6x6k3x3.h>
 
 

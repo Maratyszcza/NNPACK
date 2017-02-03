@@ -1,15 +1,15 @@
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 #include <assert.h>
 #include <math.h>
 
 #include <nnpack.h>
-#include <nnpack/relu.h>
+#include <nnpack/macros.h>
 #include <nnpack/utils.h>
 
+#include <nnpack/hwinfo.h>
 #include <nnpack/validation.h>
+
 
 struct NNP_CACHE_ALIGN relu_context {
 	nnp_gradient_relu_function relu_function;

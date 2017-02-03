@@ -1,6 +1,5 @@
 #include <stdint.h>
 #include <stddef.h>
-#include <complex.h>
 
 #include <nnpack/utils.h>
 

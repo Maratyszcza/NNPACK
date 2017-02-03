@@ -1,10 +1,9 @@
-#include <stdint.h>
 #include <stddef.h>
-#include <complex.h>
-#include <assert.h>
 
-#include <nnpack/fft-defs.h>
+#include <nnpack/fft-constants.h>
+#include <nnpack/complex.h>
 #include <fft/complex.h>
+
 
 void nnp_fft2_soa__ref(
 	const float t[restrict static 4], size_t t_stride,

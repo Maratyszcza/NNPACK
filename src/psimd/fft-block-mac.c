@@ -1,10 +1,6 @@
-#include <stdint.h>
 #include <stddef.h>
-#include <complex.h>
 
-#include <psimd/fft/real.h>
-#include <psimd/fft/soa.h>
-#include <psimd/fft/dualreal.h>
+#include <nnpack/simd.h>
 
 
 void nnp_s8x8gemm__psimd(

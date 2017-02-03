@@ -1,8 +1,9 @@
 #pragma once
 
 #include <nnpack/simd.h>
-#include <nnpack/fft-defs.h>
+#include <nnpack/fft-constants.h>
 #include <psimd/butterfly.h>
+
 
 static inline void v4f_mul_soa(
 	v4f real[restrict static 1],

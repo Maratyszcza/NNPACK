@@ -2,14 +2,14 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <assert.h>
 
 #include <nnpack.h>
-#include <nnpack/pooling.h>
+#include <nnpack/macros.h>
 #include <nnpack/utils.h>
+#include <nnpack/pooling.h>
 
 #include <nnpack/validation.h>
+
 
 struct NNP_CACHE_ALIGN pooling_context {
 	nnp_pooling_function pooling_function;

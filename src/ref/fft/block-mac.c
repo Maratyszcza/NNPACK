@@ -1,10 +1,7 @@
-#include <stdint.h>
 #include <stddef.h>
-#include <complex.h>
-#include <assert.h>
 
-#include <nnpack/fft.h>
-#include <fft/complex.h>
+#include <nnpack/cmplxf.h>
+
 
 void nnp_macc8x8__ref(float acc[], const float x[], const float y[]) {
     acc[0] += x[0] * y[0];

@@ -1,11 +1,5 @@
 #pragma once
 
-#include <complex.h>
-
-#ifndef CMPLXF
-	#define CMPLXF(real, imag) ((real) + _Complex_I * (imag))
-#endif
-
 #define SQRT2_OVER_2 0x1.6A09E6p-1f
 #define SQRT2_OVER_4 0x1.6A09E6p-2f
 

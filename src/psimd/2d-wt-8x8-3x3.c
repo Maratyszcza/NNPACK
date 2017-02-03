@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stddef.h>
-#include <complex.h>
+
+#include <nnpack/utils.h>
 
 #include <psimd/winograd/f6x6k3x3.h>
 #include <psimd/transpose.h>

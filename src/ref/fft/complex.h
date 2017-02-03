@@ -1,8 +1,7 @@
 #pragma once
 
-#include <complex.h>
+#include <nnpack/fft-constants.h>
 
-#include <nnpack/fft-defs.h>
 
 inline static void butterflyfc(float _Complex a[restrict static 1], float _Complex b[restrict static 1]) {
 	const float _Complex new_a = *a + *b;

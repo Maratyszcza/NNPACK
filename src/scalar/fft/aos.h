@@ -1,7 +1,11 @@
 #pragma once
 
-#include <nnpack/fft-defs.h>
+#include <stddef.h>
+#include <stdint.h>
+
+#include <nnpack/fft-constants.h>
 #include <scalar/butterfly.h>
+
 
 static inline void scalar_fft4_aos(
 	const float t_lo[restrict static 4],

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <nnpack/fft-defs.h>
-#include <scalar/butterfly.h>
+#include <nnpack/fft-constants.h>
 #include <scalar/fft/aos.h>
+
 
 static inline void scalar_fft8_real(
 	const float t0[restrict static 4],

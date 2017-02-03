@@ -1,10 +1,9 @@
-#include <stdint.h>
 #include <stddef.h>
-#include <complex.h>
-#include <assert.h>
 
-#include <nnpack/fft-defs.h>
+#include <nnpack/fft-constants.h>
+#include <nnpack/complex.h>
 #include <fft/complex.h>
+
 
 void nnp_fft8_dualreal__ref(const float t[restrict static 16], float f[restrict static 16]) {
 	float _Complex w0 = CMPLXF(t[0], t[ 8]);

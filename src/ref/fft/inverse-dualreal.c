@@ -1,10 +1,9 @@
-#include <stdint.h>
 #include <stddef.h>
-#include <complex.h>
-#include <assert.h>
 
-#include <nnpack/fft-defs.h>
+#include <nnpack/fft-constants.h>
+#include <nnpack/complex.h>
 #include <fft/complex.h>
+
 
 void nnp_ifft8_dualreal__ref(const float f[restrict static 16], float t[restrict static 16]) {
 	const float x0 = f[0];

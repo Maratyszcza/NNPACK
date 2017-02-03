@@ -1,14 +1,15 @@
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 #include <assert.h>
+#include <math.h>
 
 #include <nnpack.h>
-#include <nnpack/relu.h>
+#include <nnpack/macros.h>
 #include <nnpack/utils.h>
 
+#include <nnpack/hwinfo.h>
 #include <nnpack/validation.h>
+
 
 struct NNP_CACHE_ALIGN inplace_relu_context {
 	nnp_inplace_relu_function relu_function;
@@ -47,7 +48,7 @@ static void compute_outplace_relu_output(
 }
 
 static inline float relu(float data, float negative_slope) {
-	return data > 0.0f ? data : data * negative_slope;
+	return signbit(data) ? data * negative_slope : data;
 }
 
 enum nnp_status nnp_relu_output(

@@ -1,9 +1,10 @@
 #pragma once
 
 #include <nnpack/simd.h>
-#include <nnpack/fft-defs.h>
+#include <nnpack/fft-constants.h>
 #include <psimd/butterfly.h>
 #include <psimd/fft/aos.h>
+
 
 static inline void v4f_fft8_real(
 	const float t0[restrict static 16],
