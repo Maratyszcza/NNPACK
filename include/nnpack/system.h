@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <assert.h>
 
 #if defined(__linux__) || defined(__native_client__)
