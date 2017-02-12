@@ -46,6 +46,7 @@ struct nnp_profile benchmark_convolution(
 			case mode_output:
 				nnp_convolution_output(
 					algorithm,
+					nnp_activation_identity,
 					batch_size,
 					input_channels,
 					output_channels,
@@ -62,6 +63,7 @@ struct nnp_profile benchmark_convolution(
 			case mode_input_gradient:
 				nnp_convolution_input_gradient(
 					algorithm,
+					nnp_activation_identity,
 					batch_size,
 					input_channels,
 					output_channels,
@@ -77,6 +79,7 @@ struct nnp_profile benchmark_convolution(
 			case mode_kernel_gradient:
 				nnp_convolution_kernel_gradient(
 					algorithm,
+					nnp_activation_identity,
 					batch_size,
 					input_channels,
 					output_channels,
@@ -93,6 +96,7 @@ struct nnp_profile benchmark_convolution(
 				nnp_convolution_inference(
 					algorithm,
 					transform_strategy,
+					nnp_activation_identity,
 					input_channels,
 					output_channels,
 					input_size,

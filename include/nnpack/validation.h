@@ -7,7 +7,8 @@
 static inline enum nnp_status validate_convolution_arguments(
 	size_t batch_size, size_t input_channels, size_t output_channels,
 	struct nnp_size input_size, struct nnp_padding input_padding,
-	struct nnp_size kernel_size, struct nnp_size output_subsampling)
+	struct nnp_size kernel_size, struct nnp_size output_subsampling,
+	enum nnp_activation activation)
 {
 	if (!nnp_hwinfo.initialized) {
 		return nnp_status_uninitialized;
@@ -47,6 +48,10 @@ static inline enum nnp_status validate_convolution_arguments(
 
 	if (min(output_subsampling.height, output_subsampling.width) == 0) {
 		return nnp_status_invalid_output_subsampling;
+	}
+
+	if (activation != nnp_activation_identity && activation != nnp_activation_relu) {
+		return nnp_status_unsupported_activation;
 	}
 
 	return nnp_status_success;

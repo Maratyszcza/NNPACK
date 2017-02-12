@@ -386,6 +386,7 @@ static void compute_convolution_output(
 
 enum nnp_status nnp_convolution_output(
 	enum nnp_convolution_algorithm algorithm,
+	enum nnp_activation activation,
 	size_t batch_size,
 	size_t input_channels,
 	size_t output_channels,
@@ -405,7 +406,8 @@ enum nnp_status nnp_convolution_output(
 	/* Basic validation of parameters. This check detects invalid, but not unsupported parameters. */
 	enum nnp_status status = validate_convolution_arguments(
 		batch_size, input_channels, output_channels,
-		input_size, input_padding, kernel_size, (struct nnp_size) { 1, 1 });
+		input_size, input_padding, kernel_size, (struct nnp_size) { 1, 1 },
+		activation);
 	if (status != nnp_status_success) {
 		goto cleanup;
 	}
@@ -449,14 +451,32 @@ enum nnp_status nnp_convolution_output(
 		case nnp_convolution_algorithm_ft8x8:
 			input_transform_function = nnp_hwinfo.transforms.fft8x8_and_stream;
 			kernel_transform_function = nnp_hwinfo.transforms.fft8x8_and_stream;
-			output_transform_function = nnp_hwinfo.transforms.ifft8x8_with_bias;
+			switch (activation) {
+				case nnp_activation_relu:
+					output_transform_function = nnp_hwinfo.transforms.ifft8x8_with_bias_with_relu;
+					break;
+				case nnp_activation_identity:
+					output_transform_function = nnp_hwinfo.transforms.ifft8x8_with_bias;
+					break;
+				default:
+					NNP_UNREACHABLE;
+			}
 			transform_tile = (struct nnp_size) { .height = 8, .width = 8 };
 			fourier_transform = true;
 			break;
 		case nnp_convolution_algorithm_ft16x16:
 			input_transform_function = nnp_hwinfo.transforms.fft16x16_and_stream;
 			kernel_transform_function = nnp_hwinfo.transforms.fft16x16_and_stream;
-			output_transform_function = nnp_hwinfo.transforms.ifft16x16_with_bias;
+			switch (activation) {
+				case nnp_activation_relu:
+					output_transform_function = nnp_hwinfo.transforms.ifft16x16_with_bias_with_relu;
+					break;
+				case nnp_activation_identity:
+					output_transform_function = nnp_hwinfo.transforms.ifft16x16_with_bias;
+					break;
+				default:
+					NNP_UNREACHABLE;
+			}
 			transform_tile = (struct nnp_size) { .height = 16, .width = 16 };
 			fourier_transform = true;
 			break;
@@ -468,6 +488,16 @@ enum nnp_status nnp_convolution_output(
 			input_transform_function = nnp_hwinfo.transforms.iwt_f6x6_3x3_and_stream;
 			kernel_transform_function = nnp_hwinfo.transforms.kwt_f6x6_3x3;
 			output_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias;
+			switch (activation) {
+				case nnp_activation_relu:
+					output_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias_with_relu;
+					break;
+				case nnp_activation_identity:
+					output_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias;
+					break;
+				default:
+					NNP_UNREACHABLE;
+			}
 			transform_tile = (struct nnp_size) { .height = 8, .width = 8 };
 			fourier_transform = false;
 			break;

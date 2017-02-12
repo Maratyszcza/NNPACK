@@ -689,8 +689,20 @@ def main():
         convolution_output_overfeat_fast_test = \
             config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/overfeat-fast.cc")] + gtest_objects,
                 "convolution-output-overfeat-fast-test")
+        convolution_output_alexnet_with_relu_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/alexnet_with_relu.cc")] + gtest_objects,
+                "convolution-output-alexnet-with-relu-test")
+        convolution_output_vgg_a_with_relu_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/vgg-a_with_relu.cc")] + gtest_objects,
+                "convolution-output-vgg-a-with-relu-test")
+        convolution_output_overfeat_fast_with_relu_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-output/overfeat-fast_with_relu.cc")] + gtest_objects,
+                "convolution-output-overfeat-fast-with-relu-test")
         config.phony("convolution-output-test",
-            [convolution_output_smoke_test, convolution_output_alexnet_test, convolution_output_vgg_a_test, convolution_output_overfeat_fast_test])
+            [convolution_output_smoke_test, convolution_output_alexnet_test, 
+                convolution_output_alexnet_with_relu_test, convolution_output_vgg_a_test,
+                convolution_output_vgg_a_with_relu_test, convolution_output_overfeat_fast_test, 
+                convolution_output_overfeat_fast_with_relu_test])
 
         convolution_input_gradient_smoke_test = \
             config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-input-gradient/smoke.cc")] + gtest_objects,
@@ -734,8 +746,19 @@ def main():
         convolution_inference_overfeat_fast_test = \
             config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-inference/overfeat-fast.cc")] + gtest_objects,
                 "convolution-inference-overfeat-fast-test")
+        convolution_inference_alexnet_with_relu_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-inference/alexnet_with_relu.cc")] + gtest_objects,
+                "convolution-inference-alexnet-with-relu-test")
+        convolution_inference_vgg_a_with_relu_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-inference/vgg-a_with_relu.cc")] + gtest_objects,
+                "convolution-inference-vgg-a-with-relu-test")
+        convolution_inference_overfeat_fast_with_relu_test = \
+            config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("convolution-inference/overfeat-fast_with_relu.cc")] + gtest_objects,
+                "convolution-inference-overfeat-fast-with-relu-test")
         config.phony("convolution-inference-test",
-            [convolution_inference_smoke_test, convolution_inference_alexnet_test, convolution_inference_vgg_a_test, convolution_inference_overfeat_fast_test])
+            [convolution_inference_smoke_test, convolution_inference_alexnet_test, convolution_inference_alexnet_with_relu_test,
+                convolution_inference_vgg_a_test, convolution_inference_vgg_a_with_relu_test,
+                convolution_inference_overfeat_fast_test, convolution_inference_overfeat_fast_with_relu_test])
 
         fully_connected_output_smoke_test = \
             config.unittest(nnpack_objects + reference_layer_objects + [config.cxx("fully-connected-output/smoke.cc")] + gtest_objects,

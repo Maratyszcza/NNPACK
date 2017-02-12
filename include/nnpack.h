@@ -65,6 +65,8 @@ enum nnp_status {
 	nnp_status_unsupported_algorithm = 26,
 	/** NNPACK does not support the particular convolution transform strategy for the algorithm */
 	nnp_status_unsupported_transform_strategy = 27,
+	/** NNPACK does not support the particular activation algorithm for the function */
+	nnp_status_unsupported_activation = 28,
 
 	/** NNPACK function was called before the library was initialized */
 	nnp_status_uninitialized = 50,
@@ -174,8 +176,15 @@ enum nnp_status nnp_deinitialize(void);
  * @param[out] profile An optional pointer to profiling structure.
  *                     If provided, the structure would record time spent in different phases of the computation.
  */
+
+enum nnp_activation {
+	nnp_activation_identity = 0,
+	nnp_activation_relu = 1,
+};
+
 enum nnp_status nnp_convolution_output(
 	enum nnp_convolution_algorithm algorithm,
+	enum nnp_activation activation,
 	size_t batch_size,
 	size_t input_channels,
 	size_t output_channels,
@@ -224,6 +233,7 @@ enum nnp_status nnp_convolution_output(
  */
 enum nnp_status nnp_convolution_input_gradient(
 	enum nnp_convolution_algorithm algorithm,
+	enum nnp_activation activation,
 	size_t batch_size,
 	size_t input_channels,
 	size_t output_channels,
@@ -270,6 +280,7 @@ enum nnp_status nnp_convolution_input_gradient(
  */
 enum nnp_status nnp_convolution_kernel_gradient(
 	enum nnp_convolution_algorithm algorithm,
+	enum nnp_activation activation,
 	size_t batch_size,
 	size_t input_channels,
 	size_t output_channels,
@@ -325,6 +336,7 @@ enum nnp_status nnp_convolution_kernel_gradient(
 enum nnp_status nnp_convolution_inference(
 	enum nnp_convolution_algorithm algorithm,
 	enum nnp_convolution_transform_strategy transform_strategy,
+	enum nnp_activation activation,
 	size_t input_channels,
 	size_t output_channels,
 	struct nnp_size input_size,
