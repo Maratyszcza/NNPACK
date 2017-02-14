@@ -1,0 +1,9 @@
+name: nnpack
+title: Neural Networks acceleration PACKage
+license: Simplified BSD
+deps:
+  - name: pthreadpool
+    url:  https://github.com/Maratyszcza/pthreadpool.git
+  - name: fxdiv
+    url:  https://github.com/Maratyszcza/FXdiv.git
+  - name: googletest

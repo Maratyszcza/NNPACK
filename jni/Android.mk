@@ -2,16 +2,16 @@ LOCAL_PATH := $(call my-dir)/..
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := pthreadpool
-LOCAL_SRC_FILES := $(LOCAL_PATH)/third-party/pthreadpool/src/pthreadpool.c
-LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/third-party/pthreadpool/include
-LOCAL_C_INCLUDES := $(LOCAL_EXPORT_C_INCLUDES) $(LOCAL_PATH)/third-party/FXdiv/include
+LOCAL_SRC_FILES := $(LOCAL_PATH)/deps/pthreadpool/src/pthreadpool.c
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/deps/pthreadpool/include
+LOCAL_C_INCLUDES := $(LOCAL_EXPORT_C_INCLUDES) $(LOCAL_PATH)/deps/fxdiv/include
 include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := gtest
-LOCAL_SRC_FILES := $(LOCAL_PATH)/third-party/gtest-1.7.0/src/gtest-all.cc
-LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/third-party/gtest-1.7.0/include
-LOCAL_C_INCLUDES := $(LOCAL_EXPORT_C_INCLUDES) $(LOCAL_PATH)/third-party/gtest-1.7.0
+LOCAL_SRC_FILES := $(LOCAL_PATH)/deps/googletest/googletest/src/gtest-all.cc
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/deps/googletest/googletest/include
+LOCAL_C_INCLUDES := $(LOCAL_EXPORT_C_INCLUDES) $(LOCAL_PATH)/deps/googletest/googletest
 include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
@@ -69,7 +69,7 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/src/relu-output.c \
 	$(LOCAL_PATH)/src/relu-input-gradient.c
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
-LOCAL_C_INCLUDES := $(LOCAL_EXPORT_C_INCLUDES) $(LOCAL_PATH)/third-party/FXdiv/include $(LOCAL_PATH)/src
+LOCAL_C_INCLUDES := $(LOCAL_EXPORT_C_INCLUDES) $(LOCAL_PATH)/deps/fxdiv/include $(LOCAL_PATH)/src
 ifneq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),armeabi-v7a arm64-v8a))
 LOCAL_CFLAGS := -DNNP_ARCH_PSIMD=1
 endif

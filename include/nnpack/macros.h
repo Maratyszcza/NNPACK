@@ -53,7 +53,7 @@
 	#define NNP_ARCH_ARM 0
 	#define NNP_ARCH_ARM64 0
 #else
-	#error Unknown host architecture
+	#error Unknown target architecture
 #endif
 
 #define NNP_ALIGN(alignment) __attribute__((__aligned__(alignment)))

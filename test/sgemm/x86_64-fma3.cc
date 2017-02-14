@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <nnpack.h>
-
 #include <testers/gemm-ukernel.h>
 
 TEST(FAST_4x24, kc1) {

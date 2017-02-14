@@ -1,9 +1,0 @@
-[submodule "third-party/pthreadpool"]
-	path = third-party/pthreadpool
-	url = https://github.com/Maratyszcza/pthreadpool.git
-[submodule "third-party/gtest-1.7.0"]
-	path = third-party/gtest-1.7.0
-	url = https://github.com/google/googletest.git
-[submodule "third-party/FXdiv"]
-	path = third-party/FXdiv
-	url = https://github.com/Maratyszcza/FXdiv.git

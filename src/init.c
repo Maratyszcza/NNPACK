@@ -282,7 +282,7 @@ static void init_hwinfo(void) {
 	#elif defined(__i386__) || defined(__x86_64__)
 		init_x86_hwinfo();
 	#else
-		#error Unsupported host architecture
+		#error Unsupported target architecture
 	#endif
 
 	/* Compute high-level cache blocking parameters */
@@ -535,7 +535,7 @@ static void init_hwinfo(void) {
 			};
 			nnp_hwinfo.supported = true;
 		#else
-			#error Unsupported host architecture
+			#error Unsupported target architecture
 		#endif
 	}
 

@@ -14,7 +14,6 @@ void nnp_fft16_4real__psimd(
 	const float t[restrict static 64],
 	float f[restrict static 64])
 {
-	v4f w0r, w8r, w1r, w1i, w2r, w2i, w3r, w3i, w4r, w4i, w5r, w5i, w6r, w6i, w7r, w7i;
 	v4f_fft16_real(
 		t, t + 32, 4, 0, 16,
 		f, 4);

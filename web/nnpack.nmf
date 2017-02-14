@@ -2,7 +2,7 @@
 	"program": {
 		"portable": {
 			"pnacl-translate": {
-				"url": "nnpack.pexe"
+				"url": "webnnpack.pexe"
 			}
 		}
 	}

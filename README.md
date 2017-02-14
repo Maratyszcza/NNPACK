@@ -4,7 +4,7 @@
 
 NNPACK is an acceleration package for neural network computations. NNPACK aims to provide high-performance implementations of convnet layers for multi-core CPUs.
 
-NNPACK is not intended to be directly used by machine learning researchers; instead it provides low-level performance primitives to be leveraged by higher-level frameworks, such as [Torch](http://torch.ch/), [Caffe](http://caffe.berkeleyvision.org/), [Tensorflow](https://www.tensorflow.org/), [Theano](https://github.com/Theano/Theano), and [Mocha.jl](https://github.com/pluskid/Mocha.jl).
+NNPACK is not intended to be directly used by machine learning researchers; instead it provides low-level performance primitives to be leveraged by higher-level frameworks, such as [Caffe](http://caffe.berkeleyvision.org/), [Torch](http://torch.ch/), [MXNet](http://mxnet.io), [Theano](https://github.com/Theano/Theano), [Tensorflow](https://www.tensorflow.org/), and [Mocha.jl](https://github.com/pluskid/Mocha.jl).
 
 ## Requirements
 
@@ -18,6 +18,7 @@ NNPACK is not intended to be directly used by machine learning researchers; inst
 - Native Client (x86-64) to run as a packaged Google Chrome App
 - Portable Native Client to run inside Google Chrome (no packaging required)
 - Emscripten/Asm.js to run inside any modern Web browser
+- WebAssembly for next-generation Web browsers
 - Android with x86/x86-64 (SSE2), ARMv7 with NEON, or ARM64 architecture
 
 ## Features
@@ -77,54 +78,57 @@ NNPACK is not intended to be directly used by machine learning researchers; inst
 
 NNPACK can be build on OS X and Linux.
 
-Download, build and install PeachPy
-```bash
-git clone https://github.com/Maratyszcza/PeachPy.git
-cd PeachPy
-[sudo] pip install --upgrade -r requirements.txt
-python setup.py generate
-[sudo] pip install --upgrade .
-```
-
-Install [ninja](https://ninja-build.org) build system and `ninja-syntax` Python module
+Install [ninja](https://ninja-build.org) build system
 ```bash
 sudo apt-get install ninja-build || brew install ninja
-[sudo] pip install ninja-syntax
 ```
 
-Then clone and build NNPACK itself
+Install [PeachPy](https://github.com/Maratyszcza/PeachPy) assembler and [confu](https://github.com/Maratyszcza/confu) configuration system
 ```bash
-git clone --recursive https://github.com/Maratyszcza/NNPACK.git
+[sudo] pip install --upgrade git+https://github.com/Maratyszcza/PeachPy
+[sudo] pip install --upgrade git+https://github.com/Maratyszcza/confu
+```
+
+
+Then clone NNPACK, install dependencies, configure, and build
+```bash
+git clone https://github.com/Maratyszcza/NNPACK.git
 cd NNPACK
+confu setup
 python ./configure.py
 ninja
 ```
 
-You can optionally add `--enable-shared` argument for `configure.py` to additionally build NNPACK as shared library (**.so** or **.dylib**). Shared library configuration is not recommended unless you need to load and use NNPACK through some FFI interface (e.g. Lua's `ffi` module or Python's `ctypes` module).
-
 ### Cross-compilation for Native Client
 
 - Download and setup Native Client SDK
-- Set `NACL_SDK_ROOT` variable to a versioned SDK directory (e.g. `~/nacl_sdk/pepper_49`).
-- Configure NNPACK with `--host=x86_64-nacl-glibc` or `--host=x86_64-nacl-newlib` (recommended) option.
+- Set `NACL_SDK_ROOT` variable to a versioned SDK directory (e.g. `/opt/nacl_sdk/pepper_49`).
+- Configure NNPACK with `--target=x86_64-nacl-newlib` (recommended) or `--target=x86_64-nacl-gnu` option.
 
 ### Cross-compilation for Portable Native Client
 
 - Download and setup Native Client SDK
-- Set `NACL_SDK_ROOT` variable to a versioned SDK directory (e.g. `~/nacl_sdk/pepper_49`).
-- Configure NNPACK with `--host=pnacl-nacl-newlib` option.
+- Set `NACL_SDK_ROOT` variable to a versioned SDK directory (e.g. `/opt/nacl_sdk/pepper_49`).
+- Configure NNPACK with `--target=pnacl` option.
 
 ### Cross-compilation for Emscripten/Asm.js
 
 - Download and setup Emscripten SDK
 - Using `emsdk`, download, build and activate one of the environments, and setup environment variables. `$EMSCRIPTEN` should specify the path to activated Emscripten environment.
-- Configure NNPACK with `--host=asmjs-unknown-emscripten` option.
+- Configure NNPACK with `--target=asmjs`  option.
+
+### Cross-compilation for Emscripten/WebAssembly
+
+- Download and setup upstream version of Emscripten SDK
+- Using `emsdk`, download, build and activate `incoming` version of Emscripten and Binaryen, and setup environment variables. `$EMSCRIPTEN` should specify the path to activated Emscripten environment.
+- Configure NNPACK with `--target=wasm`  option.
 
 ### Cross-compilation for Android
 
 - Download and setup Android NDK
 - Add `ndk-build` to `PATH` variable
-- Navigate to NNPACK directory and build NNPACK with `ndk-build` build system. **Note: an NDK project must be built with Clang toolchain to use NNPACK as a static libray**.
+- Navigate to NNPACK directory and setup dependencies (`confu setup`)
+- Build NNPACK with `ndk-build` build system. **Note: an NDK project must be built with Clang toolchain to use NNPACK as a static libray**.
 
 ## Testing
 

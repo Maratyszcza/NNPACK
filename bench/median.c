@@ -59,8 +59,3 @@ struct nnp_profile median_profile(struct nnp_profile array[], size_t length) {
 		return array[length / 2];
 	}
 }
-
-#if defined(__pnacl__)
-	void read_memory(const void* mem, size_t n) {
-	}
-#endif

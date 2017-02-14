@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <nnpack.h>
-
 #include <testers/fourier.h>
 #include <fft-samples.h>
 
