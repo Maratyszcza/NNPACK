@@ -17,7 +17,7 @@ install:
  - ninja install
  - popd
  - LIBGIT2=/tmp/deps LDFLAGS="-Wl,-rpath='/tmp/deps/lib',--enable-new-dtags $LDFLAGS" pip install --user pygit2
- - pip install --user ninja-syntax
+ - pip install --user ninja-syntax pyyaml
  - pip install --user git+https://github.com/Maratyszcza/PeachPy
  - pip install --user git+https://github.com/Maratyszcza/confu
 before_script:
