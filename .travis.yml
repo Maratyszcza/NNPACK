@@ -1,7 +1,7 @@
 language: c
 compiler: clang
 install:
- - pip install --user skbuild ninja ninja-syntax
+ - pip install --user scikit-build ninja ninja-syntax
  - pip install --user git+https://github.com/Maratyszcza/PeachPy
  - pip install --user git+https://github.com/Maratyszcza/confu
 before_script:
