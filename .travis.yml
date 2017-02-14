@@ -1,20 +1,11 @@
 language: c
 compiler: clang
 install:
- - git clone https://github.com/ninja-build/ninja.git /tmp/ninja
- - pushd /tmp/ninja
- - git checkout release
- - python configure.py --bootstrap
- - export PATH=/tmp/ninja:$PATH
- - popd
- - pip install --user ninja-syntax
- - git clone https://github.com/Maratyszcza/PeachPy.git /tmp/PeachPy
- - pushd /tmp/PeachPy
- - pip install --user --upgrade -r requirements.txt
- - python setup.py generate
- - pip install --user --upgrade .
- - popd
+ - pip install --user ninja ninja-syntax
+ - pip install --user git+https://github.com/Maratyszcza/PeachPy
+ - pip install --user git+https://github.com/Maratyszcza/confu
 before_script:
+ - confu setup
  - python ./configure.py --backend=psimd
  - ninja
 script:
