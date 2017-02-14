@@ -8,6 +8,15 @@ install:
  - python configure.py --bootstrap
  - export PATH=/tmp/ninja:$PATH
  - popd
+ - mkdir -p /tmp/libgit2-0.25.1
+ - wget https://github.com/libgit2/libgit2/archive/v0.25.1/libgit2-0.25.1.tar.gz
+ - tar xf libgit2-0.25.1.tar.gz -C /tmp/libgit2-0.25.1 --strip-components=1
+ - mkdir /tmp/libgit2-0.25.1/build
+ - pushd /tmp/libgit2-0.25.1/build
+ - cmake -G Ninja -DCMAKE_INSTALL_PREFIX=/tmp/deps ..
+ - ninja install
+ - popd
+ - LIBGIT2=/tmp/deps LDFLAGS="-Wl,-rpath='/tmp/deps/lib',--enable-new-dtags $LDFLAGS" pip install --user pygit2
  - pip install --user ninja-syntax
  - pip install --user git+https://github.com/Maratyszcza/PeachPy
  - pip install --user git+https://github.com/Maratyszcza/confu
