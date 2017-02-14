@@ -21,3 +21,4 @@ addons:
     packages:
     - linux-headers-3.13.0-40-generic
     - python-pip
+    - python-pygit2
