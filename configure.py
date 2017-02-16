@@ -187,7 +187,7 @@ def main(args):
         build.static_library("nnpack", nnpack_objects)
 
     # Build tests for micro-kernels. Link to the micro-kernels implementations
-    with build.options(source_dir="test", extra_include_dirs="test", deps=build.deps.googletest):
+    with build.options(source_dir="test", extra_include_dirs="test", deps=build.deps.googletest.core):
 
         build.unittest("fourier-reference-test",
             reference_fft_objects + [build.cxx("fourier/reference.cc")])
@@ -227,7 +227,7 @@ def main(args):
 
     # Build test for layers. Link to the library.
     with build.options(source_dir="test", include_dirs="test", deps={
-                (build, build.deps.pthreadpool, build.deps.googletest): all,
+                (build, build.deps.pthreadpool, build.deps.googletest.core): all,
                 "rt": build.target.is_linux
             }):
 
