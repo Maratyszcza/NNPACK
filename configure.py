@@ -226,8 +226,11 @@ def main(args):
             [build.cxx("fp16/fp32-to-ieee-value.cc"), fp16_values])
 
     # Build test for layers. Link to the library.
-    with build.options(source_dir="test", include_dirs="test",
-            deps=[build, build.deps.pthreadpool, build.deps.googletest]):
+    with build.options(source_dir="test", include_dirs="test", deps={
+                (build, build.deps.pthreadpool, build.deps.googletest): all,
+                "rt": build.target.is_linux
+            }):
+
         build.smoketest("convolution-output-smoketest",
             reference_layer_objects + [build.cxx("convolution-output/smoke.cc")])
         build.unittest("convolution-output-alexnet-test",
@@ -307,7 +310,10 @@ def main(args):
             reference_layer_objects + [build.cxx("softmax-output/imagenet.cc")])
 
     # Build benchmarking utilities
-    with build.options(source_dir="bench", extra_include_dirs="bench", deps=[build, build.deps.pthreadpool]):
+    with build.options(source_dir="bench", extra_include_dirs="bench", deps={
+            (build, build.deps.pthreadpool): all,
+            "rt": build.target.is_linux}):
+
         support_objects = [build.cc("median.c")]
         if build.target.is_x86_64:
             support_objects += [build.peachpy("memread.py")]
