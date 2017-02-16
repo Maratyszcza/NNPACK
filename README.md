@@ -2,6 +2,9 @@
 
 # NNPACK
 
+[![BSD (2 clause) License](https://img.shields.io/badge/License-BSD%202--Clause%20%22Simplified%22%20License-blue.svg)](https://github.com/Maratyszcza/NNPACK/blob/master/LICENSE)
+[![Build Status](https://img.shields.io/travis/Maratyszcza/NNPACK.svg)](https://travis-ci.org/Maratyszcza/NNPACK)
+
 NNPACK is an acceleration package for neural network computations. NNPACK aims to provide high-performance implementations of convnet layers for multi-core CPUs.
 
 NNPACK is not intended to be directly used by machine learning researchers; instead it provides low-level performance primitives to be leveraged by higher-level frameworks, such as [Caffe](http://caffe.berkeleyvision.org/), [Torch](http://torch.ch/), [MXNet](http://mxnet.io), [Theano](https://github.com/Theano/Theano), [Tensorflow](https://www.tensorflow.org/), and [Mocha.jl](https://github.com/pluskid/Mocha.jl).
