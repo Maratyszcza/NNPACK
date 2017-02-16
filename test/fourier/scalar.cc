@@ -16,7 +16,7 @@ TEST(FFT8_WITHIN_ROWS, match_reference) {
 TEST(FFT16_WITHIN_ROWS, match_reference) {
 	auto tester = FFTTester()
 		.fftSize(16)
-		.errorLimit(1.0e-8f);
+		.errorLimit(1.0e-7f);
 	tester.testOptimizedComplex(nnp_fft16_soa__scalar, nnp_fft16_soa__ref);
 }
 
@@ -34,7 +34,7 @@ TEST(IFFT8_WITHIN_ROWS, match_reference) {
 TEST(IFFT16_WITHIN_ROWS, match_reference) {
 	auto tester = FFTTester()
 		.fftSize(16)
-		.errorLimit(1.0e-8f);
+		.errorLimit(1.0e-7f);
 	tester.testOptimizedComplex(nnp_ifft16_soa__scalar, nnp_ifft16_soa__ref);
 }
 
@@ -52,7 +52,7 @@ TEST(FFT8_DUAL_REAL_WITHIN_ROWS, match_reference) {
 TEST(FFT16_DUAL_REAL_WITHIN_ROWS, match_reference) {
 	auto tester = FFTTester()
 		.fftSize(16)
-		.errorLimit(1.0e-7f);
+		.errorLimit(1.0e-6f);
 	tester.testOptimizedDualReal(nnp_fft16_dualreal__scalar, nnp_fft16_dualreal__ref);
 }
 
@@ -70,7 +70,7 @@ TEST(IFFT8_DUAL_REAL_WITHIN_ROWS, match_reference) {
 TEST(IFFT16_DUAL_REAL_WITHIN_ROWS, match_reference) {
 	auto tester = FFTTester()
 		.fftSize(16)
-		.errorLimit(1.0e-7f);
+		.errorLimit(1.0e-6f);
 	tester.testOptimizedDualReal(nnp_ifft16_dualreal__scalar, nnp_ifft16_dualreal__ref);
 }
 

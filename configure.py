@@ -313,7 +313,7 @@ def main(args):
             support_objects += [build.peachpy("memread.py")]
         else:
             support_objects += [build.cc("memread.c")]
-        if build.target.is_linux:
+        if build.target.is_linux and build.target.is_x86_64:
             support_objects += [build.cc("perf_counter.c")]
 
         build.executable("transform-bench",

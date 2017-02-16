@@ -207,7 +207,7 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 	}
 #endif
 
-#if defined(__pnacl__) || defined(__ANDROID__) || defined(EMSCRIPTEN)
+#if !(defined(__x86_64__) || defined(__i386__)) || defined(__ANDROID__)
 	static void init_static_hwinfo(void) {
 		nnp_hwinfo.cache.l1 = (struct cache_info) {
 			.size = 16 * 1024,
@@ -277,12 +277,10 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 #endif
 
 static void init_hwinfo(void) {
-	#if defined(__pnacl__) || defined(__ANDROID__) || defined(EMSCRIPTEN)
-		init_static_hwinfo();
-	#elif defined(__i386__) || defined(__x86_64__)
+	#if (defined(__i386__) || defined(__x86_64__)) && !defined(__ANDROID__)
 		init_x86_hwinfo();
 	#else
-		#error Unsupported target architecture
+		init_static_hwinfo();
 	#endif
 
 	/* Compute high-level cache blocking parameters */

@@ -28,7 +28,7 @@ struct performance_counter {
 };
 
 static inline bool enable_perf_counter(int file_descriptor) {
-#if defined(__linux__)
+#if defined(__linux__) && defined(__x86_64__)
 	return ioctl(file_descriptor, PERF_EVENT_IOC_ENABLE, 0) == 0;
 #else
 	return true;
@@ -36,7 +36,7 @@ static inline bool enable_perf_counter(int file_descriptor) {
 }
 
 static inline bool disable_perf_counter(int file_descriptor) {
-#if defined(__linux__)
+#if defined(__linux__) && defined(__x86_64__)
 	return ioctl(file_descriptor, PERF_EVENT_IOC_DISABLE, 0) == 0;
 #else
 	return true;
@@ -44,7 +44,7 @@ static inline bool disable_perf_counter(int file_descriptor) {
 }
 
 static inline bool read_perf_counter(int file_descriptor, unsigned long long output[restrict static 1]) {
-#if defined(__linux__)
+#if defined(__linux__) && defined(__x86_64__)
 	return read(file_descriptor, output, sizeof(*output)) == sizeof(*output);
 #elif defined(EMSCRIPTEN) || (defined(__native_client__) && !defined(__x86_64__))
 	return false;
@@ -60,10 +60,12 @@ static inline bool read_perf_counter(int file_descriptor, unsigned long long out
 	);
 	*output = (((unsigned long long) hi) << 32) | ((unsigned long long) lo);
 	return true;
-#else
+#elif defined(__x86_64__)
 	unsigned int aux;
 	*output = __rdtscp(&aux);
 	return true;
+#else
+	return false;
 #endif
 }
 
@@ -100,7 +102,7 @@ static inline bool read_timer(unsigned long long output[restrict static 1]) {
 #endif
 }
 
-#if defined(__linux__)
+#if defined(__linux__) && defined(__x86_64__)
 const struct performance_counter* init_performance_counters(size_t* count_ptr);
 #else
 static inline const struct performance_counter* init_performance_counters(size_t* count_ptr) {
