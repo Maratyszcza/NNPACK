@@ -1,7 +1,7 @@
 language: c
 compiler: clang
 install:
- - wget https://github.com/Maratyszcza/confu/blob/master/install_deps.sh
+ - wget https://raw.githubusercontent.com/Maratyszcza/confu/master/install_deps.sh
  - bash ./install_deps.sh
  - export PATH=$HOME/.local/bin:$PATH
  - pip install --user ninja-syntax pyyaml
