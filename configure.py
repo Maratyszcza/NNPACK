@@ -217,14 +217,6 @@ def main(args):
             build.smoketest("sgemm-scalar-test",
                 arch_nnpack_objects + [build.cxx("sgemm/scalar.cc")])
 
-        fp16_values = build.cxx("fp16/values.cc")
-        build.unittest("fp16-ieee-to-fp32-bits-test",
-            [build.cxx("fp16/ieee-to-fp32-bits.cc"), fp16_values])
-        build.unittest("fp16-ieee-to-fp32-value-test",
-            [build.cxx("fp16/ieee-to-fp32-value.cc"), fp16_values])
-        build.unittest("fp32-to-fp16-ieee-value-test",
-            [build.cxx("fp16/fp32-to-ieee-value.cc"), fp16_values])
-
     # Build test for layers. Link to the library.
     with build.options(source_dir="test", include_dirs="test", deps={
                 (build, build.deps.pthreadpool, build.deps.googletest.core): all,
