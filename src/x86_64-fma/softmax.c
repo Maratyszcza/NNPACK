@@ -2,7 +2,6 @@
 #include <stddef.h>
 #include <math.h>
 
-#include <nnpack/simd.h>
 #include <nnpack/utils.h>
 #include <nnpack/softmax.h>
 

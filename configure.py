@@ -57,9 +57,9 @@ def main(args):
         if backend == "x86_64":
             arch_nnpack_objects = [
                 # Transformations
-                build.peachpy("x86_64-fma/2d-fft-8x8.py"),
-                build.peachpy("x86_64-fma/2d-fft-16x16.py"),
-                build.peachpy("x86_64-fma/2d-wt-8x8-3x3.py"),
+                build.peachpy("x86_64-fma/2d-fourier-8x8.py"),
+                build.peachpy("x86_64-fma/2d-fourier-16x16.py"),
+                build.peachpy("x86_64-fma/2d-winograd-8x8-3x3.py"),
                 # Pooling
                 build.peachpy("x86_64-fma/max-pooling.py"),
                 # ReLU and Softmax
