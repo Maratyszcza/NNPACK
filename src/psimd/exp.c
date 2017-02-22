@@ -11,13 +11,15 @@ void nnp_vector_exp__psimd(
 	float y[restrict static n])
 {
 	do {
-		v4f_st(y, v4f_exp(v4f_ld(x)));
+		psimd_store_f32(y,
+			psimd_exp_f32(psimd_load_f32(x)));
 
 		y += 4;
 		x += 4;
 		n -= 4;
 	} while (n >= 4);
 	if (n != 0) {
-		v4f_st(y + n - 4, v4f_exp(v4f_ld(x + n - 4)));
+		psimd_store_f32(y + n - 4,
+			psimd_exp_f32(psimd_load_f32(x + n - 4)));
 	}
 }

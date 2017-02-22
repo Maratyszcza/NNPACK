@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include <nnpack/macros.h>
 #include <nnpack/utils.h>
 
 #include <psimd/fft/real.h>
@@ -10,7 +11,7 @@
 
 union NNP_SIMD_ALIGN block8x8 {
 	float as_float[8][8];
-	v4f as_v4f[8][2];
+	psimd_f32 as_psimd_f32[8][2];
 };
 
 
@@ -27,24 +28,24 @@ void nnp_fft8x8__psimd(
 
 	union block8x8 block;
 	if (column_count >= simd_width) {
-		const v4f zero = v4f_zero();
+		const psimd_f32 zero = psimd_zero_f32();
 		float *restrict block_data = &block.as_float[0][0];
 		const uint32_t column_end = column_offset + column_count;
 		if (column_offset != 0 && column_end != block_size) {
 			for (uint32_t row = 0; row < block_size; row++) {
-				v4f_st(block_data,              zero);
-				v4f_st(block_data + simd_width, zero);
+				psimd_store_f32(block_data,              zero);
+				psimd_store_f32(block_data + simd_width, zero);
 				block_data += block_size;
 			}
 		} else {
 			if (column_offset != 0) {
 				for (uint32_t row = 0; row < block_size; row++) {
-					v4f_st(block_data, zero);
+					psimd_store_f32(block_data, zero);
 					block_data += block_size;
 				}
 			} else if (column_end != block_size) {
 				for (uint32_t row = 0; row < block_size; row++) {
-					v4f_st(block_data + simd_width, zero);
+					psimd_store_f32(block_data + simd_width, zero);
 					block_data += block_size;
 				}
 			}
@@ -59,18 +60,18 @@ void nnp_fft8x8__psimd(
 			row4 += column_block;
 			output += column_block;
 
-			v4f_fft8_real(
+			psimd_fft8_real_f32(
 				row0 - simd_width, row4 - simd_width, data_stride, row_offset, row_count,
 				output - simd_width, block_size);
 
 			column_count -= column_block;
 		} while (column_count != 0);
 	} else {
-		const v4f zero = v4f_zero();
+		const psimd_f32 zero = psimd_zero_f32();
 		float *restrict block_data = &block.as_float[0][0];
 		for (uint32_t row = 0; row < block_size; row++) {
-			v4f_st(block_data,              zero);
-			v4f_st(block_data + simd_width, zero);
+			psimd_store_f32(block_data,              zero);
+			psimd_store_f32(block_data + simd_width, zero);
 			block_data += block_size;
 		}
 
@@ -81,25 +82,25 @@ void nnp_fft8x8__psimd(
 		}
 
 		const uint32_t column = min(column_offset, block_size - simd_width);
-		v4f_fft8_real(
+		psimd_fft8_real_f32(
 			&block.as_float[row_offset][column], &block.as_float[max(row_offset, block_size / 2)][column],
 			block_size, row_offset, row_count,
 			&block.as_float[0][column], block_size);
 	}
 
-	v4f_fft8_dualreal(
-		&block.as_v4f[0][0], &block.as_v4f[0][1],
-		&block.as_v4f[1][0], &block.as_v4f[1][1]);
+	psimd_fft8_dualreal_f32(
+		&block.as_psimd_f32[0][0], &block.as_psimd_f32[0][1],
+		&block.as_psimd_f32[1][0], &block.as_psimd_f32[1][1]);
 	for (size_t row = 2; row < block_size; row += 2) {
-		v4f_fft8_soa(
-			&block.as_v4f[row    ][0], &block.as_v4f[row    ][1],
-			&block.as_v4f[row + 1][0], &block.as_v4f[row + 1][1]);
+		psimd_fft8_soa_f32(
+			&block.as_psimd_f32[row    ][0], &block.as_psimd_f32[row    ][1],
+			&block.as_psimd_f32[row + 1][0], &block.as_psimd_f32[row + 1][1]);
 	}
 
 	for (size_t row = 0; row < block_size; row += 2) {
 		for (size_t column = 0; column < 2; column += 1) {
-			v4f_st(transform,              block.as_v4f[row][column]);
-			v4f_st(transform + simd_width, block.as_v4f[row + 1][column]);
+			psimd_store_f32(transform,              block.as_psimd_f32[row][column]);
+			psimd_store_f32(transform + simd_width, block.as_psimd_f32[row + 1][column]);
 			transform += transform_stride;
 		}
 	}
@@ -117,30 +118,30 @@ void nnp_ifft8x8__psimd(
 	union block8x8 block;
 	for (size_t row = 0; row < 8; row += 2) {
 		for (size_t column = 0; column < 2; column += 1) {
-			block.as_v4f[row][column] = v4f_ld(transform + 0);
-			block.as_v4f[row + 1][column] = v4f_ld(transform + 4);
+			block.as_psimd_f32[row][column] = psimd_load_f32(transform + 0);
+			block.as_psimd_f32[row + 1][column] = psimd_load_f32(transform + 4);
 			transform += transform_stride;
 		}
 	}
 
-	v4f_ifft8_dualreal(
-		&block.as_v4f[0][0], &block.as_v4f[0][1],
-		&block.as_v4f[1][0], &block.as_v4f[1][1]);
+	psimd_ifft8_dualreal_f32(
+		&block.as_psimd_f32[0][0], &block.as_psimd_f32[0][1],
+		&block.as_psimd_f32[1][0], &block.as_psimd_f32[1][1]);
 	for (size_t row = 2; row < 8; row += 2) {
-		v4f_ifft8_soa(
-			&block.as_v4f[row    ][0], &block.as_v4f[row    ][1],
-			&block.as_v4f[row + 1][0], &block.as_v4f[row + 1][1]);
+		psimd_ifft8_soa_f32(
+			&block.as_psimd_f32[row    ][0], &block.as_psimd_f32[row    ][1],
+			&block.as_psimd_f32[row + 1][0], &block.as_psimd_f32[row + 1][1]);
 	}
 
-	v4f_ifft8_real(
-		block.as_v4f[0][0], block.as_v4f[1][0], block.as_v4f[2][0], block.as_v4f[3][0],
-		block.as_v4f[4][0], block.as_v4f[5][0], block.as_v4f[6][0], block.as_v4f[7][0],
+	psimd_ifft8_real_f32(
+		block.as_psimd_f32[0][0], block.as_psimd_f32[1][0], block.as_psimd_f32[2][0], block.as_psimd_f32[3][0],
+		block.as_psimd_f32[4][0], block.as_psimd_f32[5][0], block.as_psimd_f32[6][0], block.as_psimd_f32[7][0],
 		&block.as_float[0][0], &block.as_float[4][0], 8);
 	const uint32_t column_end = column_offset + column_count;
 	if (column_end > 4) {
-		v4f_ifft8_real(
-			block.as_v4f[0][1], block.as_v4f[1][1], block.as_v4f[2][1], block.as_v4f[3][1],
-			block.as_v4f[4][1], block.as_v4f[5][1], block.as_v4f[6][1], block.as_v4f[7][1],
+		psimd_ifft8_real_f32(
+			block.as_psimd_f32[0][1], block.as_psimd_f32[1][1], block.as_psimd_f32[2][1], block.as_psimd_f32[3][1],
+			block.as_psimd_f32[4][1], block.as_psimd_f32[5][1], block.as_psimd_f32[6][1], block.as_psimd_f32[7][1],
 			&block.as_float[0][4], &block.as_float[4][4], 8);
 	}
 
@@ -163,29 +164,29 @@ void nnp_ifft8x8_with_bias__psimd(
 	union block8x8 block;
 	for (size_t row = 0; row < 8; row += 2) {
 		for (size_t column = 0; column < 2; column += 1) {
-			block.as_v4f[row][column] = v4f_ld(transform + 0);
-			block.as_v4f[row + 1][column] = v4f_ld(transform + 4);
+			block.as_psimd_f32[row][column] = psimd_load_f32(transform + 0);
+			block.as_psimd_f32[row + 1][column] = psimd_load_f32(transform + 4);
 			transform += transform_stride;
 		}
 	}
 
-	v4f_ifft8_dualreal(
-		&block.as_v4f[0][0], &block.as_v4f[0][1],
-		&block.as_v4f[1][0], &block.as_v4f[1][1]);
+	psimd_ifft8_dualreal_f32(
+		&block.as_psimd_f32[0][0], &block.as_psimd_f32[0][1],
+		&block.as_psimd_f32[1][0], &block.as_psimd_f32[1][1]);
 	for (size_t row = 2; row < 8; row += 2) {
-		v4f_ifft8_soa(
-			&block.as_v4f[row    ][0], &block.as_v4f[row    ][1],
-			&block.as_v4f[row + 1][0], &block.as_v4f[row + 1][1]);
+		psimd_ifft8_soa_f32(
+			&block.as_psimd_f32[row    ][0], &block.as_psimd_f32[row    ][1],
+			&block.as_psimd_f32[row + 1][0], &block.as_psimd_f32[row + 1][1]);
 	}
 
-	v4f_ifft8_real(
-		block.as_v4f[0][0], block.as_v4f[1][0], block.as_v4f[2][0], block.as_v4f[3][0],
-		block.as_v4f[4][0], block.as_v4f[5][0], block.as_v4f[6][0], block.as_v4f[7][0],
+	psimd_ifft8_real_f32(
+		block.as_psimd_f32[0][0], block.as_psimd_f32[1][0], block.as_psimd_f32[2][0], block.as_psimd_f32[3][0],
+		block.as_psimd_f32[4][0], block.as_psimd_f32[5][0], block.as_psimd_f32[6][0], block.as_psimd_f32[7][0],
 		&block.as_float[0][0], &block.as_float[4][0], 8);
 	if (column_count > 4) {
-		v4f_ifft8_real(
-			block.as_v4f[0][1], block.as_v4f[1][1], block.as_v4f[2][1], block.as_v4f[3][1],
-			block.as_v4f[4][1], block.as_v4f[5][1], block.as_v4f[6][1], block.as_v4f[7][1],
+		psimd_ifft8_real_f32(
+			block.as_psimd_f32[0][1], block.as_psimd_f32[1][1], block.as_psimd_f32[2][1], block.as_psimd_f32[3][1],
+			block.as_psimd_f32[4][1], block.as_psimd_f32[5][1], block.as_psimd_f32[6][1], block.as_psimd_f32[7][1],
 			&block.as_float[0][4], &block.as_float[4][4], 8);
 	}
 

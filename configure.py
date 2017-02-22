@@ -104,7 +104,7 @@ def main(args):
                 # Transformations
                 build.cc("psimd/2d-fourier-8x8.c"),
                 build.cc("psimd/2d-fourier-16x16.c"),
-                build.cc("psimd/2d-wt-8x8-3x3.c"),
+                build.cc("psimd/2d-winograd-8x8-3x3.c"),
                 # ReLU and Softmax
                 build.cc("psimd/relu.c"),
                 build.cc("psimd/softmax.c"),

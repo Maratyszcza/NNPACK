@@ -1,6 +1,6 @@
 #include <stddef.h>
 
-#include <nnpack/simd.h>
+#include <psimd.h>
 
 
 void nnp_s8x8gemm__psimd(
@@ -9,8 +9,8 @@ void nnp_s8x8gemm__psimd(
 	const float y[restrict static 8 * 8])
 {
 	for (size_t row = 0; row < 8; row++) {
-		v4f_st(acc + 0, v4f_ld(acc + 0) + v4f_ld(x + 0) * v4f_ld(y + 0));
-		v4f_st(acc + 4, v4f_ld(acc + 4) + v4f_ld(x + 4) * v4f_ld(y + 4));
+		psimd_store_f32(acc + 0, psimd_load_f32(acc + 0) + psimd_load_f32(x + 0) * psimd_load_f32(y + 0));
+		psimd_store_f32(acc + 4, psimd_load_f32(acc + 4) + psimd_load_f32(x + 4) * psimd_load_f32(y + 4));
 
 		acc += 8;
 		x += 8;
@@ -24,18 +24,18 @@ void nnp_ft8x8gemmc__psimd(
 	const float y[restrict static 8 * 8])
 {
 	for (size_t row = 0; row < 8; row++) {
-		const v4f xr = v4f_ld(x + 0);
-		const v4f xi = v4f_ld(x + 4);
+		const psimd_f32 xr = psimd_load_f32(x + 0);
+		const psimd_f32 xi = psimd_load_f32(x + 4);
 
-		const v4f yr = v4f_ld(y + 0);
-		v4f accr = v4f_ld(acc + 0) + xr * yr;
-		v4f acci = v4f_ld(acc + 4) + xi * yr;
+		const psimd_f32 yr = psimd_load_f32(y + 0);
+		psimd_f32 accr = psimd_load_f32(acc + 0) + xr * yr;
+		psimd_f32 acci = psimd_load_f32(acc + 4) + xi * yr;
 
-		const v4f yi = v4f_ld(y + 4);
+		const psimd_f32 yi = psimd_load_f32(y + 4);
 		accr += xi * yi;
-		v4f_st(acc + 0, accr);
+		psimd_store_f32(acc + 0, accr);
 		acci -= xr * yi;
-		v4f_st(acc + 4, acci);
+		psimd_store_f32(acc + 4, acci);
 
 		acc += 8;
 		x += 8;
@@ -50,18 +50,18 @@ void nnp_ft16x16gemmc__psimd(
 	const float y[restrict static 16 * 16])
 {
 	for (size_t row = 0; row < 16 * 2; row++) {
-		const v4f xr = v4f_ld(x + 0);
-		const v4f xi = v4f_ld(x + 4);
+		const psimd_f32 xr = psimd_load_f32(x + 0);
+		const psimd_f32 xi = psimd_load_f32(x + 4);
 
-		const v4f yr = v4f_ld(y + 0);
-		v4f accr = v4f_ld(acc + 0) + xr * yr;
-		v4f acci = v4f_ld(acc + 4) + xi * yr;
+		const psimd_f32 yr = psimd_load_f32(y + 0);
+		psimd_f32 accr = psimd_load_f32(acc + 0) + xr * yr;
+		psimd_f32 acci = psimd_load_f32(acc + 4) + xi * yr;
 
-		const v4f yi = v4f_ld(y + 4);
+		const psimd_f32 yi = psimd_load_f32(y + 4);
 		accr += xi * yi;
-		v4f_st(acc + 0, accr);
+		psimd_store_f32(acc + 0, accr);
 		acci -= xr * yi;
-		v4f_st(acc + 4, acci);
+		psimd_store_f32(acc + 4, acci);
 
 		acc += 8;
 		x += 8;

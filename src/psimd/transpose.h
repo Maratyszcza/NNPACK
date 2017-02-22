@@ -1,14 +1,14 @@
 #pragma once
 
-#include <nnpack/simd.h>
+#include <psimd.h>
 
 
-static inline void v4f_transpose4x4(
-    const v4f row0, const v4f row1, const v4f row2, const v4f row3,
-    v4f col0[restrict static 1],
-    v4f col1[restrict static 1],
-    v4f col2[restrict static 1],
-    v4f col3[restrict static 1])
+static inline void psimd_transpose4x4_f32(
+    const psimd_f32 row0, const psimd_f32 row1, const psimd_f32 row2, const psimd_f32 row3,
+    psimd_f32 col0[restrict static 1],
+    psimd_f32 col1[restrict static 1],
+    psimd_f32 col2[restrict static 1],
+    psimd_f32 col3[restrict static 1])
 {
     /*
      * row0 = ( x00 x01 x02 x03 )
@@ -23,10 +23,10 @@ static inline void v4f_transpose4x4(
      * row23lo = ( x20 x30 x21 x31 )
      * row23hi = ( x22 x32 x23 x33 )
      */
-    const v4f row01lo = __builtin_shufflevector(row0, row1, 0, 4, 1, 5);
-    const v4f row01hi = __builtin_shufflevector(row0, row1, 2, 6, 3, 7);
-    const v4f row23lo = __builtin_shufflevector(row2, row3, 0, 4, 1, 5);
-    const v4f row23hi = __builtin_shufflevector(row2, row3, 2, 6, 3, 7);
+    const psimd_f32 row01lo = __builtin_shufflevector(row0, row1, 0, 4, 1, 5);
+    const psimd_f32 row01hi = __builtin_shufflevector(row0, row1, 2, 6, 3, 7);
+    const psimd_f32 row23lo = __builtin_shufflevector(row2, row3, 0, 4, 1, 5);
+    const psimd_f32 row23hi = __builtin_shufflevector(row2, row3, 2, 6, 3, 7);
 
     /*
      * col0 = ( x00 x10 x20 x30 )
