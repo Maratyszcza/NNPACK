@@ -30,7 +30,11 @@ def main(args):
 
     build.export_cpath("include", ["nnpack.h"])
 
-    with build.options(source_dir="src", macros=macro, deps=[build.deps.pthreadpool, build.deps.fxdiv],
+    with build.options(source_dir="src", macros=macro,
+            deps={
+                (build.deps.pthreadpool, build.deps.fxdiv, build.deps.fp16): any,
+                build.deps.psimd: backend == "psimd",
+            },
             extra_include_dirs={
                 ("src", "src/ref"): any,
                 "src/x86_64-fma": options.target.is_x86_64
@@ -71,6 +75,7 @@ def main(args):
                 # BLAS microkernels
                 build.peachpy("x86_64-fma/blas/sgemm.py"),
                 build.peachpy("x86_64-fma/blas/sdotxf.py"),
+                build.peachpy("x86_64-fma/blas/shdotxf.py"),
             ]
         elif backend == "scalar":
             arch_nnpack_objects = [
@@ -92,6 +97,7 @@ def main(args):
                 # BLAS microkernels
                 build.cc("scalar/blas/sgemm.c"),
                 build.cc("scalar/blas/sdotxf.c"),
+                build.cc("scalar/blas/shdotxf.c"),
             ]
         elif backend == "psimd":
             arch_nnpack_objects = [
@@ -115,6 +121,7 @@ def main(args):
                 # BLAS microkernels
                 build.cc("psimd/blas/sgemm.c"),
                 build.cc("psimd/blas/sdotxf.c"),
+                build.cc("psimd/blas/shdotxf.c"),
             ]
 
         reference_layer_objects = [
@@ -219,7 +226,7 @@ def main(args):
 
     # Build test for layers. Link to the library.
     with build.options(source_dir="test", include_dirs="test", deps={
-                (build, build.deps.pthreadpool, build.deps.googletest.core): all,
+                (build, build.deps.pthreadpool, build.deps.googletest.core, build.deps.fp16): any,
                 "rt": build.target.is_linux
             }):
 

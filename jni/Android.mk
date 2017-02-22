@@ -22,7 +22,8 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/src/psimd/2d-wt-8x8-3x3.c \
 	$(LOCAL_PATH)/src/psimd/relu.c \
 	$(LOCAL_PATH)/src/psimd/softmax.c \
-	$(LOCAL_PATH)/src/psimd/fft-block-mac.c
+	$(LOCAL_PATH)/src/psimd/fft-block-mac.c \
+	$(LOCAL_PATH)/src/psimd/blas/shdotxf.c
 ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),armeabi-v7a arm64-v8a))
 LOCAL_SRC_FILES += \
 	$(LOCAL_PATH)/src/neon/blas/s4gemm.c \
@@ -46,8 +47,8 @@ LOCAL_SRC_FILES += \
 	$(LOCAL_PATH)/src/psimd/blas/sgemm.c \
 	$(LOCAL_PATH)/src/psimd/blas/sdotxf.c
 endif
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/include $(LOCAL_PATH)/src
-LOCAL_CFLAGS := -DNNP_ARCH_PSIMD=1
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/include $(LOCAL_PATH)/src $(LOCAL_PATH)/deps/fp16/include $(LOCAL_PATH)/deps/psimd/include
+LOCAL_CFLAGS := -DNNP_ARCH_PSIMD=1 -D__STDC_CONSTANT_MACROS=1
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 LOCAL_ARM_NEON := true
 LOCAL_ARM_MODE := arm
@@ -90,7 +91,8 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/src/ref/softmax-output.c \
 	$(LOCAL_PATH)/src/ref/relu-output.c \
 	$(LOCAL_PATH)/src/ref/relu-input-gradient.c
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/include $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := pthreadpool
 include $(BUILD_STATIC_LIBRARY)
 
@@ -110,21 +112,24 @@ include $(BUILD_EXECUTABLE)
 include $(CLEAR_VARS)
 LOCAL_MODULE := convolution-output-alexnet-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/convolution-output/alexnet.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := convolution-output-vgg-a-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/convolution-output/vgg-a.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := convolution-output-overfeat-fast-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/convolution-output/overfeat-fast.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
@@ -138,21 +143,24 @@ include $(BUILD_EXECUTABLE)
 include $(CLEAR_VARS)
 LOCAL_MODULE := convolution-input-gradient-alexnet-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/convolution-input-gradient/alexnet.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := convolution-input-gradient-vgg-a-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/convolution-input-gradient/vgg-a.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := convolution-input-gradient-overfeat-fast-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/convolution-input-gradient/overfeat-fast.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
@@ -166,21 +174,24 @@ include $(BUILD_EXECUTABLE)
 include $(CLEAR_VARS)
 LOCAL_MODULE := convolution-kernel-gradient-alexnet-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/convolution-kernel-gradient/alexnet.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := convolution-kernel-gradient-vgg-a-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/convolution-kernel-gradient/vgg-a.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := convolution-kernel-gradient-overfeat-fast-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/convolution-kernel-gradient/overfeat-fast.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
@@ -194,70 +205,80 @@ include $(BUILD_EXECUTABLE)
 include $(CLEAR_VARS)
 LOCAL_MODULE := convolution-inference-alexnet-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/convolution-inference/alexnet.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := convolution-inference-vgg-a-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/convolution-inference/vgg-a.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := convolution-inference-overfeat-fast-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/convolution-inference/overfeat-fast.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := fully-connected-output-smoketest
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/fully-connected-output/smoke.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := fully-connected-output-alexnet-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/fully-connected-output/alexnet.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := fully-connected-output-vgg-a-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/fully-connected-output/vgg-a.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := fully-connected-output-overfeat-fast-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/fully-connected-output/overfeat-fast.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := fully-connected-inference-alexnet-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/fully-connected-inference/alexnet.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := fully-connected-inference-vgg-a-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/fully-connected-inference/vgg-a.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := fully-connected-inference-overfeat-fast-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/fully-connected-inference/overfeat-fast.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
@@ -271,56 +292,64 @@ include $(BUILD_EXECUTABLE)
 include $(CLEAR_VARS)
 LOCAL_MODULE := max-pooling-output-vgg-a-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/max-pooling-output/vgg-a.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := max-pooling-output-overfeat-fast-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/max-pooling-output/overfeat-fast.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := relu-output-alexnet-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/relu-output/alexnet.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := relu-output-vgg-a-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/relu-output/vgg-a.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := relu-output-overfeat-fast-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/relu-output/overfeat-fast.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := relu-input-gradient-alexnet-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/relu-input-gradient/alexnet.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := relu-input-gradient-vgg-a-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/relu-input-gradient/vgg-a.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := relu-input-gradient-overfeat-fast-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/relu-input-gradient/overfeat-fast.cc
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test $(LOCAL_PATH)/deps/fp16/include
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
 include $(BUILD_EXECUTABLE)
 

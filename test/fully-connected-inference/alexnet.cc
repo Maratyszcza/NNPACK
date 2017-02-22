@@ -9,30 +9,48 @@
  * AlexNet fc6 layer
  */
 
-TEST(FC, fc6) {
+TEST(F32, fc6) {
 	AlexNet::fc6()
 		.errorLimit(2.0e-5)
-		.testInference();
+		.testInferenceF32();
+}
+
+TEST(F16F32, fc6) {
+	AlexNet::fc6()
+		.errorLimit(2.0e-5)
+		.testInferenceF16F32();
 }
 
 /*
  * AlexNet fc7 layer
  */
 
-TEST(FC, fc7) {
+TEST(F32, fc7) {
 	AlexNet::fc7()
 		.errorLimit(1.0e-5)
-		.testInference();
+		.testInferenceF32();
+}
+
+TEST(F16F32, fc7) {
+	AlexNet::fc7()
+		.errorLimit(1.0e-5)
+		.testInferenceF16F32();
 }
 
 /*
  * AlexNet fc8 layer
  */
 
-TEST(FC, fc8) {
+TEST(F32, fc8) {
 	AlexNet::fc8()
 		.errorLimit(1.0e-5)
-		.testInference();
+		.testInferenceF32();
+}
+
+TEST(F16F32, fc8) {
+	AlexNet::fc8()
+		.errorLimit(1.0e-5)
+		.testInferenceF16F32();
 }
 
 int main(int argc, char* argv[]) {

@@ -9,30 +9,48 @@
  * OverFeat (Fast model) fc6 layer
  */
 
-TEST(FC, fc6) {
+TEST(F32, fc6) {
 	OverFeat_Fast::fc6()
 		.errorLimit(2.0e-5)
-		.testInference();
+		.testInferenceF32();
+}
+
+TEST(F16F32, fc6) {
+	OverFeat_Fast::fc6()
+		.errorLimit(2.0e-5)
+		.testInferenceF16F32();
 }
 
 /*
  * OverFeat (Fast model) fc7 layer
  */
 
-TEST(FC, fc7) {
+TEST(F32, fc7) {
 	OverFeat_Fast::fc7()
 		.errorLimit(1.0e-5)
-		.testInference();
+		.testInferenceF32();
+}
+
+TEST(F16F32, fc7) {
+	OverFeat_Fast::fc7()
+		.errorLimit(1.0e-5)
+		.testInferenceF16F32();
 }
 
 /*
  * OverFeat (Fast model) fc8 layer
  */
 
-TEST(FC, fc8) {
+TEST(F32, fc8) {
 	OverFeat_Fast::fc8()
 		.errorLimit(1.0e-5)
-		.testInference();
+		.testInferenceF32();
+}
+
+TEST(F16F32, fc8) {
+	OverFeat_Fast::fc8()
+		.errorLimit(1.0e-5)
+		.testInferenceF16F32();
 }
 
 int main(int argc, char* argv[]) {

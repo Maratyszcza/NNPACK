@@ -104,6 +104,11 @@ struct sdotxf {
 	uint32_t fusion;
 };
 
+struct shdotxf {
+	const nnp_shdotxf_function* functions;
+	uint32_t fusion;
+};
+
 struct hardware_info {
 	bool initialized;
 	bool supported;
@@ -119,6 +124,7 @@ struct hardware_info {
 	struct sxgemm sxgemm;
 	struct cxgemm cxgemm;
 	struct sdotxf sdotxf;
+	struct shdotxf shdotxf;
 
 	struct isa_info isa;
 };

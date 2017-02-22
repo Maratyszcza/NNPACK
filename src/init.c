@@ -241,6 +241,17 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 		[6] = nnp_sdotxf7__avx2,
 		[7] = nnp_sdotxf8__avx2,
 	};
+
+	static const nnp_shdotxf_function shdotxf[8] = {
+		[0] = nnp_shdotxf1__avx2,
+		[1] = nnp_shdotxf2__avx2,
+		[2] = nnp_shdotxf3__avx2,
+		[3] = nnp_shdotxf4__avx2,
+		[4] = nnp_shdotxf5__avx2,
+		[5] = nnp_shdotxf6__avx2,
+		[6] = nnp_shdotxf7__avx2,
+		[7] = nnp_shdotxf8__avx2,
+	};
 #elif NNP_ARCH_ARM || NNP_ARCH_ARM64
 	static const nnp_sdotxf_function sdotxf[8] = {
 		[0] = nnp_sdotxf1__neon,
@@ -251,6 +262,17 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 		[5] = nnp_sdotxf6__neon,
 		[6] = nnp_sdotxf7__neon,
 		[7] = nnp_sdotxf8__neon,
+	};
+
+	static const nnp_shdotxf_function shdotxf[8] = {
+		[0] = nnp_shdotxf1__psimd,
+		[1] = nnp_shdotxf2__psimd,
+		[2] = nnp_shdotxf3__psimd,
+		[3] = nnp_shdotxf4__psimd,
+		[4] = nnp_shdotxf5__psimd,
+		[5] = nnp_shdotxf6__psimd,
+		[6] = nnp_shdotxf7__psimd,
+		[7] = nnp_shdotxf8__psimd,
 	};
 #elif NNP_ARCH_PSIMD
 	static const nnp_sdotxf_function sdotxf[8] = {
@@ -263,6 +285,17 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 		[6] = nnp_sdotxf7__psimd,
 		[7] = nnp_sdotxf8__psimd,
 	};
+
+	static const nnp_shdotxf_function shdotxf[8] = {
+		[0] = nnp_shdotxf1__psimd,
+		[1] = nnp_shdotxf2__psimd,
+		[2] = nnp_shdotxf3__psimd,
+		[3] = nnp_shdotxf4__psimd,
+		[4] = nnp_shdotxf5__psimd,
+		[5] = nnp_shdotxf6__psimd,
+		[6] = nnp_shdotxf7__psimd,
+		[7] = nnp_shdotxf8__psimd,
+	};
 #elif NNP_ARCH_SCALAR
 	static const nnp_sdotxf_function sdotxf[8] = {
 		[0] = nnp_sdotxf1__scalar,
@@ -273,6 +306,17 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 		[5] = nnp_sdotxf6__scalar,
 		[6] = nnp_sdotxf7__scalar,
 		[7] = nnp_sdotxf8__scalar,
+	};
+
+	static const nnp_shdotxf_function shdotxf[8] = {
+		[0] = nnp_shdotxf1__scalar,
+		[1] = nnp_shdotxf2__scalar,
+		[2] = nnp_shdotxf3__scalar,
+		[3] = nnp_shdotxf4__scalar,
+		[4] = nnp_shdotxf5__scalar,
+		[5] = nnp_shdotxf6__scalar,
+		[6] = nnp_shdotxf7__scalar,
+		[7] = nnp_shdotxf8__scalar,
 	};
 #endif
 
@@ -333,6 +377,10 @@ static void init_hwinfo(void) {
 					.functions = sdotxf,
 					.fusion = NNP_COUNT_OF(sdotxf),
 				};
+				nnp_hwinfo.shdotxf = (struct shdotxf) {
+					.functions = shdotxf,
+					.fusion = NNP_COUNT_OF(shdotxf),
+				};
 				nnp_hwinfo.sgemm = (struct sgemm) {
 					.mr = 4,
 					.nr = 24,
@@ -389,6 +437,10 @@ static void init_hwinfo(void) {
 				.functions = sdotxf,
 				.fusion = NNP_COUNT_OF(sdotxf),
 			};
+			nnp_hwinfo.shdotxf = (struct shdotxf) {
+				.functions = shdotxf,
+				.fusion = NNP_COUNT_OF(shdotxf),
+			};
 			nnp_hwinfo.sgemm = (struct sgemm) {
 				.mr = 4,
 				.nr = 8,
@@ -443,6 +495,10 @@ static void init_hwinfo(void) {
 			nnp_hwinfo.sdotxf = (struct sdotxf) {
 				.functions = sdotxf,
 				.fusion = NNP_COUNT_OF(sdotxf),
+			};
+			nnp_hwinfo.shdotxf = (struct shdotxf) {
+				.functions = shdotxf,
+				.fusion = NNP_COUNT_OF(shdotxf),
 			};
 			nnp_hwinfo.sgemm = (struct sgemm) {
 				.mr = 4,
@@ -502,6 +558,10 @@ static void init_hwinfo(void) {
 			nnp_hwinfo.sdotxf = (struct sdotxf) {
 				.functions = sdotxf,
 				.fusion = NNP_COUNT_OF(sdotxf),
+			};
+			nnp_hwinfo.shdotxf = (struct shdotxf) {
+				.functions = shdotxf,
+				.fusion = NNP_COUNT_OF(shdotxf),
 			};
 			nnp_hwinfo.sgemm = (struct sgemm) {
 				.mr = 4,

@@ -11,6 +11,8 @@
 #include <functional>
 #include <algorithm>
 
+#include <fp16.h>
+
 #include <nnpack.h>
 #include <nnpack/reference.h>
 
@@ -125,7 +127,7 @@ public:
 			std::generate(kernel.begin(), kernel.end(), std::ref(rng));
 			std::fill(output.begin(), output.end(), std::nanf(""));
 
-			nnp_fully_connected_output__reference(
+			nnp_fully_connected_output_f32__reference(
 				batchSize(), inputChannels(), outputChannels(),
 				input.data(), kernel.data(), referenceOutput.data(),
 				this->threadpool);
@@ -142,7 +144,7 @@ public:
 		}
 	}
 
-	void testInference() const {
+	void testInferenceF32() const {
 		ASSERT_EQ(1, batchSize());
 
 		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -159,12 +161,47 @@ public:
 			std::generate(kernel.begin(), kernel.end(), std::ref(rng));
 			std::fill(output.begin(), output.end(), std::nanf(""));
 
-			nnp_fully_connected_output__reference(
+			nnp_fully_connected_output_f32__reference(
 				1, inputChannels(), outputChannels(),
 				input.data(), kernel.data(), referenceOutput.data(),
 				this->threadpool);
 
 			enum nnp_status status = nnp_fully_connected_inference(
+				inputChannels(), outputChannels(),
+				input.data(), kernel.data(), output.data(),
+				this->threadpool);
+			ASSERT_EQ(nnp_status_success, status);
+
+			const float maxError = std::inner_product(referenceOutput.cbegin(), referenceOutput.cend(), output.cbegin(), 0.0f,
+				[](float x, float y)->float { return std::max<float>(y, x); }, relativeError);
+			EXPECT_LT(maxError, errorLimit());
+		}
+	}
+
+	void testInferenceF16F32() const {
+		ASSERT_EQ(1, batchSize());
+
+		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
+		auto rng = std::bind(std::uniform_real_distribution<float>(), std::mt19937(seed));
+
+		std::vector<float> input(inputChannels());
+		std::vector<uint16_t> kernel(outputChannels() * inputChannels());
+
+		std::vector<float> output(outputChannels());
+		std::vector<float> referenceOutput(outputChannels());
+
+		for (size_t iteration = 0; iteration < iterations(); iteration++) {
+			std::generate(input.begin(), input.end(), std::ref(rng));
+			std::generate(kernel.begin(), kernel.end(),
+				[&rng]{ return fp16_alt_from_fp32_value(rng()); });
+			std::fill(output.begin(), output.end(), std::nanf(""));
+
+			nnp_fully_connected_output_f16f32__reference(
+				1, inputChannels(), outputChannels(),
+				input.data(), kernel.data(), referenceOutput.data(),
+				this->threadpool);
+
+			enum nnp_status status = nnp_fully_connected_inference_f16f32(
 				inputChannels(), outputChannels(),
 				input.data(), kernel.data(), output.data(),
 				this->threadpool);

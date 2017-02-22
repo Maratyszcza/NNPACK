@@ -6,4 +6,8 @@ deps:
     url:  https://github.com/Maratyszcza/pthreadpool.git
   - name: fxdiv
     url:  https://github.com/Maratyszcza/FXdiv.git
+  - name: fp16
+    url:  https://github.com/Maratyszcza/FP16.git
+  - name: psimd
+    url:  https://github.com/Maratyszcza/psimd.git
   - name: googletest

@@ -46,13 +46,22 @@ void nnp_convolution_kernel_gradient__reference(
 	float grad_kernel[],
 	pthreadpool_t threadpool);
 
-void nnp_fully_connected_output__reference(
+void nnp_fully_connected_output_f32__reference(
 	size_t batch_size,
 	size_t input_channels,
 	size_t output_channels,
-	const float input[],
-	const float kernel[],
-	float output[],
+	const float* input,
+	const float* kernel,
+	float* output,
+	pthreadpool_t threadpool);
+
+void nnp_fully_connected_output_f16f32__reference(
+	size_t batch_size,
+	size_t input_channels,
+	size_t output_channels,
+	const float* input,
+	const void* kernel,
+	float* output,
 	pthreadpool_t threadpool);
 
 void nnp_max_pooling_output__reference(

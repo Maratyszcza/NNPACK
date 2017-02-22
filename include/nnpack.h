@@ -367,18 +367,37 @@ enum nnp_status nnp_fully_connected_output(
  * @details This function targets prediction with convolutional neural networks and performs forward propagation.
  * @param input_channels The number of channels (AKA features, dimensions) in the input vector.
  * @param output_channels The number of channels (AKA features, dimensions) in the output vector.
- * @param[in]  input  A 1D array input[input_channels].
- * @param[in]  kernel A 2D matrix kernel[output_channels][input_channels].
- * @param[out] output A 1D array output[output_channels].
+ * @param[in]  input  A 1D array input[input_channels] of FP32 elements.
+ * @param[in]  kernel A 2D matrix kernel[output_channels][input_channels] of FP32 elements.
+ * @param[out] output A 1D array output[output_channels] of FP32 elements.
  * @param threadpool A thread pool for parallelization of the computation.
  *                   If threadpool is NULL, the computation would run on the caller thread without parallelization.
  */
 enum nnp_status nnp_fully_connected_inference(
 	size_t input_channels,
 	size_t output_channels,
-	const float input[],
-	const float kernel[],
-	float output[],
+	const float* input,
+	const float* kernel,
+	float* output,
+	pthreadpool_t threadpool);
+
+/**
+ * @brief Computes output of a fully connected layer for a single input vector and a kernel matrix.
+ * @details This function targets prediction with convolutional neural networks and performs forward propagation.
+ * @param input_channels The number of channels (AKA features, dimensions) in the input vector.
+ * @param output_channels The number of channels (AKA features, dimensions) in the output vector.
+ * @param[in]  input  A 1D array input[input_channels] of FP32 elements.
+ * @param[in]  kernel A 2D matrix kernel[output_channels][input_channels] of FP16 (ARM alternative format) elements.
+ * @param[out] output A 1D array output[output_channels] of FP32 elements.
+ * @param threadpool A thread pool for parallelization of the computation.
+ *                   If threadpool is NULL, the computation would run on the caller thread without parallelization.
+ */
+enum nnp_status nnp_fully_connected_inference_f16f32(
+	size_t input_channels,
+	size_t output_channels,
+	const float* input,
+	const void* kernel,
+	float* output,
 	pthreadpool_t threadpool);
 
 /**

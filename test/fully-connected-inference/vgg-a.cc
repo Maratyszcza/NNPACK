@@ -9,30 +9,48 @@
  * VGG model A fc6 layer
  */
 
-TEST(FC, fc6) {
+TEST(F32, fc6) {
 	VGG_A::fc6()
 		.errorLimit(2.0e-5)
-		.testInference();
+		.testInferenceF32();
+}
+
+TEST(F16F32, fc6) {
+	VGG_A::fc6()
+		.errorLimit(2.0e-5)
+		.testInferenceF16F32();
 }
 
 /*
  * VGG model A fc7 layer
  */
 
-TEST(FC, fc7) {
+TEST(F32, fc7) {
 	VGG_A::fc7()
 		.errorLimit(1.0e-5)
-		.testInference();
+		.testInferenceF32();
+}
+
+TEST(F16F32, fc7) {
+	VGG_A::fc7()
+		.errorLimit(1.0e-5)
+		.testInferenceF16F32();
 }
 
 /*
  * VGG model A fc8 layer
  */
 
-TEST(FC, fc8) {
+TEST(F32, fc8) {
 	VGG_A::fc8()
 		.errorLimit(1.0e-5)
-		.testInference();
+		.testInferenceF32();
+}
+
+TEST(F16F32, fc8) {
+	VGG_A::fc8()
+		.errorLimit(1.0e-5)
+		.testInferenceF16F32();
 }
 
 int main(int argc, char* argv[]) {
