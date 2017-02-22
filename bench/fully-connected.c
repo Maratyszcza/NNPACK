@@ -16,63 +16,86 @@ extern void read_memory(const void* memory, size_t length);
 enum mode {
 	mode_output,
 	mode_inference,
+	mode_inference_mixed,
 };
 
-struct nnp_profile benchmark_fully_connected_output(
+struct nnp_profile benchmark_fully_connected(
 	enum mode mode,
 	const void* memory, size_t cache_size,
 	size_t batch_size,
 	size_t input_channels,
 	size_t output_channels,
-	const float input[],
-	const float kernel[],
-	float output[],
+	const float* input,
+	const void* kernel,
+	float* output,
 	pthreadpool_t threadpool,
 	size_t max_iterations)
 {
-	if (mode == mode_inference) {
-		unsigned long long computation_time[max_iterations];
-		size_t computation_samples = 0;
-		for (size_t iteration = 0; iteration < max_iterations; iteration++) {
-			read_memory(memory, cache_size);
+	switch (mode) {
+		case mode_inference:
+		case mode_inference_mixed:
+		{
+			unsigned long long computation_time[max_iterations];
+			size_t computation_samples = 0;
+			for (size_t iteration = 0; iteration < max_iterations; iteration++) {
+				read_memory(memory, cache_size);
 
-			unsigned long long start_time, end_time;
-			if (!read_timer(&start_time))
-				continue;
+				unsigned long long start_time, end_time;
+				if (!read_timer(&start_time))
+					continue;
 
-			nnp_fully_connected_inference(
-				input_channels,
-				output_channels,
-				input,
-				kernel,
-				output,
-				threadpool);
+				switch (mode) {
+					case mode_inference:
+						nnp_fully_connected_inference(
+							input_channels,
+							output_channels,
+							input,
+							kernel,
+							output,
+							threadpool);
+						break;
+					case mode_inference_mixed:
+						nnp_fully_connected_inference_f16f32(
+							input_channels,
+							output_channels,
+							input,
+							kernel,
+							output,
+							threadpool);
+						break;
+					case mode_output:
+						break;
+				}
 
-			if (!read_timer(&end_time))
-				continue;
+				if (!read_timer(&end_time))
+					continue;
 
-			computation_time[computation_samples++] = end_time - start_time;
+				computation_time[computation_samples++] = end_time - start_time;
+			}
+			unsigned long long median_computation_time = median(computation_time, max_iterations);
+			return (struct nnp_profile) {
+				.total = median_computation_time * 1.0e-9,
+				.block_multiplication = median_computation_time * 1.0e-9
+			};
+			break;
 		}
-		unsigned long long median_computation_time = median(computation_time, max_iterations);
-		return (struct nnp_profile) {
-			.total = median_computation_time * 1.0e-9,
-			.block_multiplication = median_computation_time * 1.0e-9
-		};
-	} else {
-		struct nnp_profile computation_profile[max_iterations];
-		for (size_t iteration = 0; iteration < max_iterations; iteration++) {
-			read_memory(memory, cache_size);
-			nnp_fully_connected_output(
-				batch_size,
-				input_channels,
-				output_channels,
-				input,
-				kernel,
-				output,
-				threadpool,
-				&computation_profile[iteration]);
+		case mode_output:
+		{
+			struct nnp_profile computation_profile[max_iterations];
+			for (size_t iteration = 0; iteration < max_iterations; iteration++) {
+				read_memory(memory, cache_size);
+				nnp_fully_connected_output(
+					batch_size,
+					input_channels,
+					output_channels,
+					input,
+					kernel,
+					output,
+					threadpool,
+					&computation_profile[iteration]);
+			}
+			return median_profile(computation_profile, max_iterations);
 		}
-		return median_profile(computation_profile, max_iterations);
 	}
 }
 
@@ -93,7 +116,7 @@ static void print_options_help(const char* program_name) {
 "  -ic  --input-channels     The number of input channels\n"
 "  -oc  --output-channels    The number of output channels\n"
 "Optional parameters:\n"
-"  -m   --mode               The fully connected layer mode (output, inference)\n"
+"  -m   --mode               The fully connected layer mode (output, inference, inference-mixed)\n"
 "  -b   --batch              The size of a minibatch (default: 1)\n"
 "  -t   --threads            The number of threads (default: all; 0 to disable threadpool)\n"
 "  -i   --iterations         # iterations (default: 3)\n",
@@ -160,6 +183,8 @@ static struct options parse_options(int argc, char** argv) {
 			}
 			if (strcmp(argv[argi + 1], "output") == 0) {
 				options.mode = mode_output;
+			} else if (strcmp(argv[argi + 1], "inference-mixed") == 0) {
+				options.mode = mode_inference_mixed;
 			} else if (strcmp(argv[argi + 1], "inference") == 0) {
 				options.mode = mode_inference;
 			} else {
@@ -255,7 +280,7 @@ int main(int argc, char** argv) {
 	printf("Iterations: %zu\n", options.iterations);
 
 	const struct nnp_profile output_profile =
-		benchmark_fully_connected_output(
+		benchmark_fully_connected(
 			options.mode,
 			memory, cache_size,
 			batch_size, input_channels, output_channels,
