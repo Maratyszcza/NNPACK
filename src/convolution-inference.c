@@ -609,7 +609,6 @@ static inline float relu(float data) {
 }
 
 static enum nnp_status compute_direct_convolution_inference(
-	enum nnp_activation activation,
 	const size_t input_channels,
 	const size_t output_channels,
 	const struct nnp_size input_size,
@@ -621,6 +620,7 @@ static enum nnp_status compute_direct_convolution_inference(
 	const float* kernel,
 	const float* bias,
 	float* output,
+	enum nnp_activation activation,
 	pthreadpool_t threadpool,
 	struct nnp_profile* profile)
 {
@@ -733,16 +733,26 @@ static enum nnp_status compute_direct_convolution_inference(
 	}
 	/* Add bias */
 	NNP_OUTPUT_TRANSFORM_START(profile)
-	for (size_t output_channel = 0; output_channel < output_channels; output_channel += 1) {
-		const float bias_value = bias[output_channel];
-		for (size_t index = 0; index < output_image_size; index += 1) {
-			if (activation == nnp_activation_relu) {
-				output[output_channel * output_image_size + index] =
-					relu(output[output_channel * output_image_size + index] + bias_value);
-			} else {
-				output[output_channel * output_image_size + index] += bias_value;
+	switch (activation) {
+		case nnp_activation_identity:
+			for (size_t output_channel = 0; output_channel < output_channels; output_channel += 1) {
+				const float bias_value = bias[output_channel];
+				for (size_t index = 0; index < output_image_size; index += 1) {
+					output[output_channel * output_image_size + index] += bias_value;
+				}
 			}
-		}
+			break;
+		case nnp_activation_relu:
+			for (size_t output_channel = 0; output_channel < output_channels; output_channel += 1) {
+				const float bias_value = bias[output_channel];
+				for (size_t index = 0; index < output_image_size; index += 1) {
+					output[output_channel * output_image_size + index] =
+						relu(output[output_channel * output_image_size + index] + bias_value, 0.0f);
+				}
+			}
+			break;
+		default:
+			NNP_UNREACHABLE;
 	}
 	NNP_OUTPUT_TRANSFORM_END(profile)
 
@@ -865,11 +875,11 @@ enum nnp_status nnp_convolution_inference(
 			input_transform_function = nnp_hwinfo.transforms.fft16x16_and_stream;
 			kernel_transform_function = nnp_hwinfo.transforms.fft16x16_and_stream;
 			switch (activation) {
-				case nnp_activation_relu:
-					output_transform_function = nnp_hwinfo.transforms.ifft16x16_with_bias_with_relu;
-					break;
 				case nnp_activation_identity:
 					output_transform_function = nnp_hwinfo.transforms.ifft16x16_with_bias;
+					break;
+				case nnp_activation_relu:
+					output_transform_function = nnp_hwinfo.transforms.ifft16x16_with_bias_with_relu;
 					break;
 				default:
 					NNP_UNREACHABLE;
@@ -903,10 +913,10 @@ enum nnp_status nnp_convolution_inference(
 			break;
 		case nnp_convolution_algorithm_implicit_gemm:
 			status = compute_direct_convolution_inference(
-				activation,
 				input_channels, output_channels,
 				input_size, input_padding, kernel_size, output_size, output_subsampling,
 				input, kernel, bias, output,
+				activation,
 				threadpool, profile);
 			break;
 		case nnp_convolution_algorithm_auto:
