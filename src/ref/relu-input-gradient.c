@@ -1,7 +1,7 @@
-#include <math.h>
-
 #include <nnpack.h>
 #include <nnpack/reference.h>
+#include <nnpack/activations.h>
+
 
 struct relu_input_gradient_context {
 	size_t channels;
@@ -10,10 +10,6 @@ struct relu_input_gradient_context {
 	float* grad_input;
 	float negative_slope;
 };
-
-static inline float grad_relu(float grad_output_data, float input_data, float negative_slope) {
-	return signbit(input_data) ? grad_output_data * negative_slope : grad_output_data;
-}
 
 static void compute_relu_input_gradient(
 	const struct relu_input_gradient_context context[restrict static 1],

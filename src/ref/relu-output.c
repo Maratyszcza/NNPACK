@@ -1,5 +1,6 @@
 #include <nnpack.h>
 #include <nnpack/reference.h>
+#include <nnpack/activations.h>
 
 struct relu_output_context {
 	size_t channels;
@@ -7,10 +8,6 @@ struct relu_output_context {
 	float* output;
 	float negative_slope;
 };
-
-static inline float relu(float data, float negative_slope) {
-	return data > 0.0f ? data : data * negative_slope;
-}
 
 static void compute_relu_output(
 	const struct relu_output_context context[restrict static 1],

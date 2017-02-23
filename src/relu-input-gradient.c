@@ -1,13 +1,13 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <assert.h>
-#include <math.h>
 
 #include <nnpack.h>
 #include <nnpack/macros.h>
 #include <nnpack/utils.h>
 
 #include <nnpack/hwinfo.h>
+#include <nnpack/activations.h>
 #include <nnpack/validation.h>
 
 
@@ -18,10 +18,6 @@ struct NNP_CACHE_ALIGN relu_context {
 	float* grad_input;
 	float negative_slope;
 };
-
-static inline float grad_relu(float grad_output_data, float input_data, float negative_slope) {
-	return signbit(input_data) ? grad_output_data * negative_slope : grad_output_data;
-}
 
 static void compute_relu_input_gradient(
 	const struct relu_context context[restrict static 1],

@@ -1,13 +1,13 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <assert.h>
-#include <math.h>
 
 #include <nnpack.h>
 #include <nnpack/macros.h>
 #include <nnpack/utils.h>
 
 #include <nnpack/hwinfo.h>
+#include <nnpack/activations.h>
 #include <nnpack/validation.h>
 
 
@@ -45,10 +45,6 @@ static void compute_outplace_relu_output(
 	float negative_slope                     = context->negative_slope;
 
 	relu_function(input + block_start, output + block_start, block_size, negative_slope);
-}
-
-static inline float relu(float data, float negative_slope) {
-	return signbit(data) ? data * negative_slope : data;
 }
 
 enum nnp_status nnp_relu_output(

@@ -10,6 +10,7 @@
 #include <nnpack/system.h>
 
 #include <nnpack/hwinfo.h>
+#include <nnpack/activations.h>
 #include <nnpack/validation.h>
 
 
@@ -602,10 +603,6 @@ static enum nnp_status compute_fast_convolution_inference(
 cleanup:
 	release_memory(memory_block, memory_size);
 	return status;
-}
-
-static inline float relu(float data) {
-	return data > 0.0f ? data : 0.0f;
 }
 
 static enum nnp_status compute_direct_convolution_inference(

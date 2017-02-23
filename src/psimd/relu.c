@@ -2,14 +2,8 @@
 
 #include <psimd.h>
 
+#include <nnpack/activations.h>
 
-static inline psimd_f32 psimd_relu_f32(psimd_f32 data, psimd_f32 negative_slope) {
-	return psimd_signblend_f32(data, data * negative_slope, data);
-}
-
-static inline psimd_f32 psimd_grad_relu_f32(psimd_f32 grad_output_data, psimd_f32 input_data, psimd_f32 negative_slope) {
-	return psimd_signblend_f32(input_data, grad_output_data * negative_slope, grad_output_data);
-}
 
 void nnp_inplace_relu_forward__psimd(
 	float data[restrict static 4],
@@ -20,7 +14,8 @@ void nnp_inplace_relu_forward__psimd(
 
 	/* Length is always non-zero and proportional to SIMD width */
 	do {
-		psimd_store_f32(data, psimd_relu_f32(psimd_load_f32(data), vec_negative_slope));
+		psimd_store_f32(data,
+			psimd_relu_f32(psimd_load_f32(data), vec_negative_slope));
 
 		data += 4;
 		length -= 4;
@@ -37,7 +32,8 @@ void nnp_outplace_relu_forward__psimd(
 
 	/* Length is always non-zero and proportional to SIMD width */
 	do {
-		psimd_store_f32(output, psimd_relu_f32(psimd_load_f32(input), vec_negative_slope));
+		psimd_store_f32(output,
+			psimd_relu_f32(psimd_load_f32(input), vec_negative_slope));
 
 		input  += 4;
 		output += 4;
@@ -56,7 +52,8 @@ void nnp_relu_backward__psimd(
 
 	/* Length is always non-zero and proportional to SIMD width */
 	do {
-		psimd_store_f32(input_gradient, psimd_grad_relu_f32(psimd_load_f32(output_gradient), psimd_load_f32(input), vec_negative_slope));
+		psimd_store_f32(input_gradient,
+			psimd_grad_relu_f32(psimd_load_f32(output_gradient), psimd_load_f32(input), vec_negative_slope));
 
 		output_gradient += 4;
 		input += 4;
