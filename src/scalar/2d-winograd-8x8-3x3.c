@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include <nnpack/macros.h>
+#include <nnpack/activations.h>
 
 #include <scalar/winograd/f6x6k3x3.h>
 
@@ -363,6 +364,91 @@ void nnp_owt8x8_3x3_with_bias__scalar(
 				}
 			case 5:
 				*row_output = s5;
+				break;
+			default:
+				NNP_UNREACHABLE;
+		}
+	}
+}
+
+void nnp_owt8x8_3x3_with_bias_with_relu__scalar(
+	const float transform[restrict static 1],
+	float output[restrict static 1],
+	const float bias[restrict static 1],
+	size_t transform_stride, size_t output_stride,
+	uint32_t row_count, uint32_t column_count)
+{
+	transform_stride /= sizeof(float);
+	const uint32_t row_offset = 0;
+	const uint32_t column_offset = 0;
+
+	float block[OUTPUT_SIZE][BLOCK_SIZE];
+	for (uint32_t column = 0; column < BLOCK_SIZE; column++) {
+		const float m0 = *transform;
+		transform += transform_stride;
+		float m1 = *transform;
+		transform += transform_stride;
+		const float m2 = *transform;
+		transform += transform_stride;
+		const float m3 = *transform;
+		transform += transform_stride;
+		const float m4 = *transform;
+		transform += transform_stride;
+		const float m5 = *transform;
+		transform += transform_stride;
+		const float m6 = *transform;
+		transform += transform_stride;
+		const float m7 = *transform;
+		transform += transform_stride;
+
+		if (column == 1) {
+			const float bias_value = *bias;
+			m1 += bias_value;
+		}
+
+		winograd_f6k3_output_transform(
+			m0, m1, m2, m3, m4, m5, m6, m7,
+			&block[0][column], &block[1][column], &block[2][column],
+			&block[3][column], &block[4][column], &block[5][column]);
+	}
+
+	const uint32_t row_end = row_offset + row_count;
+	for (uint32_t row = row_offset; row < row_end; row++) {
+		float s0, s1, s2, s3, s4, s5;
+		winograd_f6k3_output_transform(
+			block[row][0], block[row][1], block[row][2], block[row][3],
+			block[row][4], block[row][5], block[row][6], block[row][7],
+			&s0, &s1, &s2, &s3, &s4, &s5);
+		float *restrict row_output = output + (row - row_offset) * output_stride;
+		uint32_t remaining_column_count = column_count;
+		switch (column_offset) {
+			case 0:
+				*row_output++ = relu(s0, 0.0f);
+				if (--remaining_column_count == 0) {
+					break;
+				}
+			case 1:
+				*row_output++ = relu(s1, 0.0f);
+				if (--remaining_column_count == 0) {
+					break;
+				}
+			case 2:
+				*row_output++ = relu(s2, 0.0f);
+				if (--remaining_column_count == 0) {
+					break;
+				}
+			case 3:
+				*row_output++ = relu(s3, 0.0f);
+				if (--remaining_column_count == 0) {
+					break;
+				}
+			case 4:
+				*row_output++ = relu(s4, 0.0f);
+				if (--remaining_column_count == 0) {
+					break;
+				}
+			case 5:
+				*row_output = relu(s5, 0.0f);
 				break;
 			default:
 				NNP_UNREACHABLE;
