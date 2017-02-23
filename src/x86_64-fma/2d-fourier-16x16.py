@@ -287,7 +287,7 @@ for with_bias in [False, True]:
             LEA(reg_t8_column_8, [reg_t8 + YMMRegister.size])
 
             fft16x16.inverse_vfft(reg_t0, reg_t8, reg_t_stride, data_in=vfft_columns_0_to_8,
-                reg_row_start=reg_row_start, reg_row_end=reg_row_end, store_mask=store_mask_columns_0_to_8)
+                reg_row_start=reg_row_start, reg_row_end=reg_row_end, store_mask=store_mask_columns_0_to_8, relu=with_relu)
 
             with Block() as store_columns_8_to_16:
                 CMP(reg_column_end, 8)
