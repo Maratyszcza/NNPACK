@@ -224,12 +224,12 @@ public:
 					break;
 				case nnp_activation_relu:
 					nnp_relu_output__reference(
-						batchSize(), outputChannels() * outputSize().height * outputSize().width,
+						batchSize(), outputChannels() * outputHeight() * outputWidth(),
 						referenceOutput.data(), referenceOutput.data(), 0.0,
 						this->threadpool);
 					break;
 				default:
-					break;
+					FAIL() << "Unexpected activation value: " << activation;
 			}
 
 			enum nnp_status status = nnp_convolution_output(
@@ -359,12 +359,12 @@ public:
 					break;
 				case nnp_activation_relu:
 					nnp_relu_output__reference(
-						batchSize(), outputChannels() * outputSize().height * outputSize().width,
+						batchSize(), outputChannels() * outputHeight() * outputWidth(),
 						referenceOutput.data(), referenceOutput.data(), 0.0,
 						this->threadpool);
 					break;
 				default:
-					break;
+					FAIL() << "Unexpected activation value: " << activation;
 			}
 
 			enum nnp_status status = nnp_convolution_inference(
