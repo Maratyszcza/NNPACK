@@ -158,7 +158,7 @@ void nnp_ifft8x8__psimd(
 void nnp_ifft8x8_with_bias__psimd(
 	const float transform[restrict static 1],
 	float data[restrict static 1],
-	const float bias_ptr[restrict static 1],
+	const float bias[restrict static 1],
 	size_t transform_stride, size_t data_stride,
 	uint32_t row_count, uint32_t column_count)
 {
@@ -172,6 +172,8 @@ void nnp_ifft8x8_with_bias__psimd(
 			transform += transform_stride;
 		}
 	}
+
+	block.as_float[0][0] += (*bias) * 64.0f;
 
 	psimd_ifft8_dualreal_f32(
 		&block.as_psimd_f32[0][0], &block.as_psimd_f32[0][1],
@@ -193,10 +195,9 @@ void nnp_ifft8x8_with_bias__psimd(
 			&block.as_float[0][4], &block.as_float[4][4], 8);
 	}
 
-	const float bias = *bias_ptr;
 	for (size_t row = 0; row < row_count; row++) {
 		for (size_t column = 0; column < column_count; column++) {
-			data[row * data_stride + column] = block.as_float[row][column] + bias;
+			data[row * data_stride + column] = block.as_float[row][column];
 		}
 	}
 }
@@ -204,7 +205,7 @@ void nnp_ifft8x8_with_bias__psimd(
 void nnp_ifft8x8_with_bias_with_relu__psimd(
 	const float transform[restrict static 1],
 	float data[restrict static 1],
-	const float bias_ptr[restrict static 1],
+	const float bias[restrict static 1],
 	size_t transform_stride, size_t data_stride,
 	uint32_t row_count, uint32_t column_count)
 {
@@ -218,6 +219,8 @@ void nnp_ifft8x8_with_bias_with_relu__psimd(
 			transform += transform_stride;
 		}
 	}
+
+	block.as_float[0][0] += (*bias) * 64.0f;
 
 	psimd_ifft8_dualreal_f32(
 		&block.as_psimd_f32[0][0], &block.as_psimd_f32[0][1],
@@ -239,10 +242,9 @@ void nnp_ifft8x8_with_bias_with_relu__psimd(
 			&block.as_float[0][4], &block.as_float[4][4], 8);
 	}
 
-	const float bias = *bias_ptr;
 	for (size_t row = 0; row < row_count; row++) {
 		for (size_t column = 0; column < column_count; column++) {
-			data[row * data_stride + column] = relu(block.as_float[row][column] + bias, 0.0f);
+			data[row * data_stride + column] = relu(block.as_float[row][column], 0.0f);
 		}
 	}
 }
