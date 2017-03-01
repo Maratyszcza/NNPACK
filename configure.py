@@ -354,22 +354,6 @@ def main(args):
         build.executable("relu-benchmark",
             [build.cc("relu.c")] + support_objects)
 
-    # Build Native Client module
-    if build.target.is_nacl:
-        with build.modules.web:
-            with build.options(source_dir="src/nacl", include_dirs="src",
-                    deps=[build, build.deps.pthreadpool, "ppapi"]):
-                module_sources = [
-                    "entry.c",
-                    "instance.c",
-                    "interfaces.c",
-                    "messaging.c",
-                    "stringvars.c",
-                    "benchmark.c",
-                ]
-                module_objects = [build.cc(source) for source in module_sources]
-                build.plugin("webnnpack", module_objects)
-
     return build
 
 if __name__ == "__main__":
