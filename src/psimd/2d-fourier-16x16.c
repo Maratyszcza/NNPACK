@@ -18,7 +18,7 @@ union NNP_SIMD_ALIGN block16x16 {
 };
 
 
-void nnp_fft16x16__psimd(
+void nnp_fft16x16_with_offset__psimd(
 	const float data[restrict static 1],
 	float transform[restrict static 1],
 	size_t data_stride, size_t transform_stride,
@@ -108,7 +108,7 @@ void nnp_fft16x16__psimd(
 	}
 }
 
-void nnp_ifft16x16__psimd(
+void nnp_ifft16x16_with_offset__psimd(
 	const float transform[],
 	float data[],
 	size_t transform_stride, size_t data_stride,

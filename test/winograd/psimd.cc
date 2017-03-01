@@ -45,7 +45,7 @@ TEST(F6x6_3x3, input) {
 		0.0f, -2.0f,  4.00f,  2.50f, -5.00f, -0.50f,  1.0f, 0.0f,
 		0.0f, -1.0f,  0.00f,  5.25f,  0.00f, -5.25f,  0.0f, 1.0f
 	};
-	tester.testInputTransform2D(nnp_iwt8x8_3x3__psimd, inputTransformMatrix);
+	tester.testInputTransform2D(nnp_iwt8x8_3x3_with_offset__psimd, inputTransformMatrix);
 }
 
 /**

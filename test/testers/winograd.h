@@ -90,7 +90,7 @@ public:
 	/**
 	 * Validates that 2D winograd transform for the input matches the linear transformation defined by a matrix.
 	 */
-	void testInputTransform2D(nnp_transform_2d inputTransform, const float transformationMatrix[]) const {
+	void testInputTransform2D(nnp_transform_2d_with_offset inputTransform, const float transformationMatrix[]) const {
 		testTransform2D(inputTransform, Type::input, inputSize(), transformSize(), inputSize(), simdWidth() * sizeof(float), transformationMatrix);
 	}
 
@@ -104,7 +104,7 @@ public:
 	/**
 	 * Validates that 2D winograd transform for the kernel matches the linear transformation defined by a matrix.
 	 */
-	void testKernelTransform2D(nnp_transform_2d kernelTransform, const float transformationMatrix[]) const {
+	void testKernelTransform2D(nnp_transform_2d_with_offset kernelTransform, const float transformationMatrix[]) const {
 		testTransform2D(kernelTransform, Type::kernel, kernelSize(), transformSize(), kernelSize(), simdWidth() * sizeof(float), transformationMatrix);
 	}
 
@@ -118,7 +118,7 @@ public:
 	/**
 	 * Validates that 2D winograd transform for the output matches the linear transformation defined by a matrix.
 	 */
-	void testOutputTransform2D(nnp_transform_2d outputTransform, const float transformationMatrix[]) const {
+	void testOutputTransform2D(nnp_transform_2d_with_offset outputTransform, const float transformationMatrix[]) const {
 		testTransform2D(outputTransform, Type::output, transformSize(), outputSize(), simdWidth() * sizeof(float), outputSize(), transformationMatrix);
 	}
 
@@ -170,7 +170,7 @@ private:
 		ASSERT_LT(maxMedianError, errorLimit());
 	}
 
-	void testTransform2D(nnp_transform_2d transform2d, Type type, size_t inputSize, size_t outputSize, size_t inputStride, size_t outputStride,
+	void testTransform2D(nnp_transform_2d_with_offset transform2d, Type type, size_t inputSize, size_t outputSize, size_t inputStride, size_t outputStride,
 		const float transformationMatrix[]) const
 	{
 		ASSERT_NE(this->kernelSize(), 0);

@@ -12,7 +12,7 @@
 
 
 struct NNP_CACHE_ALIGN kernel_transform_context {
-	nnp_transform_2d transform_function;
+	nnp_transform_2d_with_offset transform_function;
 	const float* kernel;
 	float* kernel_transform;
 
@@ -36,8 +36,8 @@ static void compute_kernel_transform(
 
 	const float (*kernel)[input_channels][kernel_size.width * kernel_size.height] =
 		(const float(*)[input_channels][kernel_size.width * kernel_size.height]) context->kernel;
-	float* kernel_transform             = context->kernel_transform;
-	nnp_transform_2d transform_function = context->transform_function;
+	float* kernel_transform                         = context->kernel_transform;
+	nnp_transform_2d_with_offset transform_function = context->transform_function;
 
 	const size_t input_channels_block_start = round_down(input_channel, input_channels_block_max);
 	const size_t input_channels_block_size = min(input_channels - input_channels_block_start, input_channels_block_max);
@@ -56,7 +56,7 @@ static void compute_kernel_transform(
 }
 
 struct NNP_CACHE_ALIGN input_transform_context {
-	nnp_transform_2d transform_function;
+	nnp_transform_2d_with_offset transform_function;
 	const float* input;
 	float* input_transform;
 
@@ -88,8 +88,8 @@ static void compute_input_transform(
 
 	const float (*input)[input_channels][input_size.width * input_size.height] =
 		(const float(*)[input_channels][input_size.width * input_size.height]) context->input;
-	float* input_transform              = context->input_transform;
-	nnp_transform_2d transform_function = context->transform_function;
+	float* input_transform                          = context->input_transform;
+	nnp_transform_2d_with_offset transform_function = context->transform_function;
 
 	const size_t input_channels_block_start = round_down(input_channel, input_channels_block_max);
 	const size_t input_channels_block_size = min(input_channels - input_channels_block_start, input_channels_block_max);
@@ -256,8 +256,8 @@ static void compute_convolution_output(
 	float* input_transform,
 	float* kernel_transform,
 	float* output_transform,
-	nnp_transform_2d input_transform_function,
-	nnp_transform_2d kernel_transform_function,
+	nnp_transform_2d_with_offset input_transform_function,
+	nnp_transform_2d_with_offset kernel_transform_function,
 	nnp_transform_2d_with_bias output_transform_function,
 	pthreadpool_t threadpool,
 	struct nnp_profile* profile)
@@ -450,13 +450,13 @@ enum nnp_status nnp_convolution_output(
 	/* Choose tiling parameters and transform functions depending on convolution algorithm */
 	struct nnp_size transform_tile;
 	bool fourier_transform;
-	nnp_transform_2d input_transform_function;
-	nnp_transform_2d kernel_transform_function;
+	nnp_transform_2d_with_offset input_transform_function;
+	nnp_transform_2d_with_offset kernel_transform_function;
 	nnp_transform_2d_with_bias output_transform_function;
 	switch (algorithm) {
 		case nnp_convolution_algorithm_ft8x8:
-			input_transform_function = nnp_hwinfo.transforms.fft8x8_and_stream;
-			kernel_transform_function = nnp_hwinfo.transforms.fft8x8_and_stream;
+			input_transform_function = nnp_hwinfo.transforms.fft8x8_with_offset_and_stream;
+			kernel_transform_function = nnp_hwinfo.transforms.fft8x8_with_offset_and_stream;
 			switch (activation) {
 				case nnp_activation_relu:
 					output_transform_function = nnp_hwinfo.transforms.ifft8x8_with_bias_with_relu;
@@ -471,8 +471,8 @@ enum nnp_status nnp_convolution_output(
 			fourier_transform = true;
 			break;
 		case nnp_convolution_algorithm_ft16x16:
-			input_transform_function = nnp_hwinfo.transforms.fft16x16_and_stream;
-			kernel_transform_function = nnp_hwinfo.transforms.fft16x16_and_stream;
+			input_transform_function = nnp_hwinfo.transforms.fft16x16_with_offset_and_stream;
+			kernel_transform_function = nnp_hwinfo.transforms.fft16x16_with_offset_and_stream;
 			switch (activation) {
 				case nnp_activation_relu:
 					output_transform_function = nnp_hwinfo.transforms.ifft16x16_with_bias_with_relu;
@@ -491,7 +491,7 @@ enum nnp_status nnp_convolution_output(
 				status = nnp_status_unsupported_algorithm;
 				goto cleanup;
 			}
-			input_transform_function = nnp_hwinfo.transforms.iwt_f6x6_3x3_and_stream;
+			input_transform_function = nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_stream;
 			kernel_transform_function = nnp_hwinfo.transforms.kwt_f6x6_3x3;
 			output_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias;
 			switch (activation) {

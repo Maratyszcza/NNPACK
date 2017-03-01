@@ -12,7 +12,7 @@
 
 
 struct NNP_CACHE_ALIGN kernel_transform_context {
-	nnp_transform_2d transform_function;
+	nnp_transform_2d_with_offset transform_function;
 	const float* kernel;
 	float* kernel_transform;
 
@@ -36,8 +36,8 @@ static void compute_kernel_transform(
 
 	const float (*kernel)[input_channels][kernel_size.width * kernel_size.height] =
 		(const float(*)[input_channels][kernel_size.width * kernel_size.height]) context->kernel;
-	float* kernel_transform             = context->kernel_transform;
-	nnp_transform_2d transform_function = context->transform_function;
+	float* kernel_transform                         = context->kernel_transform;
+	nnp_transform_2d_with_offset transform_function = context->transform_function;
 
 	const size_t output_channels_block_start  = round_down(output_channel, output_channels_block_max);
 	const size_t output_channels_block_size   = min(output_channels - output_channels_block_start, output_channels_block_max);
@@ -56,7 +56,7 @@ static void compute_kernel_transform(
 }
 
 struct NNP_CACHE_ALIGN grad_output_transform_context {
-	nnp_transform_2d transform_function;
+	nnp_transform_2d_with_offset transform_function;
 	const float* grad_output;
 	float* grad_output_transform;
 
@@ -88,8 +88,8 @@ static void compute_grad_output_transform(
 
 	const float (*grad_output)[output_channels][output_size.width * output_size.height] =
 		(const float(*)[output_channels][output_size.width * output_size.height]) context->grad_output;
-	float* grad_output_transform        = context->grad_output_transform;
-	nnp_transform_2d transform_function = context->transform_function;
+	float* grad_output_transform                    = context->grad_output_transform;
+	nnp_transform_2d_with_offset transform_function = context->transform_function;
 
 	const size_t output_channels_block_start  = round_down(output_channel, output_channels_block_max);
 	const size_t output_channels_block_size   = min(output_channels - output_channels_block_start, output_channels_block_max);
@@ -108,7 +108,7 @@ static void compute_grad_output_transform(
 }
 
 struct NNP_CACHE_ALIGN grad_input_transform_context {
-	nnp_transform_2d transform_function;
+	nnp_transform_2d_with_offset transform_function;
 	float* grad_input;
 	const float* grad_input_transform;
 
@@ -140,11 +140,11 @@ static void compute_grad_input_transform(
 
 	float (*grad_input)[input_channels][input_size.width * input_size.height] =
 		(float(*)[input_channels][input_size.width * input_size.height]) context->grad_input;
-	const float* grad_input_transform   = context->grad_input_transform;
-	nnp_transform_2d transform_function = context->transform_function;
+	const float* grad_input_transform               = context->grad_input_transform;
+	nnp_transform_2d_with_offset transform_function = context->transform_function;
 
-	const size_t batch_block_start = round_down(sample, batch_block_max);
-	const size_t batch_block_size = min(batch_size - batch_block_start, batch_block_max);
+	const size_t batch_block_start  = round_down(sample, batch_block_max);
+	const size_t batch_block_size   = min(batch_size - batch_block_start, batch_block_max);
 	const size_t batch_block_offset = sample - batch_block_start;
 
 	for (size_t input_channels_subblock_offset = 0; input_channels_subblock_offset < input_channels_subblock_size; input_channels_subblock_offset += 1) {
@@ -258,9 +258,9 @@ static void compute_convolution_input_gradient(
 	float* grad_output_transform,
 	float* kernel_transform,
 	float* grad_input_transform,
-	nnp_transform_2d grad_output_transform_function,
-	nnp_transform_2d kernel_transform_function,
-	nnp_transform_2d grad_input_transform_function,
+	nnp_transform_2d_with_offset grad_output_transform_function,
+	nnp_transform_2d_with_offset kernel_transform_function,
+	nnp_transform_2d_with_offset grad_input_transform_function,
 	pthreadpool_t threadpool,
 	struct nnp_profile* profile)
 {
@@ -449,21 +449,21 @@ enum nnp_status nnp_convolution_input_gradient(
 	/* Choose tiling parameters and transform functions depending on convolution algorithm */
 	struct nnp_size transform_tile;
 	bool fourier_transform;
-	nnp_transform_2d grad_output_transform_function;
-	nnp_transform_2d kernel_transform_function;
-	nnp_transform_2d grad_input_transform_function;
+	nnp_transform_2d_with_offset grad_output_transform_function;
+	nnp_transform_2d_with_offset kernel_transform_function;
+	nnp_transform_2d_with_offset grad_input_transform_function;
 	switch (algorithm) {
 		case nnp_convolution_algorithm_ft8x8:
-			grad_output_transform_function = nnp_hwinfo.transforms.fft8x8_and_stream;
-			kernel_transform_function = nnp_hwinfo.transforms.fft8x8_and_stream;
-			grad_input_transform_function = nnp_hwinfo.transforms.ifft8x8;
+			grad_output_transform_function = nnp_hwinfo.transforms.fft8x8_with_offset_and_stream;
+			kernel_transform_function = nnp_hwinfo.transforms.fft8x8_with_offset_and_stream;
+			grad_input_transform_function = nnp_hwinfo.transforms.ifft8x8_with_offset;
 			transform_tile = (struct nnp_size) { .height = 8, .width = 8 };
 			fourier_transform = true;
 			break;
 		case nnp_convolution_algorithm_ft16x16:
-			grad_output_transform_function = nnp_hwinfo.transforms.fft16x16_and_stream;
-			kernel_transform_function = nnp_hwinfo.transforms.fft16x16_and_stream;
-			grad_input_transform_function = nnp_hwinfo.transforms.ifft16x16;
+			grad_output_transform_function = nnp_hwinfo.transforms.fft16x16_with_offset_and_stream;
+			kernel_transform_function = nnp_hwinfo.transforms.fft16x16_with_offset_and_stream;
+			grad_input_transform_function = nnp_hwinfo.transforms.ifft16x16_with_offset;
 			transform_tile = (struct nnp_size) { .height = 16, .width = 16 };
 			fourier_transform = true;
 			break;
@@ -472,7 +472,7 @@ enum nnp_status nnp_convolution_input_gradient(
 				status = nnp_status_unsupported_algorithm;
 				goto cleanup;
 			}
-			grad_output_transform_function = nnp_hwinfo.transforms.iwt_f6x6_3x3_and_stream;
+			grad_output_transform_function = nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_stream;
 			kernel_transform_function = nnp_hwinfo.transforms.kwt_f6x6_3Rx3R;
 			grad_input_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3;
 			transform_tile = (struct nnp_size) { .height = 8, .width = 8 };

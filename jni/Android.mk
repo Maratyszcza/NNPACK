@@ -19,7 +19,7 @@ LOCAL_MODULE := nnpack_ukernels
 LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/src/psimd/2d-fourier-8x8.c \
 	$(LOCAL_PATH)/src/psimd/2d-fourier-16x16.c \
-	$(LOCAL_PATH)/src/psimd/2d-wt-8x8-3x3.c \
+	$(LOCAL_PATH)/src/psimd/2d-winograd-8x8-3x3.c \
 	$(LOCAL_PATH)/src/psimd/relu.c \
 	$(LOCAL_PATH)/src/psimd/softmax.c \
 	$(LOCAL_PATH)/src/psimd/fft-block-mac.c \

@@ -15,7 +15,7 @@
 
 
 struct NNP_CACHE_ALIGN kernel_transform_context {
-	nnp_transform_2d transform_function;
+	nnp_transform_2d_with_offset transform_function;
 	const float* kernel;
 	float* kernel_transform;
 
@@ -41,8 +41,8 @@ static void compute_kernel_transform(
 
 	const float (*kernel)[input_channels][kernel_size.width * kernel_size.height] =
 		(const float(*)[input_channels][kernel_size.width * kernel_size.height]) context->kernel;
-	float* kernel_transform             = context->kernel_transform;
-	nnp_transform_2d transform_function = context->transform_function;
+	float* kernel_transform                         = context->kernel_transform;
+	nnp_transform_2d_with_offset transform_function = context->transform_function;
 
 	const size_t input_channel = input_channels_block_start + input_channels_block_offset;
 	for (size_t output_channels_subblock_offset = 0; output_channels_subblock_offset < output_channels_subblock_size; output_channels_subblock_offset += 1) {
@@ -60,7 +60,7 @@ static void compute_kernel_transform(
 struct NNP_CACHE_ALIGN input_transform_context {
 	const float* input;
 	float* input_transform;
-	nnp_transform_2d transform_function;
+	nnp_transform_2d_with_offset transform_function;
 
 	const size_t tuple_elements;
 	const size_t tiles_count;
@@ -92,8 +92,8 @@ static void compute_input_transform(
 
 	const float (*input)[input_size.height][input_size.width] =
 		(const float(*)[input_size.height][input_size.width]) context->input;
-	float* input_transform              = context->input_transform;
-	nnp_transform_2d transform_function = context->transform_function;
+	float* input_transform                          = context->input_transform;
+	nnp_transform_2d_with_offset transform_function = context->transform_function;
 
 	const size_t input_channel = input_channels_block_start + input_channels_block_offset;
 	for (size_t tiles_subblock_offset = 0; tiles_subblock_offset < tiles_subblock_size; tiles_subblock_offset += 1) {
@@ -422,8 +422,8 @@ static enum nnp_status compute_fast_convolution_inference(
 	const float* kernel,
 	const float* bias,
 	float* output,
-	const nnp_transform_2d input_transform_function,
-	const nnp_transform_2d kernel_transform_function,
+	const nnp_transform_2d_with_offset input_transform_function,
+	const nnp_transform_2d_with_offset kernel_transform_function,
 	const nnp_transform_2d_with_bias output_transform_function,
 	pthreadpool_t threadpool,
 	struct nnp_profile* profile)
@@ -827,8 +827,8 @@ enum nnp_status nnp_convolution_inference(
 
 	struct nnp_size tile_size;
 	bool fourier_transform;
-	nnp_transform_2d input_transform_function = NULL;
-	nnp_transform_2d kernel_transform_function = NULL;
+	nnp_transform_2d_with_offset input_transform_function = NULL;
+	nnp_transform_2d_with_offset kernel_transform_function = NULL;
 	nnp_transform_2d_with_bias output_transform_function = NULL;
 	switch (algorithm) {
 		case nnp_convolution_algorithm_wt8x8:
@@ -837,7 +837,7 @@ enum nnp_status nnp_convolution_inference(
 				goto cleanup;
 			}
 			tile_size = (struct nnp_size) { .height = 8, .width = 8 };
-			input_transform_function = nnp_hwinfo.transforms.iwt_f6x6_3x3_and_stream;
+			input_transform_function = nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_stream;
 			kernel_transform_function = nnp_hwinfo.transforms.kwt_f6x6_3x3;
 			switch (activation) {
 				case nnp_activation_identity:
@@ -853,8 +853,8 @@ enum nnp_status nnp_convolution_inference(
 			break;
 		case nnp_convolution_algorithm_ft8x8:
 			tile_size = (struct nnp_size) { .height = 8, .width = 8 };
-			input_transform_function = nnp_hwinfo.transforms.fft8x8_and_stream;
-			kernel_transform_function = nnp_hwinfo.transforms.fft8x8_and_stream;
+			input_transform_function = nnp_hwinfo.transforms.fft8x8_with_offset_and_stream;
+			kernel_transform_function = nnp_hwinfo.transforms.fft8x8_with_offset_and_stream;
 			switch (activation) {
 				case nnp_activation_identity:
 					output_transform_function = nnp_hwinfo.transforms.ifft8x8_with_bias;
@@ -869,8 +869,8 @@ enum nnp_status nnp_convolution_inference(
 			break;
 		case nnp_convolution_algorithm_ft16x16:
 			tile_size = (struct nnp_size) { .height = 16, .width = 16 };
-			input_transform_function = nnp_hwinfo.transforms.fft16x16_and_stream;
-			kernel_transform_function = nnp_hwinfo.transforms.fft16x16_and_stream;
+			input_transform_function = nnp_hwinfo.transforms.fft16x16_with_offset_and_stream;
+			kernel_transform_function = nnp_hwinfo.transforms.fft16x16_with_offset_and_stream;
 			switch (activation) {
 				case nnp_activation_identity:
 					output_transform_function = nnp_hwinfo.transforms.ifft16x16_with_bias;

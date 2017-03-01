@@ -12,7 +12,7 @@
 #define BLOCK_SIZE 8
 
 
-void nnp_fft8x8__scalar(
+void nnp_fft8x8_with_offset__scalar(
 	const float data[restrict static 1],
 	float transform[restrict static 1],
 	size_t data_stride, size_t transform_stride,
@@ -119,7 +119,7 @@ void nnp_fft8x8__scalar(
 	}
 }
 
-void nnp_ifft8x8__scalar(
+void nnp_ifft8x8_with_offset__scalar(
 	const float transform[restrict static 1],
 	float data[restrict static 1],
 	size_t transform_stride, size_t data_stride,

@@ -12,7 +12,7 @@
 #define BLOCK_SIZE 16
 
 
-void nnp_fft16x16__scalar(
+void nnp_fft16x16_with_offset__scalar(
 	const float data[restrict static 1],
 	float transform[restrict static 1],
 	size_t data_stride, size_t transform_stride,
@@ -167,7 +167,7 @@ void nnp_fft16x16__scalar(
 	}
 }
 
-void nnp_ifft16x16__scalar(
+void nnp_ifft16x16_with_offset__scalar(
 	const float transform[restrict static 1],
 	float data[restrict static 1],
 	size_t transform_stride, size_t data_stride,
