@@ -177,7 +177,7 @@ for with_offset, with_bias, with_relu in [(True, False, False), (False, True, Fa
         reg_column_end = GeneralPurposeRegister32()
         LOAD.ARGUMENT(reg_column_end, arg_column_count)
 
-        if not with_bias:
+        if with_offset:
             reg_row_start = GeneralPurposeRegister32()
             LOAD.ARGUMENT(reg_row_start, arg_row_offset)
             ADD(reg_row_end, reg_row_start)
@@ -188,7 +188,7 @@ for with_offset, with_bias, with_relu in [(True, False, False), (False, True, Fa
         else:
             reg_row_start = None
 
-        if not with_bias:
+        if with_offset:
             ymm_column_start, ymm_column_end = YMMRegister(), YMMRegister()
             VMOVD(ymm_column_start.as_xmm, reg_column_start.as_dword)
             VMOVD(ymm_column_end.as_xmm, reg_column_end.as_dword)

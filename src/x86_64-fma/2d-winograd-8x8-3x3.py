@@ -159,6 +159,7 @@ for with_offset, with_bias, with_relu in [(True, False, False), (False, True, Fa
     else:
         owt8x8_arguments = (arg_m_pointer, arg_s_pointer, arg_m_stride, arg_s_stride, arg_row_count, arg_column_count)
     if with_offset:
+        # Note: the version with offset has offset arguments, but they are never used (assumed 0).
         owt8x8_arguments += (arg_row_offset, arg_column_offset)
     with Function("nnp_owt8x8_3x3{with_bias}{with_relu}__avx2".format(
             with_bias="_with_bias" if with_bias else "",
