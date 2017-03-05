@@ -13,7 +13,7 @@ install:
  - pip install --user git+https://github.com/Maratyszcza/confu
 before_script:
  - confu setup
- - python ./configure.py --backend=$BACKEND
+ - python ./configure.py --toolchain=clang --backend=$BACKEND
  - ninja
 script:
  - ninja smoketest
