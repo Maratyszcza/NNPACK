@@ -9,18 +9,19 @@ parser.add_argument("--backend", dest="backend", default="auto",
 
 def main(args):
     options = parser.parse_args(args)
-    if options.backend == "psimd":
-        options.toolchain = "clang"
-    build = confu.Build.from_options(options)
 
     backend = options.backend
     if backend == "auto":
-        if build.target.is_x86_64:
+        if options.target.is_x86_64:
             backend = "x86_64"
-        elif build.target.is_emscripten:
+        elif options.target.is_emscripten:
             backend = "scalar"
         else:
             backend = "psimd"
+    if backend == "psimd":
+        options.toolchain = "clang"
+
+    build = confu.Build.from_options(options)
 
     macro = None
     if backend == "psimd":
