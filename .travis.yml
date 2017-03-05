@@ -1,10 +1,14 @@
 language: c
 compiler: clang
 install:
- - wget https://raw.githubusercontent.com/Maratyszcza/confu/master/install_deps.sh
- - bash ./install_deps.sh
+ - git clone https://github.com/ninja-build/ninja.git /tmp/ninja
+ - pushd /tmp/ninja
+ - git checkout release
+ - python configure.py --bootstrap
+ - mkdir -p $HOME/.local/bin
+ - install -m 755 /tmp/ninja/ninja $HOME/.local/bin/ninja
+ - popd
  - export PATH=$HOME/.local/bin:$PATH
- - pip install --user ninja-syntax pyyaml
  - pip install --user git+https://github.com/Maratyszcza/PeachPy
  - pip install --user git+https://github.com/Maratyszcza/confu
 before_script:
