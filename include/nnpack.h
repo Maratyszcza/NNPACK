@@ -522,3 +522,88 @@ enum nnp_status nnp_relu_input_gradient(
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
+
+#ifdef __cplusplus
+// Backward compatible implementations for nnp_convolution_*, if we are in C++
+// mode.
+inline enum nnp_status nnp_convolution_output(
+	enum nnp_convolution_algorithm algorithm,
+	size_t batch_size,
+	size_t input_channels,
+	size_t output_channels,
+	struct nnp_size input_size,
+	struct nnp_padding input_padding,
+	struct nnp_size kernel_size,
+	const float input[],
+	const float kernel[],
+	const float bias[],
+	float output[],
+	pthreadpool_t threadpool,
+	struct nnp_profile* profile) {
+  return nnp_convolution_output(
+      algorithm, batch_size, input_channels, output_channels, input_size,
+      input_padding, kernel_size, input, kernel, bias, output,
+      nnp_activation_identity, NULL, threadpool, profile);
+}
+
+inline enum nnp_status nnp_convolution_input_gradient(
+	enum nnp_convolution_algorithm algorithm,
+	size_t batch_size,
+	size_t input_channels,
+	size_t output_channels,
+	struct nnp_size input_size,
+	struct nnp_padding input_padding,
+	struct nnp_size kernel_size,
+	const float grad_output[],
+	const float kernel[],
+	float grad_input[],
+	pthreadpool_t threadpool,
+	struct nnp_profile* profile) {
+  return nnp_convolution_input_gradient(
+      algorithm, batch_size, input_channels, output_channels, input_size,
+      input_padding, kernel_size, grad_output, kernel, grad_input,
+      nnp_activation_identity, NULL, threadpool, profile);
+}
+
+inline enum nnp_status nnp_convolution_kernel_gradient(
+	enum nnp_convolution_algorithm algorithm,
+	size_t batch_size,
+	size_t input_channels,
+	size_t output_channels,
+	struct nnp_size input_size,
+	struct nnp_padding input_padding,
+	struct nnp_size kernel_size,
+	const float input[],
+	const float grad_output[],
+	float grad_kernel[],
+	pthreadpool_t threadpool,
+	struct nnp_profile* profile) {
+  return nnp_convolution_kernel_gradient(
+      algorithm, batch_size, input_channels, output_channels, input_size,
+      input_padding, kernel_size, input, grad_output, grad_kernel,
+      nnp_activation_identity, NULL, threadpool, profile);
+}
+
+inline enum nnp_status nnp_convolution_inference(
+	enum nnp_convolution_algorithm algorithm,
+	enum nnp_convolution_transform_strategy transform_strategy,
+	size_t input_channels,
+	size_t output_channels,
+	struct nnp_size input_size,
+	struct nnp_padding input_padding,
+	struct nnp_size kernel_size,
+	struct nnp_size output_subsampling,
+	const float input[],
+	const float kernel[],
+	const float bias[],
+	float output[],
+	pthreadpool_t threadpool,
+	struct nnp_profile* profile) {
+  return nnp_convolution_inference(
+      algorithm, transform_strategy, input_channels, output_channels,
+      input_size, input_padding, kernel_size, output_subsampling, input,
+      kernel, bias, output, nnp_activation_identity, NULL, threadpool,
+      profile);
+}
+
+#endif // __cplusplus
