@@ -174,7 +174,7 @@ TEST(FT8x8_BLOCK, DISABLED_implicit_padding) {
 		for (size_t paddingRight = 0; paddingRight < tester.kernelWidth(); paddingRight++) {
 			for (size_t paddingLeft = 0; paddingLeft < tester.kernelWidth(); paddingLeft++) {
 				for (size_t paddingBottom = 0; paddingBottom < tester.kernelHeight(); paddingBottom++) {
-					tester.inputPadding(paddingTop, paddingRight, paddingLeft, paddingBottom)
+					tester.inputPadding(paddingTop, paddingRight, paddingBottom, paddingLeft)
 						.testInference(nnp_convolution_algorithm_ft8x8, nnp_convolution_transform_strategy_block_based);
 				}
 			}
@@ -192,7 +192,7 @@ TEST(FT8x8_TUPLE, implicit_padding) {
 		for (size_t paddingRight = 0; paddingRight < tester.kernelWidth(); paddingRight++) {
 			for (size_t paddingLeft = 0; paddingLeft < tester.kernelWidth(); paddingLeft++) {
 				for (size_t paddingBottom = 0; paddingBottom < tester.kernelHeight(); paddingBottom++) {
-					tester.inputPadding(paddingTop, paddingRight, paddingLeft, paddingBottom)
+					tester.inputPadding(paddingTop, paddingRight, paddingBottom, paddingLeft)
 						.testInference(nnp_convolution_algorithm_ft8x8, nnp_convolution_transform_strategy_tuple_based);
 				}
 			}
@@ -210,7 +210,7 @@ TEST(FT16x16_BLOCK, DISABLED_implicit_padding) {
 		for (size_t paddingRight = 0; paddingRight < tester.kernelWidth(); paddingRight++) {
 			for (size_t paddingLeft = 0; paddingLeft < tester.kernelWidth(); paddingLeft++) {
 				for (size_t paddingBottom = 0; paddingBottom < tester.kernelHeight(); paddingBottom++) {
-					tester.inputPadding(paddingTop, paddingRight, paddingLeft, paddingBottom)
+					tester.inputPadding(paddingTop, paddingRight, paddingBottom, paddingLeft)
 						.testInference(nnp_convolution_algorithm_ft16x16, nnp_convolution_transform_strategy_block_based);
 				}
 			}
@@ -228,7 +228,7 @@ TEST(FT16x16_TUPLE, implicit_padding) {
 		for (size_t paddingRight = 0; paddingRight < tester.kernelWidth(); paddingRight++) {
 			for (size_t paddingLeft = 0; paddingLeft < tester.kernelWidth(); paddingLeft++) {
 				for (size_t paddingBottom = 0; paddingBottom < tester.kernelHeight(); paddingBottom++) {
-					tester.inputPadding(paddingTop, paddingRight, paddingLeft, paddingBottom)
+					tester.inputPadding(paddingTop, paddingRight, paddingBottom, paddingLeft)
 						.testInference(nnp_convolution_algorithm_ft16x16, nnp_convolution_transform_strategy_tuple_based);
 				}
 			}
@@ -246,7 +246,7 @@ TEST(WT8x8_BLOCK, DISABLED_implicit_padding) {
 		for (size_t paddingRight = 0; paddingRight < tester.kernelWidth(); paddingRight++) {
 			for (size_t paddingLeft = 0; paddingLeft < tester.kernelWidth(); paddingLeft++) {
 				for (size_t paddingBottom = 0; paddingBottom < tester.kernelHeight(); paddingBottom++) {
-					tester.inputPadding(paddingTop, paddingRight, paddingLeft, paddingBottom)
+					tester.inputPadding(paddingTop, paddingRight, paddingBottom, paddingLeft)
 						.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_transform_strategy_block_based);
 				}
 			}
@@ -264,7 +264,7 @@ TEST(WT8x8_TUPLE, implicit_padding) {
 		for (size_t paddingRight = 0; paddingRight < tester.kernelWidth(); paddingRight++) {
 			for (size_t paddingLeft = 0; paddingLeft < tester.kernelWidth(); paddingLeft++) {
 				for (size_t paddingBottom = 0; paddingBottom < tester.kernelHeight(); paddingBottom++) {
-					tester.inputPadding(paddingTop, paddingRight, paddingLeft, paddingBottom)
+					tester.inputPadding(paddingTop, paddingRight, paddingBottom, paddingLeft)
 						.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_transform_strategy_tuple_based);
 				}
 			}

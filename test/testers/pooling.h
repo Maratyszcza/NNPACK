@@ -174,7 +174,7 @@ public:
 			this->poolingSize_.width, this->poolingStride_.width);
 	}
 
-	inline PoolingTester& inputPadding(size_t top, size_t right, size_t left, size_t bottom) {
+	inline PoolingTester& inputPadding(size_t top, size_t right, size_t bottom, size_t left) {
 		this->inputPadding_.top = top;
 		this->inputPadding_.right = right;
 		this->inputPadding_.bottom = bottom;

@@ -238,7 +238,7 @@ TEST(MAX_POOLING_2x2, implicit_padding) {
 					tester.inputSize(
 							inputHeight - paddingTop - paddingBottom,
 							inputWidth - paddingLeft - paddingRight)
-						.inputPadding(paddingTop, paddingRight, paddingLeft, paddingBottom)
+						.inputPadding(paddingTop, paddingRight, paddingBottom, paddingLeft)
 						.testOutput();
 				}
 			}
@@ -260,7 +260,7 @@ TEST(MAX_POOLING_3x3_STRIDE_2x2, implicit_padding) {
 					tester.inputSize(
 							inputHeight - paddingTop - paddingBottom,
 							inputWidth - paddingLeft - paddingRight)
-						.inputPadding(paddingTop, paddingRight, paddingLeft, paddingBottom)
+						.inputPadding(paddingTop, paddingRight, paddingBottom, paddingLeft)
 						.testOutput();
 				}
 			}
@@ -278,7 +278,7 @@ TEST(MAX_POOLING_1x2, implicit_padding) {
 	for (size_t paddingLeft = 0; paddingLeft < tester.poolingWidth(); paddingLeft++) {
 		for (size_t paddingRight = 0; paddingRight < tester.poolingWidth(); paddingRight++) {
 			tester.inputSize(inputHeight, inputWidth - paddingLeft - paddingRight)
-				.inputPadding(0, paddingRight, paddingLeft, 0)
+				.inputPadding(0, paddingRight, 0, paddingLeft)
 				.testOutput();
 		}
 	}
@@ -294,7 +294,7 @@ TEST(MAX_POOLING_2x1, implicit_padding) {
 	for (size_t paddingTop = 0; paddingTop < tester.poolingHeight(); paddingTop++) {
 		for (size_t paddingBottom = 0; paddingBottom < tester.poolingHeight(); paddingBottom++) {
 			tester.inputSize(inputHeight - paddingTop - paddingBottom, inputWidth)
-				.inputPadding(paddingTop, 0, 0, paddingBottom)
+				.inputPadding(paddingTop, 0, paddingBottom, 0)
 				.testOutput();
 		}
 	}

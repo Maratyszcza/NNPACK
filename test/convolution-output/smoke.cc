@@ -102,7 +102,7 @@ TEST(FT8x8, implicit_padding) {
 		for (size_t paddingRight = 0; paddingRight < tester.kernelWidth(); paddingRight++) {
 			for (size_t paddingLeft = 0; paddingLeft < tester.kernelWidth(); paddingLeft++) {
 				for (size_t paddingBottom = 0; paddingBottom < tester.kernelHeight(); paddingBottom++) {
-					tester.inputPadding(paddingTop, paddingRight, paddingLeft, paddingBottom)
+					tester.inputPadding(paddingTop, paddingRight, paddingBottom, paddingLeft)
 						.testOutput(nnp_convolution_algorithm_ft8x8);
 				}
 			}
@@ -120,7 +120,7 @@ TEST(FT16x16, implicit_padding) {
 		for (size_t paddingRight = 0; paddingRight < tester.kernelWidth(); paddingRight++) {
 			for (size_t paddingLeft = 0; paddingLeft < tester.kernelWidth(); paddingLeft++) {
 				for (size_t paddingBottom = 0; paddingBottom < tester.kernelHeight(); paddingBottom++) {
-					tester.inputPadding(paddingTop, paddingRight, paddingLeft, paddingBottom)
+					tester.inputPadding(paddingTop, paddingRight, paddingBottom, paddingLeft)
 						.testOutput(nnp_convolution_algorithm_ft16x16);
 				}
 			}
@@ -138,7 +138,7 @@ TEST(WT8x8, implicit_padding) {
 		for (size_t paddingRight = 0; paddingRight < tester.kernelWidth(); paddingRight++) {
 			for (size_t paddingLeft = 0; paddingLeft < tester.kernelWidth(); paddingLeft++) {
 				for (size_t paddingBottom = 0; paddingBottom < tester.kernelHeight(); paddingBottom++) {
-					tester.inputPadding(paddingTop, paddingRight, paddingLeft, paddingBottom)
+					tester.inputPadding(paddingTop, paddingRight, paddingBottom, paddingLeft)
 						.testOutput(nnp_convolution_algorithm_wt8x8);
 				}
 			}
