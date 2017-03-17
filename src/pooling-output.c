@@ -158,8 +158,8 @@ enum nnp_status nnp_max_pooling_output(
 	}
 
 	const struct nnp_size output_size = {
-		.height = divide_round_up(input_padding.top + input_size.height + input_padding.bottom - pooling_size.height, pooling_stride.height) + 1,
-		.width = divide_round_up(input_padding.left + input_size.width + input_padding.right - pooling_size.width, pooling_stride.width) + 1,
+		.height = divide_round_up(doz(input_padding.top + input_size.height + input_padding.bottom, pooling_size.height), pooling_stride.height) + 1,
+		.width = divide_round_up(doz(input_padding.left + input_size.width + input_padding.right, pooling_size.width), pooling_stride.width) + 1,
 	};
 
 	struct pooling_context pooling_context = {

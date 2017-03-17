@@ -164,14 +164,14 @@ public:
 
 	inline size_t outputHeight() const {
 		return 1 + divide_round_up(
-			this->inputPadding_.top + this->inputSize_.height + this->inputPadding_.bottom - this->poolingSize_.height,
-			this->poolingStride_.height);
+			std::max(this->inputPadding_.top + this->inputSize_.height + this->inputPadding_.bottom, this->poolingSize_.height) -
+			this->poolingSize_.height, this->poolingStride_.height);
 	}
 
 	inline size_t outputWidth() const {
 		return 1 + divide_round_up(
-			this->inputPadding_.left + this->inputSize_.width + this->inputPadding_.right - this->poolingSize_.width,
-			this->poolingStride_.width);
+			std::max(this->inputPadding_.left + this->inputSize_.width + this->inputPadding_.right, this->poolingSize_.width) -
+			this->poolingSize_.width, this->poolingStride_.width);
 	}
 
 	inline PoolingTester& inputPadding(size_t top, size_t right, size_t left, size_t bottom) {
