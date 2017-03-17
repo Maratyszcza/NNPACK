@@ -125,7 +125,7 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 
 				struct cpu_info structured_info = { 0 };
 				if (max_base_info >= 7) {
-					__cpuid(7, structured_info.eax, structured_info.ebx, structured_info.ecx, structured_info.edx);
+					__cpuid_count(7, 0, structured_info.eax, structured_info.ebx, structured_info.ecx, structured_info.edx);
 				}
 
 				if (ymm_regs) {
@@ -348,7 +348,6 @@ static void init_hwinfo(void) {
 		}
 	}
 	nnp_hwinfo.blocking.l4 = nnp_hwinfo.cache.l4.size;
-
 	if (nnp_hwinfo.cache.l1.size && nnp_hwinfo.cache.l2.size && nnp_hwinfo.cache.l3.size) {
 		#if NNP_ARCH_X86_64
 			if (nnp_hwinfo.isa.has_avx2 && nnp_hwinfo.isa.has_fma3) {
