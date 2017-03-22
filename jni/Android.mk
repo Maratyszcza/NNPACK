@@ -2,7 +2,7 @@ LOCAL_PATH := $(call my-dir)/..
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := pthreadpool
-LOCAL_SRC_FILES := $(LOCAL_PATH)/deps/pthreadpool/src/pthreadpool.c
+LOCAL_SRC_FILES := $(LOCAL_PATH)/deps/pthreadpool/src/threadpool-pthreads.c
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/deps/pthreadpool/include
 LOCAL_C_INCLUDES := $(LOCAL_EXPORT_C_INCLUDES) $(LOCAL_PATH)/deps/fxdiv/include
 include $(BUILD_STATIC_LIBRARY)
