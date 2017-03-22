@@ -375,6 +375,8 @@ static void init_hwinfo(void) {
 				nnp_hwinfo.activations.inplace_relu = nnp_inplace_relu_forward__avx2;
 				nnp_hwinfo.activations.outplace_relu = nnp_outplace_relu_forward__avx2;
 				nnp_hwinfo.activations.outplace_grad_relu = nnp_relu_backward__avx2;
+				nnp_hwinfo.activations.inplace_softmax = nnp_inplace_softmax__avx2;
+				nnp_hwinfo.activations.outplace_softmax = nnp_outplace_softmax__avx2;
 				nnp_hwinfo.sdotxf = (struct sdotxf) {
 					.functions = sdotxf,
 					.fusion = NNP_COUNT_OF(sdotxf),
@@ -438,6 +440,8 @@ static void init_hwinfo(void) {
 			nnp_hwinfo.activations.inplace_relu = nnp_inplace_relu_forward__psimd;
 			nnp_hwinfo.activations.outplace_relu = nnp_outplace_relu_forward__psimd;
 			nnp_hwinfo.activations.outplace_grad_relu = nnp_relu_backward__psimd;
+			nnp_hwinfo.activations.inplace_softmax = nnp_inplace_softmax__psimd;
+			nnp_hwinfo.activations.outplace_softmax = nnp_outplace_softmax__psimd;
 			nnp_hwinfo.sdotxf = (struct sdotxf) {
 				.functions = sdotxf,
 				.fusion = NNP_COUNT_OF(sdotxf),
@@ -500,6 +504,8 @@ static void init_hwinfo(void) {
 			nnp_hwinfo.activations.inplace_relu = nnp_inplace_relu_forward__psimd;
 			nnp_hwinfo.activations.outplace_relu = nnp_outplace_relu_forward__psimd;
 			nnp_hwinfo.activations.outplace_grad_relu = nnp_relu_backward__psimd;
+			nnp_hwinfo.activations.inplace_softmax = nnp_inplace_softmax__psimd;
+			nnp_hwinfo.activations.outplace_softmax = nnp_outplace_softmax__psimd;
 			nnp_hwinfo.sdotxf = (struct sdotxf) {
 				.functions = sdotxf,
 				.fusion = NNP_COUNT_OF(sdotxf),
@@ -566,6 +572,8 @@ static void init_hwinfo(void) {
 			nnp_hwinfo.activations.inplace_relu = nnp_inplace_relu_forward__scalar;
 			nnp_hwinfo.activations.outplace_relu = nnp_outplace_relu_forward__scalar;
 			nnp_hwinfo.activations.outplace_grad_relu = nnp_relu_backward__scalar;
+			nnp_hwinfo.activations.inplace_softmax = nnp_inplace_softmax__scalar;
+			nnp_hwinfo.activations.outplace_softmax = nnp_outplace_softmax__scalar;
 			nnp_hwinfo.sdotxf = (struct sdotxf) {
 				.functions = sdotxf,
 				.fusion = NNP_COUNT_OF(sdotxf),

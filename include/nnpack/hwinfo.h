@@ -7,6 +7,7 @@
 #include <nnpack/transform.h>
 #include <nnpack/blas.h>
 #include <nnpack/relu.h>
+#include <nnpack/softmax.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -69,6 +70,8 @@ struct activations {
 	nnp_inplace_relu_function inplace_relu;
 	nnp_outplace_relu_function outplace_relu;
 	nnp_gradient_relu_function outplace_grad_relu;
+	nnp_inplace_softmax_function inplace_softmax;
+	nnp_outplace_softmax_function outplace_softmax;
 };
 
 struct sgemm {
