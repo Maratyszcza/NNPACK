@@ -74,6 +74,22 @@ TEST(MRxNR_4x24, small_batch_size) {
 }
 
 /*
+ * Test that implementation works when batch is not divisible by subblock
+ * (single cache block, multiple register blocks of minibatch, with remainder subblock)
+ */
+
+TEST(MRxNR_4x24, batch_remainder_subblock) {
+	for (size_t batchSize = 12; batchSize < 16; batchSize += 1) {
+		FullyConnectedTester()
+			.batchSize(batchSize)
+			.outputChannels(24)
+			.iterations(100)
+			.errorLimit(1.0e-5)
+			.testOutput();
+	}
+}
+
+/*
  * Test that implementation works for many batch blocks (multiple cache blocks of minibatch)
  */
 
@@ -112,6 +128,22 @@ TEST(MRxNR_4x24, few_output_channels) {
 		.iterations(100)
 		.errorLimit(1.0e-5)
 		.testOutput();
+}
+
+/*
+ * Test that implementation works when output channels count is not divisible by subblock
+ * (single cache block, multiple register blocks of output channels, with remainder subblock)
+ */
+
+TEST(MRxNR_4x24, output_channels_remainder_subblock) {
+	for (size_t outputChannels = 3 * 24 + 1; outputChannels < 4 * 24; outputChannels += 1) {
+		FullyConnectedTester()
+			.batchSize(4)
+			.outputChannels(outputChannels)
+			.iterations(100)
+			.errorLimit(1.0e-5)
+			.testOutput();
+	}
 }
 
 /*
