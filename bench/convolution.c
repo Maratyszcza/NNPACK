@@ -123,7 +123,7 @@ static void print_options_help(const char* program_name) {
 "  -ks  --kernel-size        Kernel height and width\n"
 "Optional parameters:\n"
 "  -m   --mode               The convolution mode (output, inference, input-gradient, kernel-gradient)\n"
-"  -a   --algorithm          The algorithm (auto, ft8x8, ft16x16, wt8x8, or implicit-gemm) for computing convolution (default: auto)\n"
+"  -a   --algorithm          The algorithm (auto, ft8x8, ft16x16, wt8x8, implicit-gemm, or direct) for computing convolution (default: auto)\n"
 "  -s   --strategy           The transform strategy (block, tuple, precompute) in inference mode (default: tuple)\n"
 "  -b   --batch              The size of a minibatch (default: 1)\n"
 "       --output-subsampling The size of a output subsampling region (default: 1x1)\n"
@@ -283,6 +283,8 @@ static struct options parse_options(int argc, char** argv) {
 				options.algorithm = nnp_convolution_algorithm_wt8x8;
 			} else if (strcmp(argv[argi + 1], "implicit-gemm") == 0) {
 				options.algorithm = nnp_convolution_algorithm_implicit_gemm;
+			} else if (strcmp(argv[argi + 1], "direct") == 0) {
+				options.algorithm = nnp_convolution_algorithm_direct;
 			} else {
 				fprintf(stderr, "Error: invalid convolution algorithm name %s\n", argv[argi + 1]);
 				exit(EXIT_FAILURE);
@@ -439,6 +441,11 @@ int main(int argc, char** argv) {
 			tile_size = (struct nnp_size) { 1, 1 };
 			flops_per_element = 2.0 * kernel_size.height * kernel_size.width;
 			printf("Algorithm: Implicit GEMM\n");
+			break;
+		case nnp_convolution_algorithm_direct:
+			tile_size = (struct nnp_size) { 1, 1 };
+			flops_per_element = 2.0 * kernel_size.height * kernel_size.width;
+			printf("Algorithm: direct\n");
 			break;
 	}
 	const struct nnp_size output_tile_size = {

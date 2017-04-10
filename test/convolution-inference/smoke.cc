@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <nnpack.h>
+#include <nnpack/hwinfo.h>
 
 #include <testers/convolution.h>
 
@@ -502,6 +503,92 @@ TEST(WT8x8_TUPLE, non_square_image) {
 		.iterations(100)
 		.errorLimit(1.0e-3)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_transform_strategy_tuple_based);
+}
+
+
+TEST(DIRECT_1x1, channel_tile) {
+	ConvolutionTester()
+		.inputSize(8, 8)
+		.kernelSize(1, 1)
+		.inputChannels(nnp_hwinfo.conv1x1.mr)
+		.outputChannels(nnp_hwinfo.conv1x1.nr)
+		.iterations(100)
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_direct);
+}
+
+TEST(DIRECT_1x1, channel_subtile) {
+	for (size_t inputChannels = 1; inputChannels <= nnp_hwinfo.conv1x1.mr; inputChannels++) {
+		for (size_t outputChannels = 1; outputChannels <= nnp_hwinfo.conv1x1.nr; outputChannels++) {
+			if (inputChannels == nnp_hwinfo.conv1x1.mr && outputChannels == nnp_hwinfo.conv1x1.nr) {
+				continue;
+			}
+			ConvolutionTester()
+				.inputSize(8, 8)
+				.kernelSize(1, 1)
+				.inputChannels(inputChannels)
+				.outputChannels(outputChannels)
+				.iterations(100)
+				.errorLimit(1.0e-5)
+				.testInference(nnp_convolution_algorithm_direct);
+		}
+	}
+}
+
+TEST(DIRECT_1x1, input_multi_tile) {
+	ConvolutionTester()
+		.inputSize(8, 8)
+		.kernelSize(1, 1)
+		.inputChannels(nnp_hwinfo.conv1x1.mr * 3)
+		.outputChannels(nnp_hwinfo.conv1x1.nr)
+		.iterations(100)
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_direct);
+}
+
+TEST(DIRECT_1x1, output_multi_tile) {
+	ConvolutionTester()
+		.inputSize(8, 8)
+		.kernelSize(1, 1)
+		.inputChannels(nnp_hwinfo.conv1x1.mr)
+		.outputChannels(nnp_hwinfo.conv1x1.nr * 5)
+		.iterations(100)
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_direct);
+}
+
+TEST(DIRECT_1x1, input_output_multi_tile) {
+	ConvolutionTester()
+		.inputSize(8, 8)
+		.kernelSize(1, 1)
+		.inputChannels(nnp_hwinfo.conv1x1.mr * 5)
+		.outputChannels(nnp_hwinfo.conv1x1.nr * 3)
+		.iterations(100)
+		.errorLimit(1.0e-5)
+		.testInference(nnp_convolution_algorithm_direct);
+}
+
+TEST(DIRECT_1x1, odd_image_size) {
+	for (size_t height = 1; height < 8; height++) {
+		for (size_t width = 1; width < 8; width++) {
+			if (height * width < nnp_hwinfo.simd_width) {
+				continue;
+			}
+
+			for (size_t inputChannels = 1; inputChannels <= nnp_hwinfo.conv1x1.mr; inputChannels++) {
+				for (size_t outputChannels = 1; outputChannels <= nnp_hwinfo.conv1x1.nr; outputChannels++) {
+					ConvolutionTester()
+						.inputSize(height, width)
+						.kernelSize(1, 1)
+						.inputChannels(nnp_hwinfo.conv1x1.mr)
+						.outputChannels(nnp_hwinfo.conv1x1.nr)
+						.iterations(100)
+						.errorLimit(1.0e-5)
+						.testInference(nnp_convolution_algorithm_direct);
+				}
+			}
+		}
+	}
 }
 
 int main(int argc, char* argv[]) {

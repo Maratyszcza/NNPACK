@@ -22,6 +22,12 @@ void nnp_sgemm_upto_4x12__neon(uint32_t mr, uint32_t nr, size_t k, size_t update
 void nnp_sgemm_only_4x3__scalar(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 void nnp_sgemm_upto_4x3__scalar(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 
+typedef void (*nnp_fast_conv_function)(size_t, size_t, const float*, const float*, float*);
+typedef void (*nnp_full_conv_function)(uint32_t, uint32_t, size_t, size_t, const float*, const float*, float*);
+
+void nnp_conv1x1_only_2x4__psimd(size_t input_channels, size_t image_size, const float* input, const float* kernel, float* output);
+void nnp_conv1x1_upto_2x4__psimd(uint32_t mr, uint32_t nr, size_t input_channels, size_t image_size, const float* input, const float* kernel, float* output);
+
 typedef void (*nnp_fast_tuple_gemm_function)(size_t, size_t, const float*, const float*, float*, size_t);
 typedef void (*nnp_full_tuple_gemm_function)(uint32_t, uint32_t, size_t, size_t, const float*, const float*, float*, size_t);
 

@@ -108,6 +108,8 @@ enum nnp_convolution_algorithm {
 	nnp_convolution_algorithm_wt8x8 = 3,
 	/** Direct convolution via implicit GEMM. */
 	nnp_convolution_algorithm_implicit_gemm = 4,
+	/** Direct convolution implementation. */
+	nnp_convolution_algorithm_direct = 5,
 };
 
 enum nnp_convolution_transform_strategy {

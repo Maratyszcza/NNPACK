@@ -119,6 +119,8 @@ def main(args):
                 build.cc("psimd/blas/s4c2gemm-conjb.c"),
                 build.cc("psimd/blas/c4gemm-conjb-transc.c"),
                 build.cc("psimd/blas/s4c2gemm-conjb-transc.c"),
+                # Direct convolution
+                build.cc("psimd/blas/conv1x1.c"),
                 # BLAS microkernels
                 build.cc("psimd/blas/sgemm.c"),
                 build.cc("psimd/blas/sdotxf.c"),

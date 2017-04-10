@@ -408,6 +408,65 @@ static void compute_matrix_multiplication(
 	}
 }
 
+struct NNP_CACHE_ALIGN direct_convolution_context {
+	const float* input;
+	const float* kernel;
+	float* output;
+
+	size_t image_elements;
+	size_t input_channels;
+	size_t input_channels_block_max;
+	size_t output_channels_block_max;
+
+	nnp_fast_conv_function fast_conv;
+	nnp_full_conv_function full_conv;
+};
+
+static void compute_direct_convolution(
+	const struct direct_convolution_context context[restrict static 1],
+	size_t output_channels_block_start, size_t output_channels_block_size)
+{
+	const size_t image_elements            = context->image_elements;
+	const size_t input_channels            = context->input_channels;
+	const size_t input_channels_block_max  = context->input_channels_block_max;
+	const size_t output_channels_block_max = context->output_channels_block_max;
+
+	const float* input  = context->input;
+	const float* kernel = context->kernel + output_channels_block_start * input_channels;
+	float* output       = context->output + output_channels_block_start * image_elements;
+
+	memset(output, 0, sizeof(float) * output_channels_block_size * image_elements);
+
+	size_t input_channels_unprocessed = input_channels;
+	if (output_channels_block_size == output_channels_block_max) {
+		const nnp_fast_conv_function fast_conv = context->fast_conv;
+		while (input_channels_unprocessed >= input_channels_block_max) {
+			input_channels_unprocessed -= input_channels_block_max;
+
+			fast_conv(
+				input_channels, image_elements,
+				input, kernel, output);
+
+			input  += input_channels_block_max * image_elements;
+			kernel += input_channels_block_max;
+		}
+	}
+
+	const nnp_full_conv_function full_conv = context->full_conv;
+	while (input_channels_unprocessed != 0) {
+		const size_t input_channels_block_size = min(input_channels_unprocessed, input_channels_block_max);
+		input_channels_unprocessed -= input_channels_block_size;
+
+		full_conv(
+			input_channels_block_size, output_channels_block_size,
+			input_channels, image_elements,
+			input, kernel, output);
+
+		input  += input_channels_block_max * image_elements;
+		kernel += input_channels_block_max;
+	}
+}
+
 static enum nnp_status compute_fast_convolution_inference(
 	const bool fourier_transform,
 	const enum nnp_convolution_transform_strategy transform_strategy,
@@ -605,7 +664,7 @@ cleanup:
 	return status;
 }
 
-static enum nnp_status compute_direct_convolution_inference(
+static enum nnp_status compute_gemm_convolution_inference(
 	const size_t input_channels,
 	const size_t output_channels,
 	const struct nnp_size input_size,
@@ -758,6 +817,71 @@ cleanup:
 	return status;
 }
 
+static enum nnp_status compute_direct_convolution_inference(
+	const size_t input_channels,
+	const size_t output_channels,
+	const struct nnp_size image_size,
+	const struct nnp_size kernel_size,
+	const float* input,
+	const float* kernel,
+	const float* bias,
+	float* output,
+	enum nnp_activation activation,
+	pthreadpool_t threadpool,
+	struct nnp_profile* profile)
+{
+	enum nnp_status status = nnp_status_success;
+	const size_t simd_width = nnp_hwinfo.simd_width;
+
+	const size_t image_elements = image_size.height * image_size.width;
+
+	NNP_BLOCK_MULTIPLICATION_START(profile)
+	struct direct_convolution_context direct_convolution_context = {
+		.input = input,
+		.kernel = kernel,
+		.output = output,
+		.image_elements = image_elements,
+		.input_channels = input_channels,
+		.input_channels_block_max = nnp_hwinfo.conv1x1.mr,
+		.output_channels_block_max = nnp_hwinfo.conv1x1.nr,
+		.fast_conv = nnp_hwinfo.conv1x1.only_mr_x_nr,
+		.full_conv = nnp_hwinfo.conv1x1.upto_mr_x_nr,
+	};
+	pthreadpool_compute_1d_tiled(threadpool,
+		(pthreadpool_function_1d_tiled_t) compute_direct_convolution,
+		&direct_convolution_context,
+		output_channels, nnp_hwinfo.conv1x1.nr);
+	NNP_BLOCK_MULTIPLICATION_END(profile)
+
+	/* Add bias */
+	NNP_OUTPUT_TRANSFORM_START(profile)
+	switch (activation) {
+		case nnp_activation_identity:
+			for (size_t output_channel = 0; output_channel < output_channels; output_channel += 1) {
+				const float bias_value = bias[output_channel];
+				for (size_t index = 0; index < image_elements; index += 1) {
+					output[output_channel * image_elements + index] += bias_value;
+				}
+			}
+			break;
+		case nnp_activation_relu:
+			for (size_t output_channel = 0; output_channel < output_channels; output_channel += 1) {
+				const float bias_value = bias[output_channel];
+				for (size_t index = 0; index < image_elements; index += 1) {
+					output[output_channel * image_elements + index] =
+						relu(output[output_channel * image_elements + index] + bias_value, 0.0f);
+				}
+			}
+			break;
+		default:
+			NNP_UNREACHABLE;
+	}
+	NNP_OUTPUT_TRANSFORM_END(profile)
+
+cleanup:
+	return status;
+}
+
 enum nnp_status nnp_convolution_inference(
 	enum nnp_convolution_algorithm algorithm,
 	enum nnp_convolution_transform_strategy transform_strategy,
@@ -805,6 +929,8 @@ enum nnp_status nnp_convolution_inference(
 			algorithm = nnp_convolution_algorithm_implicit_gemm;
 		} else if (max(kernel_size.width, kernel_size.height) > 8) {
 			algorithm = nnp_convolution_algorithm_ft16x16;
+		} else if (max(kernel_size.width, kernel_size.height) == 1) {
+			algorithm = nnp_convolution_algorithm_direct;
 		} else {
 			const size_t tile_count_8x8 =
 				divide_round_up(output_size.height, 8 - kernel_size.height + 1) *
@@ -885,6 +1011,8 @@ enum nnp_status nnp_convolution_inference(
 			break;
 		case nnp_convolution_algorithm_implicit_gemm:
 			break;
+		case nnp_convolution_algorithm_direct:
+			break;
 		case nnp_convolution_algorithm_auto:
 			NNP_UNREACHABLE;
 		default:
@@ -909,9 +1037,16 @@ enum nnp_status nnp_convolution_inference(
 				threadpool, profile);
 			break;
 		case nnp_convolution_algorithm_implicit_gemm:
-			status = compute_direct_convolution_inference(
+			status = compute_gemm_convolution_inference(
 				input_channels, output_channels,
 				input_size, input_padding, kernel_size, output_size, output_subsampling,
+				input, kernel, bias, output,
+				activation,
+				threadpool, profile);
+			break;
+		case nnp_convolution_algorithm_direct:
+			status = compute_direct_convolution_inference(
+				input_channels, output_channels, input_size, kernel_size,
 				input, kernel, bias, output,
 				activation,
 				threadpool, profile);

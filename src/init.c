@@ -450,6 +450,12 @@ static void init_hwinfo(void) {
 				.functions = shdotxf,
 				.fusion = NNP_COUNT_OF(shdotxf),
 			};
+			nnp_hwinfo.conv1x1 = (struct convolution) {
+				.mr = 2,
+				.nr = 4,
+				.only_mr_x_nr = nnp_conv1x1_only_2x4__psimd,
+				.upto_mr_x_nr = nnp_conv1x1_upto_2x4__psimd,
+			};
 			nnp_hwinfo.sgemm = (struct sgemm) {
 				.mr = 4,
 				.nr = 8,

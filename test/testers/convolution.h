@@ -326,7 +326,7 @@ public:
 		EXPECT_LT(median(maxErrors), errorLimit());
 	}
 
-	void testInference(enum nnp_convolution_algorithm algorithm, enum nnp_convolution_transform_strategy transform_strategy,
+	void testInference(enum nnp_convolution_algorithm algorithm, enum nnp_convolution_transform_strategy transform_strategy = nnp_convolution_transform_strategy_tuple_based,
 		enum nnp_activation activation = nnp_activation_identity) const {
 		ASSERT_EQ(1, batchSize());
 

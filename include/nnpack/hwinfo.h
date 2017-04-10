@@ -74,6 +74,13 @@ struct activations {
 	nnp_outplace_softmax_function outplace_softmax;
 };
 
+struct convolution {
+	nnp_fast_conv_function only_mr_x_nr;
+	nnp_full_conv_function upto_mr_x_nr;
+	uint32_t mr;
+	uint32_t nr;
+};
+
 struct sgemm {
 	nnp_fast_sgemm_function only_mr_x_nr;
 	nnp_full_sgemm_function upto_mr_x_nr;
@@ -126,6 +133,7 @@ struct hardware_info {
 	struct transforms transforms;
 	struct blockmac blockmac;
 	struct activations activations;
+	struct convolution conv1x1;
 	struct sgemm sgemm;
 	struct sxgemm sxgemm;
 	struct cxgemm cxgemm;
