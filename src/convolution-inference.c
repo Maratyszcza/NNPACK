@@ -1028,6 +1028,10 @@ enum nnp_status nnp_convolution_inference(
 				status = nnp_status_unsupported_algorithm;
 				goto cleanup;
 			}
+			if (kernel_size.height > tile_size.height || kernel_size.width > tile_size.width) {
+				status = nnp_status_unsupported_algorithm;
+				goto cleanup;
+			}
 			status = compute_fast_convolution_inference(
 				fourier_transform, transform_strategy,
 				input_channels, output_channels,
@@ -1045,6 +1049,14 @@ enum nnp_status nnp_convolution_inference(
 				threadpool, profile);
 			break;
 		case nnp_convolution_algorithm_direct:
+			if (max(output_subsampling.height, output_subsampling.width) != 1) {
+				status = nnp_status_unsupported_algorithm;
+				goto cleanup;
+			}
+			if (max(kernel_size.height, kernel_size.width) != 1) {
+				status = nnp_status_unsupported_algorithm;
+				goto cleanup;
+			}
 			status = compute_direct_convolution_inference(
 				input_channels, output_channels, input_size, kernel_size,
 				input, kernel, bias, output,
