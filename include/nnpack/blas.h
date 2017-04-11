@@ -28,6 +28,9 @@ typedef void (*nnp_full_conv_function)(uint32_t, uint32_t, size_t, size_t, const
 void nnp_conv1x1_only_2x4__psimd(size_t input_channels, size_t image_size, const float* input, const float* kernel, float* output);
 void nnp_conv1x1_upto_2x4__psimd(uint32_t mr, uint32_t nr, size_t input_channels, size_t image_size, const float* input, const float* kernel, float* output);
 
+void nnp_conv1x1_only_2x4__scalar(size_t input_channels, size_t image_size, const float* input, const float* kernel, float* output);
+void nnp_conv1x1_upto_2x4__scalar(uint32_t mr, uint32_t nr, size_t input_channels, size_t image_size, const float* input, const float* kernel, float* output);
+
 typedef void (*nnp_fast_tuple_gemm_function)(size_t, size_t, const float*, const float*, float*, size_t);
 typedef void (*nnp_full_tuple_gemm_function)(uint32_t, uint32_t, size_t, size_t, const float*, const float*, float*, size_t);
 

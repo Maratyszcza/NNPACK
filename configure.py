@@ -95,6 +95,8 @@ def main(args):
                 build.cc("scalar/blas/cgemm.c"),
                 build.cc("scalar/blas/cgemm-conjb.c"),
                 build.cc("scalar/blas/cgemm-conjb-transc.c"),
+                # Direct convolution
+                build.cc("scalar/blas/conv1x1.c"),
                 # BLAS microkernels
                 build.cc("scalar/blas/sgemm.c"),
                 build.cc("scalar/blas/sdotxf.c"),
