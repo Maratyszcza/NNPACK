@@ -23,6 +23,10 @@
 
 #include <nnpack.h>
 #include <nnpack/hwinfo.h>
+#include <nnpack/blas.h>
+#include <nnpack/transform.h>
+#include <nnpack/relu.h>
+#include <nnpack/softmax.h>
 
 struct hardware_info nnp_hwinfo = { };
 static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;

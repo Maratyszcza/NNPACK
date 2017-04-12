@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <testers/gemm-ukernel.h>
+#include <nnpack/blas.h>
 
 TEST(FAST_4x3, kc1) {
 	GemmMicroKernelTester()

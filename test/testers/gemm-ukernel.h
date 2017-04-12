@@ -11,7 +11,7 @@
 #include <functional>
 #include <algorithm>
 
-#include <nnpack/blas.h>
+#include <nnpack/hwinfo.h>
 
 #include <AlignedAllocator.h>
 

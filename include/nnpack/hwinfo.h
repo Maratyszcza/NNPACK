@@ -4,10 +4,6 @@
 #include <stdint.h>
 
 #include <nnpack/macros.h>
-#include <nnpack/transform.h>
-#include <nnpack/blas.h>
-#include <nnpack/relu.h>
-#include <nnpack/softmax.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,6 +35,37 @@ struct cache_blocking_info {
 	size_t l3;
 	size_t l4;
 };
+
+#if NNP_ARCH_SCALAR
+	#define NNP_COMPLEX_TUPLE_INDEX 2
+#else
+	#define NNP_COMPLEX_TUPLE_INDEX 1
+#endif
+
+typedef void (*nnp_transform_2d)(const float*, float*, size_t, size_t, uint32_t, uint32_t);
+typedef void (*nnp_transform_2d_with_bias)(const float*, float*, const float*, size_t, size_t, uint32_t, uint32_t);
+typedef void (*nnp_transform_2d_with_offset)(const float*, float*, size_t, size_t, uint32_t, uint32_t, uint32_t, uint32_t);
+
+typedef void (*nnp_blockmac)(float*, const float*, const float*);
+
+typedef void (*nnp_fast_sgemm_function)(size_t, size_t, const float*, const float*, float*, size_t);
+typedef void (*nnp_full_sgemm_function)(uint32_t, uint32_t, size_t, size_t, const float*, const float*, float*, size_t);
+
+typedef void (*nnp_fast_conv_function)(size_t, size_t, const float*, const float*, float*);
+typedef void (*nnp_full_conv_function)(uint32_t, uint32_t, size_t, size_t, const float*, const float*, float*);
+
+typedef void (*nnp_fast_tuple_gemm_function)(size_t, size_t, const float*, const float*, float*, size_t);
+typedef void (*nnp_full_tuple_gemm_function)(uint32_t, uint32_t, size_t, size_t, const float*, const float*, float*, size_t);
+
+typedef void (*nnp_sdotxf_function)(const float*, const float*, size_t, float*, size_t);
+typedef void (*nnp_shdotxf_function)(const float*, const void*, size_t, float*, size_t);
+
+typedef void (*nnp_inplace_relu_function)(float*, size_t, float);
+typedef void (*nnp_outplace_relu_function)(const float*, float*, size_t, float);
+typedef void (*nnp_gradient_relu_function)(const float*, const float*, float*, size_t, float);
+
+typedef void (*nnp_inplace_softmax_function)(size_t, float*);
+typedef void (*nnp_outplace_softmax_function)(size_t, const float*, float*);
 
 struct transforms {
 	nnp_transform_2d_with_offset fft8x8_with_offset_and_store;

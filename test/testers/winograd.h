@@ -13,6 +13,7 @@
 
 #include <nnpack/winograd.h>
 #include <nnpack/transform.h>
+#include <nnpack/hwinfo.h>
 
 #include <AlignedAllocator.h>
 

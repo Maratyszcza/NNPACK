@@ -9,6 +9,7 @@
 #include <perf_counter.h>
 
 #include <nnpack/transform.h>
+#include <nnpack/hwinfo.h>
 #include <nnpack/macros.h>
 #include <pthreadpool.h>
 
