@@ -128,15 +128,15 @@ void nnp_c4gemm_conjb_transc_upto_2x2__neon(
 	if (update != 0) {
 		vst1q_f32(c + 0, vaddq_f32(vld1q_f32(c + 0), acc00r));
 		vst1q_f32(c + 4, vaddq_f32(vld1q_f32(c + 4), acc00i));
-		if (nr > 1) {
+		if (mr > 1) {
 			vst1q_f32(c +  8, vaddq_f32(vld1q_f32(c +  8), acc10r));
 			vst1q_f32(c + 12, vaddq_f32(vld1q_f32(c + 12), acc10i));
 		}
-		if (mr > 1) {
+		if (nr > 1) {
 			c += row_stride_c;
-			vst1q_f32(c +  0, vaddq_f32(vld1q_f32(c +  0), acc01r));
-			vst1q_f32(c +  4, vaddq_f32(vld1q_f32(c +  4), acc01i));
-			if (nr > 1) {
+			vst1q_f32(c + 0, vaddq_f32(vld1q_f32(c + 0), acc01r));
+			vst1q_f32(c + 4, vaddq_f32(vld1q_f32(c + 4), acc01i));
+			if (mr > 1) {
 				vst1q_f32(c +  8, vaddq_f32(vld1q_f32(c +  8), acc11r));
 				vst1q_f32(c + 12, vaddq_f32(vld1q_f32(c + 12), acc11i));
 			}
@@ -144,15 +144,15 @@ void nnp_c4gemm_conjb_transc_upto_2x2__neon(
 	} else {
 		vst1q_f32(c + 0, acc00r);
 		vst1q_f32(c + 4, acc00i);
-		if (nr > 1) {
+		if (mr > 1) {
 			vst1q_f32(c +  8, acc10r);
 			vst1q_f32(c + 12, acc10i);
 		}
-		if (mr > 1) {
+		if (nr > 1) {
 			c += row_stride_c;
 			vst1q_f32(c + 0, acc01r);
 			vst1q_f32(c + 4, acc01i);
-			if (nr > 1) {
+			if (mr > 1) {
 				vst1q_f32(c +  8, acc11r);
 				vst1q_f32(c + 12, acc11i);
 			}

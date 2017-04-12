@@ -52,15 +52,15 @@ void nnp_s4c2gemm_conjb_transc_only_2x2__neon(
 	} while (--k);
 
 	if (update != 0) {
-		vst1q_f32(c +  0, vld1q_f32(c +  0) + acc00r);
-		vst1q_f32(c +  4, vld1q_f32(c +  4) + acc00i);
-		vst1q_f32(c +  8, vld1q_f32(c +  8) + acc10r);
-		vst1q_f32(c + 12, vld1q_f32(c + 12) + acc10i);
+		vst1q_f32(c +  0, vaddq_f32(vld1q_f32(c +  0), acc00r));
+		vst1q_f32(c +  4, vaddq_f32(vld1q_f32(c +  4), acc00i));
+		vst1q_f32(c +  8, vaddq_f32(vld1q_f32(c +  8), acc10r));
+		vst1q_f32(c + 12, vaddq_f32(vld1q_f32(c + 12), acc10i));
 		c += row_stride_c;
-		vst1q_f32(c +  0, vld1q_f32(c +  0) + acc01r);
-		vst1q_f32(c +  4, vld1q_f32(c +  4) + acc01i);
-		vst1q_f32(c +  8, vld1q_f32(c +  8) + acc11r);
-		vst1q_f32(c + 12, vld1q_f32(c + 12) + acc11i);
+		vst1q_f32(c +  0, vaddq_f32(vld1q_f32(c +  0), acc01r));
+		vst1q_f32(c +  4, vaddq_f32(vld1q_f32(c +  4), acc01i));
+		vst1q_f32(c +  8, vaddq_f32(vld1q_f32(c +  8), acc11r));
+		vst1q_f32(c + 12, vaddq_f32(vld1q_f32(c + 12), acc11i));
 	} else {
 		vst1q_f32(c +  0, acc00r);
 		vst1q_f32(c +  4, acc00i);
