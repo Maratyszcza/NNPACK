@@ -46,6 +46,12 @@
 	#define NNP_ARCH_PSIMD 0
 	#define NNP_ARCH_X86_64 0
 	#define NNP_ARCH_ARM 0
+#elif defined(__ANDROID__) && (defined(__i686__) || defined(__x86_64__))
+	#define NNP_ARCH_PSIMD 1
+	#define NNP_ARCH_SCALAR 0
+	#define NNP_ARCH_X86_64 0
+	#define NNP_ARCH_ARM 0
+	#define NNP_ARCH_ARM64 0
 #elif defined(__x86_64__)
 	#define NNP_ARCH_X86_64 1
 	#define NNP_ARCH_SCALAR 0

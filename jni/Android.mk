@@ -23,7 +23,8 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/src/psimd/relu.c \
 	$(LOCAL_PATH)/src/psimd/softmax.c \
 	$(LOCAL_PATH)/src/psimd/fft-block-mac.c \
-	$(LOCAL_PATH)/src/psimd/blas/shdotxf.c
+	$(LOCAL_PATH)/src/psimd/blas/shdotxf.c \
+	$(LOCAL_PATH)/src/psimd/blas/conv1x1.c
 ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),armeabi-v7a arm64-v8a))
 LOCAL_SRC_FILES += \
 	$(LOCAL_PATH)/src/neon/blas/s4gemm.c \
