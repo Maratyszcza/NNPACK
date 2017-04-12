@@ -25,9 +25,9 @@ def main(args):
 
     macro = None
     if backend == "psimd":
-        macro = "NNP_ARCH_PSIMD"
+        macro = "NNP_BACKEND_PSIMD"
     if backend == "scalar":
-        macro = "NNP_ARCH_SCALAR"
+        macro = "NNP_BACKEND_SCALAR"
 
     build.export_cpath("include", ["nnpack.h"])
 

@@ -234,7 +234,7 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 	}
 #endif
 
-#if NNP_ARCH_X86_64
+#if NNP_BACKEND_X86_64
 	static const nnp_sdotxf_function sdotxf[8] = {
 		[0] = nnp_sdotxf1__avx2,
 		[1] = nnp_sdotxf2__avx2,
@@ -256,7 +256,7 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 		[6] = nnp_shdotxf7__avx2,
 		[7] = nnp_shdotxf8__avx2,
 	};
-#elif NNP_ARCH_ARM || NNP_ARCH_ARM64
+#elif NNP_BACKEND_ARM
 	static const nnp_sdotxf_function sdotxf[8] = {
 		[0] = nnp_sdotxf1__neon,
 		[1] = nnp_sdotxf2__neon,
@@ -278,7 +278,7 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 		[6] = nnp_shdotxf7__psimd,
 		[7] = nnp_shdotxf8__psimd,
 	};
-#elif NNP_ARCH_PSIMD
+#elif NNP_BACKEND_PSIMD
 	static const nnp_sdotxf_function sdotxf[8] = {
 		[0] = nnp_sdotxf1__psimd,
 		[1] = nnp_sdotxf2__psimd,
@@ -300,7 +300,7 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 		[6] = nnp_shdotxf7__psimd,
 		[7] = nnp_shdotxf8__psimd,
 	};
-#elif NNP_ARCH_SCALAR
+#elif NNP_BACKEND_SCALAR
 	static const nnp_sdotxf_function sdotxf[8] = {
 		[0] = nnp_sdotxf1__scalar,
 		[1] = nnp_sdotxf2__scalar,
@@ -353,7 +353,7 @@ static void init_hwinfo(void) {
 	}
 	nnp_hwinfo.blocking.l4 = nnp_hwinfo.cache.l4.size;
 	if (nnp_hwinfo.cache.l1.size && nnp_hwinfo.cache.l2.size && nnp_hwinfo.cache.l3.size) {
-		#if NNP_ARCH_X86_64
+		#if NNP_BACKEND_X86_64
 			if (nnp_hwinfo.isa.has_avx2 && nnp_hwinfo.isa.has_fma3) {
 				nnp_hwinfo.simd_width = 8;
 				nnp_hwinfo.transforms.fft8x8_with_offset_and_store = nnp_fft8x8_with_offset_and_store__avx2;
@@ -419,7 +419,7 @@ static void init_hwinfo(void) {
 				};
 				nnp_hwinfo.supported = true;
 			}
-		#elif NNP_ARCH_PSIMD
+		#elif NNP_BACKEND_PSIMD
 			nnp_hwinfo.simd_width = 4;
 			nnp_hwinfo.transforms.fft8x8_with_offset_and_store = nnp_fft8x8_with_offset__psimd;
 			nnp_hwinfo.transforms.fft8x8_with_offset_and_stream = nnp_fft8x8_with_offset__psimd;
@@ -489,7 +489,7 @@ static void init_hwinfo(void) {
 				.cX_conjb_transc_upto_mr_x_nr = nnp_c4gemm_conjb_transc_upto_2x2__psimd,
 			};
 			nnp_hwinfo.supported = true;
-		#elif NNP_ARCH_ARM || NNP_ARCH_ARM64
+		#elif NNP_BACKEND_ARM
 			nnp_hwinfo.simd_width = 4;
 			nnp_hwinfo.transforms.fft8x8_with_offset_and_store = nnp_fft8x8_with_offset__psimd;
 			nnp_hwinfo.transforms.fft8x8_with_offset_and_stream = nnp_fft8x8_with_offset__psimd;
@@ -558,12 +558,12 @@ static void init_hwinfo(void) {
 				.cX_conjb_transc_only_mr_x_nr = nnp_c4gemm_conjb_transc_only_2x2__neon,
 				.cX_conjb_transc_upto_mr_x_nr = nnp_c4gemm_conjb_transc_upto_2x2__neon,
 			};
-			#if defined(__ANDROID__) && NNP_ARCH_ARM
+			#if defined(__ANDROID__) && defined(__arm__) && !defined(__aarch64__)
 				nnp_hwinfo.supported = (android_getCpuFeatures() & ANDROID_CPU_ARM_FEATURE_NEON) != 0;
 			#else
 				nnp_hwinfo.supported = true;
 			#endif
-		#elif NNP_ARCH_SCALAR
+		#elif NNP_BACKEND_SCALAR
 			nnp_hwinfo.simd_width = 1;
 			nnp_hwinfo.transforms.fft8x8_with_offset_and_store = nnp_fft8x8_with_offset__scalar;
 			nnp_hwinfo.transforms.fft8x8_with_offset_and_stream = nnp_fft8x8_with_offset__scalar;
@@ -634,7 +634,7 @@ static void init_hwinfo(void) {
 			};
 			nnp_hwinfo.supported = true;
 		#else
-			#error Unsupported target architecture
+			#error Unsupported backend
 		#endif
 	}
 

@@ -60,7 +60,7 @@ static void compute_max_pooling_forward__generic(
 	}
 }
 
-#if NNP_ARCH_X86_64
+#if NNP_BACKEND_X86_64
 static void compute_max_pooling_forward_2x2_2x2__avx2(
 	const float *restrict input_pointer,
 	float *restrict output_pointer,
@@ -174,7 +174,7 @@ enum nnp_status nnp_max_pooling_output(
 		.pooling_function = compute_max_pooling_forward__generic,
 	};
 
-	#if NNP_ARCH_X86_64
+	#if NNP_BACKEND_X86_64
 	if ((pooling_stride.height == 2) && (pooling_stride.width == 2) && (pooling_size.height == 2) && (pooling_size.width == 2)) {
 		pooling_context.pooling_function = compute_max_pooling_forward_2x2_2x2__avx2;
 	}

@@ -12,54 +12,35 @@
 #endif
 
 
-#if defined(NNP_ARCH_PSIMD)
-	#if !(NNP_ARCH_PSIMD)
-		#error NNP_ARCH_PSIMD predefined as 0
+#if defined(NNP_BACKEND_PSIMD)
+	#if !(NNP_BACKEND_PSIMD)
+		#error NNP_BACKEND_PSIMD predefined as 0
 	#endif
-	#define NNP_ARCH_SCALAR 0
-	#define NNP_ARCH_X86_64 0
-	#define NNP_ARCH_ARM 0
-	#define NNP_ARCH_ARM64 0
-#elif defined(NNP_ARCH_SCALAR)
-	#if !(NNP_ARCH_SCALAR)
-		#error NNP_ARCH_SCALAR predefined as 0
+#elif defined(NNP_BACKEND_SCALAR)
+	#if !(NNP_BACKEND_SCALAR)
+		#error NNP_BACKEND_SCALAR predefined as 0
 	#endif
-	#define NNP_ARCH_PSIMD 0
-	#define NNP_ARCH_X86_64 0
-	#define NNP_ARCH_ARM 0
-	#define NNP_ARCH_ARM64 0
-#elif defined(__pnacl__)
-	#define NNP_ARCH_PSIMD 1
-	#define NNP_ARCH_SCALAR 0
-	#define NNP_ARCH_X86_64 0
-	#define NNP_ARCH_ARM 0
-	#define NNP_ARCH_ARM64 0
-#elif defined(__arm__)
-	#define NNP_ARCH_ARM 1
-	#define NNP_ARCH_SCALAR 0
-	#define NNP_ARCH_PSIMD 0
-	#define NNP_ARCH_X86_64 0
-	#define NNP_ARCH_ARM64 0
-#elif defined(__aarch64__)
-	#define NNP_ARCH_ARM64 1
-	#define NNP_ARCH_SCALAR 0
-	#define NNP_ARCH_PSIMD 0
-	#define NNP_ARCH_X86_64 0
-	#define NNP_ARCH_ARM 0
+#elif defined(__ANDROID__) && defined(__arm__) || defined(__aarch64__)
+	#define NNP_BACKEND_ARM 1
 #elif defined(__ANDROID__) && (defined(__i686__) || defined(__x86_64__))
-	#define NNP_ARCH_PSIMD 1
-	#define NNP_ARCH_SCALAR 0
-	#define NNP_ARCH_X86_64 0
-	#define NNP_ARCH_ARM 0
-	#define NNP_ARCH_ARM64 0
+	#define NNP_BACKEND_PSIMD 1
 #elif defined(__x86_64__)
-	#define NNP_ARCH_X86_64 1
-	#define NNP_ARCH_SCALAR 0
-	#define NNP_ARCH_PSIMD 0
-	#define NNP_ARCH_ARM 0
-	#define NNP_ARCH_ARM64 0
+	#define NNP_BACKEND_X86_64 1
 #else
-	#error Unknown target architecture
+	#define NNP_BACKEND_PSIMD 1
+#endif
+
+#ifndef NNP_BACKEND_PSIMD
+	#define NNP_BACKEND_PSIMD 0
+#endif
+#ifndef NNP_BACKEND_SCALAR
+	#define NNP_BACKEND_SCALAR 0
+#endif
+#ifndef NNP_BACKEND_ARM
+	#define NNP_BACKEND_ARM 0
+#endif
+#ifndef NNP_BACKEND_X86_64
+	#define NNP_BACKEND_X86_64 0
 #endif
 
 #define NNP_ALIGN(alignment) __attribute__((__aligned__(alignment)))
