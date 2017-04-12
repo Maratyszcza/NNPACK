@@ -137,7 +137,7 @@ ninja
 
 NNPACK contains extensive test suite for transformation and neural network layers.
 
-After configuration type `ninja -t targets` and choose the unit test that matches your subsystem of interest.
+After configuration type `ninja smoketest` to run a set of quick tests, or `ninja test` to additionally NNPACK layers with parameters from AlexNet, VGG-A, and Overfeat-Fast networks (this will take a while).
 
 ## Packaging
 
