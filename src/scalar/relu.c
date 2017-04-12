@@ -4,34 +4,7 @@
 #include <nnpack/activations.h>
 
 
-void nnp_inplace_relu_forward__scalar(
-	float data[restrict static 1],
-	size_t length,
-	float negative_slope)
-{
-	while (length >= 4) {
-		const float data0 = data[0];
-		const float data1 = data[1];
-		const float data2 = data[2];
-		const float data3 = data[3];
-
-		data[0] = relu(data0, negative_slope);
-		data[1] = relu(data1, negative_slope);
-		data[2] = relu(data2, negative_slope);
-		data[3] = relu(data3, negative_slope);
-		data += 4;
-
-		length -= 4;
-	}
-	while (length != 0) {
-		*data = relu(*data, negative_slope);
-
-		data += 1;
-		length -= 1;
-	}
-}
-
-void nnp_outplace_relu_forward__scalar(
+void nnp_relu__scalar(
 	const float input[restrict static 1],
 	float output[restrict static 1],
 	size_t length,
@@ -58,7 +31,34 @@ void nnp_outplace_relu_forward__scalar(
 	}
 }
 
-void nnp_relu_backward__scalar(
+void nnp_inplace_relu__scalar(
+	float data[restrict static 1],
+	size_t length,
+	float negative_slope)
+{
+	while (length >= 4) {
+		const float data0 = data[0];
+		const float data1 = data[1];
+		const float data2 = data[2];
+		const float data3 = data[3];
+
+		data[0] = relu(data0, negative_slope);
+		data[1] = relu(data1, negative_slope);
+		data[2] = relu(data2, negative_slope);
+		data[3] = relu(data3, negative_slope);
+		data += 4;
+
+		length -= 4;
+	}
+	while (length != 0) {
+		*data = relu(*data, negative_slope);
+
+		data += 1;
+		length -= 1;
+	}
+}
+
+void nnp_grad_relu__scalar(
 	const float output_gradient[restrict static 4],
 	const float input[restrict static 4],
 	float input_gradient[restrict static 4],

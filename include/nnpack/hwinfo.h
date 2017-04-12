@@ -60,12 +60,12 @@ typedef void (*nnp_full_tuple_gemm_function)(uint32_t, uint32_t, size_t, size_t,
 typedef void (*nnp_sdotxf_function)(const float*, const float*, size_t, float*, size_t);
 typedef void (*nnp_shdotxf_function)(const float*, const void*, size_t, float*, size_t);
 
+typedef void (*nnp_relu_function)(const float*, float*, size_t, float);
 typedef void (*nnp_inplace_relu_function)(float*, size_t, float);
-typedef void (*nnp_outplace_relu_function)(const float*, float*, size_t, float);
-typedef void (*nnp_gradient_relu_function)(const float*, const float*, float*, size_t, float);
+typedef void (*nnp_grad_relu_function)(const float*, const float*, float*, size_t, float);
 
+typedef void (*nnp_softmax_function)(size_t, const float*, float*);
 typedef void (*nnp_inplace_softmax_function)(size_t, float*);
-typedef void (*nnp_outplace_softmax_function)(size_t, const float*, float*);
 
 struct transforms {
 	nnp_transform_2d_with_offset fft8x8_with_offset_and_store;
@@ -94,11 +94,11 @@ struct blockmac {
 };
 
 struct activations {
+	nnp_relu_function relu;
 	nnp_inplace_relu_function inplace_relu;
-	nnp_outplace_relu_function outplace_relu;
-	nnp_gradient_relu_function outplace_grad_relu;
+	nnp_grad_relu_function grad_relu;
+	nnp_softmax_function softmax;
 	nnp_inplace_softmax_function inplace_softmax;
-	nnp_outplace_softmax_function outplace_softmax;
 };
 
 struct convolution {

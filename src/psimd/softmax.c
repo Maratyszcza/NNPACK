@@ -151,24 +151,7 @@ static void outplace_scaled_exp_minus_c__psimd(size_t n, const float x[restrict 
 	}
 }
 
-void nnp_inplace_softmax__psimd(
-	size_t n,
-	float v[restrict static n])
-{
-	if (n >= 4) {
-		const psimd_f32 c = max__psimd(n, v);
-		const float sum = sum_exp_minus_c__psimd(n, v, c);
-		const psimd_f32 scale = psimd_splat_f32(1.0f / sum);
-		inplace_scaled_exp_minus_c__psimd(n, v, scale, c);
-	} else {
-		const float c = max__scalar(n, v);
-		const float sum = sum_exp_minus_c__scalar(n, v, c);
-		const float scale = 1.0f / sum;
-		scaled_exp_minus_c__scalar(n, v, v, scale, c);
-	}
-}
-
-void nnp_outplace_softmax__psimd(
+void nnp_softmax__psimd(
 	size_t n,
 	const float x[restrict static n],
 	float y[restrict static n])
@@ -183,5 +166,21 @@ void nnp_outplace_softmax__psimd(
 		const float sum = sum_exp_minus_c__scalar(n, x, c);
 		const float scale = 1.0f / sum;
 		scaled_exp_minus_c__scalar(n, x, y, scale, c);
+	}
+}
+void nnp_inplace_softmax__psimd(
+	size_t n,
+	float v[restrict static n])
+{
+	if (n >= 4) {
+		const psimd_f32 c = max__psimd(n, v);
+		const float sum = sum_exp_minus_c__psimd(n, v, c);
+		const psimd_f32 scale = psimd_splat_f32(1.0f / sum);
+		inplace_scaled_exp_minus_c__psimd(n, v, scale, c);
+	} else {
+		const float c = max__scalar(n, v);
+		const float sum = sum_exp_minus_c__scalar(n, v, c);
+		const float scale = 1.0f / sum;
+		scaled_exp_minus_c__scalar(n, v, v, scale, c);
 	}
 }

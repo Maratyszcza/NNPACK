@@ -11,6 +11,25 @@
 #include <nnpack/validation.h>
 
 
+struct NNP_CACHE_ALIGN relu_context {
+	nnp_relu_function relu_function;
+	const float* input;
+	float* output;
+	float negative_slope;
+};
+
+static void compute_relu_output(
+	const struct relu_context context[restrict static 1],
+	size_t block_start, size_t block_size)
+{
+	nnp_relu_function relu = context->relu_function;
+	const float* input     = context->input;
+	float* output          = context->output;
+	float negative_slope   = context->negative_slope;
+
+	relu(input + block_start, output + block_start, block_size, negative_slope);
+}
+
 struct NNP_CACHE_ALIGN inplace_relu_context {
 	nnp_inplace_relu_function relu_function;
 	float* data;
@@ -21,30 +40,11 @@ static void compute_inplace_relu_output(
 	const struct inplace_relu_context context[restrict static 1],
 	size_t block_start, size_t block_size)
 {
-	nnp_inplace_relu_function relu_function = context->relu_function;
-	float* data                             = context->data;
-	float negative_slope                    = context->negative_slope;
+	nnp_inplace_relu_function relu = context->relu_function;
+	float* data                    = context->data;
+	float negative_slope           = context->negative_slope;
 
-	relu_function(data + block_start, block_size, negative_slope);
-}
-
-struct NNP_CACHE_ALIGN outplace_relu_context {
-	nnp_outplace_relu_function relu_function;
-	const float* input;
-	float* output;
-	float negative_slope;
-};
-
-static void compute_outplace_relu_output(
-	const struct outplace_relu_context context[restrict static 1],
-	size_t block_start, size_t block_size)
-{
-	nnp_outplace_relu_function relu_function = context->relu_function;
-	const float* input                       = context->input;
-	float* output                            = context->output;
-	float negative_slope                     = context->negative_slope;
-
-	relu_function(input + block_start, output + block_start, block_size, negative_slope);
+	relu(data + block_start, block_size, negative_slope);
 }
 
 enum nnp_status nnp_relu_output(
@@ -81,30 +81,28 @@ enum nnp_status nnp_relu_output(
 	}
 	elements -= epilogue_elements;
 
-	if (input == output) {
+	if (input != output) {
+		/* Out-of-place transformation */
+		struct relu_context relu_context = {
+			.relu_function = nnp_hwinfo.activations.relu,
+			.input = input,
+			.output = output,
+			.negative_slope = negative_slope,
+		};
+		pthreadpool_compute_1d_tiled(threadpool,
+			(pthreadpool_function_1d_tiled_t) compute_relu_output,
+			&relu_context,
+			elements, round_down(nnp_hwinfo.blocking.l1 / sizeof(float), simd_width));
+	} else {
 		/* In-place transformation */
 		struct inplace_relu_context inplace_relu_context = {
 			.relu_function = nnp_hwinfo.activations.inplace_relu,
 			.data = output,
 			.negative_slope = negative_slope,
 		};
-
 		pthreadpool_compute_1d_tiled(threadpool,
 			(pthreadpool_function_1d_tiled_t) compute_inplace_relu_output,
 			&inplace_relu_context,
-			elements, round_down(nnp_hwinfo.blocking.l1 / sizeof(float), simd_width));
-	} else {
-		/* Out-of-place transformation */
-		struct outplace_relu_context outplace_relu_context = {
-			.relu_function = nnp_hwinfo.activations.outplace_relu,
-			.input = input,
-			.output = output,
-			.negative_slope = negative_slope,
-		};
-
-		pthreadpool_compute_1d_tiled(threadpool,
-			(pthreadpool_function_1d_tiled_t) compute_outplace_relu_output,
-			&outplace_relu_context,
 			elements, round_down(nnp_hwinfo.blocking.l1 / sizeof(float), simd_width));
 	}
 

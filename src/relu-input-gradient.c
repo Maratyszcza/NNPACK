@@ -12,24 +12,24 @@
 
 
 struct NNP_CACHE_ALIGN relu_context {
-	nnp_gradient_relu_function relu_function;
+	nnp_grad_relu_function grad_relu_function;
 	const float* grad_output;
 	const float* input;
 	float* grad_input;
 	float negative_slope;
 };
 
-static void compute_relu_input_gradient(
+static void compute_grad_relu(
 	const struct relu_context context[restrict static 1],
 	size_t block_start, size_t block_size)
 {
-	nnp_gradient_relu_function relu_function = context->relu_function;
-	const float* grad_output                 = context->grad_output;
-	const float* input                       = context->input;
-	float* grad_input                        = context->grad_input;
-	float negative_slope                     = context->negative_slope;
+	nnp_grad_relu_function grad_relu = context->grad_relu_function;
+	const float* grad_output         = context->grad_output;
+	const float* input               = context->input;
+	float* grad_input                = context->grad_input;
+	float negative_slope             = context->negative_slope;
 
-	relu_function(grad_output + block_start, input + block_start, grad_input + block_start, block_size, negative_slope);
+	grad_relu(grad_output + block_start, input + block_start, grad_input + block_start, block_size, negative_slope);
 }
 
 enum nnp_status nnp_relu_input_gradient(
@@ -72,15 +72,14 @@ enum nnp_status nnp_relu_input_gradient(
 	elements -= epilogue_elements;
 
 	struct relu_context relu_context = {
-		.relu_function = nnp_hwinfo.activations.outplace_grad_relu,
+		.grad_relu_function = nnp_hwinfo.activations.grad_relu,
 		.grad_output = grad_output,
 		.input = input,
 		.grad_input = grad_input,
 		.negative_slope = negative_slope,
 	};
-
 	pthreadpool_compute_1d_tiled(threadpool,
-		(pthreadpool_function_1d_tiled_t) compute_relu_input_gradient,
+		(pthreadpool_function_1d_tiled_t) compute_grad_relu,
 		&relu_context,
 		elements, round_down(nnp_hwinfo.blocking.l1 / sizeof(float), simd_width));
 

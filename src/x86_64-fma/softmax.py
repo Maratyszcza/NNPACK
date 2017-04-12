@@ -284,7 +284,7 @@ arg_x = Argument(ptr(const_float_), "x")
 arg_y = Argument(ptr(float_), "y")
 arg_scale = Argument(float_, "scale")
 arg_c = Argument(float_, "c")
-with Function("outplace_scaled_exp_minus_c__avx2", (arg_n, arg_x, arg_y, arg_scale, arg_c),
+with Function("scaled_exp_minus_c__avx2", (arg_n, arg_x, arg_y, arg_scale, arg_c),
     target=uarch.default + isa.avx2):
 
     reg_n = GeneralPurposeRegister64()

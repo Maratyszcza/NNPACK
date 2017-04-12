@@ -28,17 +28,7 @@ static void scaled_exp_minus_c__scalar(size_t n, const float x[restrict static n
 	} while (--n);
 }
 
-void nnp_inplace_softmax__scalar(
-	size_t n,
-	float v[restrict static n])
-{
-	const float c = max__scalar(n, v);
-	const float sum = sum_exp_minus_c__scalar(n, v, c);
-	const float scale = 1.0f / sum;
-	scaled_exp_minus_c__scalar(n, v, v, scale, c);
-}
-
-void nnp_outplace_softmax__scalar(
+void nnp_softmax__scalar(
 	size_t n,
 	const float x[restrict static n],
 	float y[restrict static n])
@@ -47,4 +37,14 @@ void nnp_outplace_softmax__scalar(
 	const float sum = sum_exp_minus_c__scalar(n, x, c);
 	const float scale = 1.0f / sum;
 	scaled_exp_minus_c__scalar(n, x, y, scale, c);
+}
+
+void nnp_inplace_softmax__scalar(
+	size_t n,
+	float v[restrict static n])
+{
+	const float c = max__scalar(n, v);
+	const float sum = sum_exp_minus_c__scalar(n, v, c);
+	const float scale = 1.0f / sum;
+	scaled_exp_minus_c__scalar(n, v, v, scale, c);
 }
