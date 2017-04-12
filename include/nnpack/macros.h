@@ -20,7 +20,7 @@
 	#if !(NNP_BACKEND_SCALAR)
 		#error NNP_BACKEND_SCALAR predefined as 0
 	#endif
-#elif defined(__ANDROID__) && defined(__arm__) || defined(__aarch64__)
+#elif defined(__arm__) || defined(__aarch64__)
 	#define NNP_BACKEND_ARM 1
 #elif defined(__ANDROID__) && (defined(__i686__) || defined(__x86_64__))
 	#define NNP_BACKEND_PSIMD 1

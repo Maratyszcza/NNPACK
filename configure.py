@@ -14,11 +14,13 @@ def main(args):
     if backend == "auto":
         if options.target.is_x86_64:
             backend = "x86_64"
+        elif options.target.is_arm:
+            backend = "arm"
         elif options.target.is_emscripten:
             backend = "scalar"
         else:
             backend = "psimd"
-    if backend == "psimd":
+    if backend == "psimd" or backend == "arm":
         options.toolchain = "clang"
 
     build = confu.Build.from_options(options)
@@ -34,7 +36,7 @@ def main(args):
     with build.options(source_dir="src", macros=macro,
             deps={
                 (build.deps.pthreadpool, build.deps.fxdiv, build.deps.fp16): any,
-                build.deps.psimd: backend == "psimd",
+                build.deps.psimd: backend == "psimd" or backend == "arm",
             },
             extra_include_dirs={
                 ("src", "src/ref"): any,
@@ -102,6 +104,34 @@ def main(args):
                 build.cc("scalar/blas/sdotxf.c"),
                 build.cc("scalar/blas/shdotxf.c"),
             ]
+        elif backend == "arm":
+            from confu import arm
+            with build.options(isa=arm.neon):
+                arch_nnpack_objects = [
+                    # Transformations
+                    build.cc("psimd/2d-fourier-8x8.c"),
+                    build.cc("psimd/2d-fourier-16x16.c"),
+                    build.cc("psimd/2d-winograd-8x8-3x3.c"),
+                    # ReLU and Softmax
+                    build.cc("psimd/relu.c"),
+                    build.cc("psimd/softmax.c"),
+                    # FFT block accumulation
+                    build.cc("psimd/fft-block-mac.c"),
+                    # Tuple GEMM
+                    build.cc("neon/blas/s4gemm.c"),
+                    build.cc("neon/blas/c4gemm.c"),
+                    build.cc("neon/blas/s4c2gemm.c"),
+                    build.cc("neon/blas/c4gemm-conjb.c"),
+                    build.cc("neon/blas/s4c2gemm-conjb.c"),
+                    build.cc("neon/blas/c4gemm-conjb-transc.c"),
+                    build.cc("neon/blas/s4c2gemm-conjb-transc.c"),
+                    # Direct convolution
+                    build.cc("psimd/blas/conv1x1.c"),
+                    # BLAS microkernels
+                    build.cc("neon/blas/sgemm.c"),
+                    build.cc("neon/blas/sdotxf.c"),
+                    build.cc("psimd/blas/shdotxf.c"),
+                ]
         elif backend == "psimd":
             arch_nnpack_objects = [
                 # Transformations
@@ -172,7 +202,7 @@ def main(args):
                 build.cc("scalar/fft-real.c"),
                 build.cc("scalar/fft-dualreal.c"),
             ]
-        elif backend == "psimd":
+        elif backend == "psimd" or backend == "arm":
             arch_fft_stub_objects = [
                 build.cc("psimd/fft-aos.c"),
                 build.cc("psimd/fft-soa.c"),
