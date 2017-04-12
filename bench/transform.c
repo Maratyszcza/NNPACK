@@ -8,7 +8,6 @@
 
 #include <perf_counter.h>
 
-#include <nnpack/transform.h>
 #include <nnpack/hwinfo.h>
 #include <nnpack/macros.h>
 #include <pthreadpool.h>
@@ -156,30 +155,22 @@ unsigned long long benchmark_batch_transform(
 
 	switch (type) {
 		case transform_type_nnpack_forward_8x8:
-			#if NNP_BACKEND_X86_64
-				nnpack_context.fft_function = nnp_fft8x8_with_offset_and_stream__avx2;
-			#endif
+			nnpack_context.fft_function = nnp_hwinfo.transforms.fft8x8_with_offset_and_stream;
 			compute_function = (pthreadpool_function_1d_t) compute_nnpack_transform;
 			compute_context = &nnpack_context;
 			break;
 		case transform_type_nnpack_forward_16x16:
-			#if NNP_BACKEND_X86_64
-				nnpack_context.fft_function = nnp_fft16x16_with_offset_and_stream__avx2;
-			#endif
+			nnpack_context.fft_function = nnp_hwinfo.transforms.fft16x16_with_offset_and_stream;
 			compute_function = (pthreadpool_function_1d_t) compute_nnpack_transform;
 			compute_context = &nnpack_context;
 			break;
 		case transform_type_nnpack_inverse_8x8:
-			#if NNP_BACKEND_X86_64
-				nnpack_context.ifft_function = nnp_ifft8x8_with_offset__avx2;
-			#endif
+			nnpack_context.ifft_function = nnp_hwinfo.transforms.ifft8x8_with_offset;
 			compute_function = (pthreadpool_function_1d_t) compute_nnpack_transform;
 			compute_context = &nnpack_context;
 			break;
 		case transform_type_nnpack_inverse_16x16:
-			#if NNP_BACKEND_X86_64
-				nnpack_context.ifft_function = nnp_ifft16x16_with_offset__avx2;
-			#endif
+			nnpack_context.ifft_function = nnp_hwinfo.transforms.ifft16x16_with_offset;
 			compute_function = (pthreadpool_function_1d_t) compute_nnpack_transform;
 			compute_context = &nnpack_context;
 			break;
@@ -213,27 +204,17 @@ unsigned long long benchmark_batch_transform(
 		}
 #endif
 		case transform_type_nnpack_winograd6x6of3x3_input:
-			#if NNP_BACKEND_X86_64
-				nnpack_context.winograd_input_transform_function = nnp_iwt8x8_3x3_with_offset_and_stream__avx2;
-			#elif NNP_BACKEND_PSIMD
-				nnpack_context.winograd_input_transform_function = nnp_iwt8x8_3x3_with_offset__psimd;
-			#endif
+			nnpack_context.winograd_input_transform_function = nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_stream;
 			compute_function = (pthreadpool_function_1d_t) compute_nnpack_transform;
 			compute_context = &nnpack_context;
 			break;
 		case transform_type_nnpack_winograd6x6of3x3_kernel:
-			#if NNP_BACKEND_X86_64
-				nnpack_context.winograd_kernel_transform_function = nnp_kwt8x8_3x3_and_stream__avx2;
-			#elif NNP_BACKEND_PSIMD
-				nnpack_context.winograd_kernel_transform_function = nnp_kwt8x8_3x3__psimd;
-			#endif
+			nnpack_context.winograd_input_transform_function = nnp_hwinfo.transforms.kwt_f6x6_3x3;
 			compute_function = (pthreadpool_function_1d_t) compute_nnpack_transform;
 			compute_context = &nnpack_context;
 			break;
 		case transform_type_nnpack_winograd6x6of3x3_output:
-			#if NNP_BACKEND_X86_64
-				nnpack_context.winograd_output_transform_function = nnp_owt8x8_3x3__avx2;
-			#endif
+			nnpack_context.winograd_input_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3;
 			compute_function = (pthreadpool_function_1d_t) compute_nnpack_transform;
 			compute_context = &nnpack_context;
 			break;
@@ -288,39 +269,25 @@ unsigned long long profile_batch_fft(
 
 	switch (type) {
 		case transform_type_nnpack_forward_8x8:
-			#if NNP_BACKEND_X86_64
-				context.fft_function = nnp_fft8x8_with_offset_and_stream__avx2;
-			#endif
+			context.fft_function = nnp_hwinfo.transforms.fft8x8_with_offset_and_stream;
 			break;
 		case transform_type_nnpack_forward_16x16:
-			#if NNP_BACKEND_X86_64
-				context.fft_function = nnp_fft16x16_with_offset_and_stream__avx2;
-			#endif
+			context.fft_function = nnp_hwinfo.transforms.fft16x16_with_offset_and_stream;
 			break;
 		case transform_type_nnpack_inverse_8x8:
-			#if NNP_BACKEND_X86_64
-				context.ifft_function = nnp_ifft8x8_with_offset__avx2;
-			#endif
+			context.ifft_function = nnp_hwinfo.transforms.ifft8x8_with_offset;
 			break;
 		case transform_type_nnpack_inverse_16x16:
-			#if NNP_BACKEND_X86_64
-				context.ifft_function = nnp_ifft16x16_with_offset__avx2;
-			#endif
+			context.ifft_function = nnp_hwinfo.transforms.ifft16x16_with_offset;
 			break;
 		case transform_type_nnpack_winograd6x6of3x3_input:
-			#if NNP_BACKEND_X86_64
-				context.winograd_input_transform_function = nnp_iwt8x8_3x3_with_offset_and_stream__avx2;
-			#endif
+			context.winograd_input_transform_function = nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_stream;
 			break;
 		case transform_type_nnpack_winograd6x6of3x3_kernel:
-			#if NNP_BACKEND_X86_64
-				context.winograd_kernel_transform_function = nnp_kwt8x8_3x3_and_stream__avx2;
-			#endif
+			context.winograd_kernel_transform_function = nnp_hwinfo.transforms.kwt_f6x6_3x3;
 			break;
 		case transform_type_nnpack_winograd6x6of3x3_output:
-			#if NNP_BACKEND_X86_64
-				context.winograd_output_transform_function = nnp_owt8x8_3x3__avx2;
-			#endif
+			context.winograd_output_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3;
 			break;
 		case transform_type_unknown:
 		default:
