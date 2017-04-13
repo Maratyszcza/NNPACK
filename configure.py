@@ -126,7 +126,7 @@ def main(args):
                     build.cc("neon/blas/c4gemm-conjb-transc.c"),
                     build.cc("neon/blas/s4c2gemm-conjb-transc.c"),
                     # Direct convolution
-                    build.cc("psimd/blas/conv1x1.c"),
+                    build.cc("neon/blas/conv1x1.c"),
                     # BLAS microkernels
                     build.cc("neon/blas/sgemm.c"),
                     build.cc("neon/blas/sdotxf.c"),

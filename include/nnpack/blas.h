@@ -22,6 +22,9 @@ void nnp_sgemm_upto_4x3__scalar(uint32_t mr, uint32_t nr, size_t k, size_t updat
 void nnp_conv1x1_only_2x4__psimd(size_t input_channels, size_t image_size, const float* input, const float* kernel, float* output);
 void nnp_conv1x1_upto_2x4__psimd(uint32_t mr, uint32_t nr, size_t input_channels, size_t image_size, const float* input, const float* kernel, float* output);
 
+void nnp_conv1x1_only_2x4__neon(size_t input_channels, size_t image_size, const float* input, const float* kernel, float* output);
+void nnp_conv1x1_upto_2x4__neon(uint32_t mr, uint32_t nr, size_t input_channels, size_t image_size, const float* input, const float* kernel, float* output);
+
 void nnp_conv1x1_only_2x4__scalar(size_t input_channels, size_t image_size, const float* input, const float* kernel, float* output);
 void nnp_conv1x1_upto_2x4__scalar(uint32_t mr, uint32_t nr, size_t input_channels, size_t image_size, const float* input, const float* kernel, float* output);
 
