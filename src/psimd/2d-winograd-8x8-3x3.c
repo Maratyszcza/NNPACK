@@ -76,7 +76,11 @@ void nnp_kwt8x8_3x3__psimd(
 	const psimd_f32 g0 = psimd_load_f32(g);
 	const psimd_f32 g1 = psimd_load_f32(g + 3);
 	const psimd_f32 g5678 = psimd_load_f32(g + 5);
-	const psimd_f32 g2 = __builtin_shufflevector(g5678, g5678, 1, 2, 3, -1);
+	#ifdef __clang__
+		const psimd_f32 g2 = __builtin_shufflevector(g5678, g5678, 1, 2, 3, -1);
+	#else
+		const psimd_f32 g2 = __builtin_shuffle(g5678, g5678, (psimd_s32) { 1, 2, 3, -1 });
+	#endif
 
 	psimd_f32 w[8];
 	winograd_f6k3_kernel_transform(g0, g1, g2,
@@ -119,9 +123,15 @@ void nnp_kwt8x8_3Rx3R__psimd(
 	const psimd_f32 g2345 = psimd_load_f32(g + 2);
 	const psimd_f32 g0123 = psimd_load_f32(g);
 
-	const psimd_f32 g0 = __builtin_shufflevector(g5678, g5678, 3, 2, 1, -1);
-	const psimd_f32 g1 = __builtin_shufflevector(g2345, g2345, 3, 2, 1, -1);
-	const psimd_f32 g2 = __builtin_shufflevector(g0123, g0123, 2, 1, 0, -1);
+	#ifdef __clang__
+		const psimd_f32 g0 = __builtin_shufflevector(g5678, g5678, 3, 2, 1, -1);
+		const psimd_f32 g1 = __builtin_shufflevector(g2345, g2345, 3, 2, 1, -1);
+		const psimd_f32 g2 = __builtin_shufflevector(g0123, g0123, 2, 1, 0, -1);
+	#else
+		const psimd_f32 g0 = __builtin_shuffle(g5678, (psimd_s32) { 3, 2, 1, -1 });
+		const psimd_f32 g1 = __builtin_shuffle(g2345, (psimd_s32) { 3, 2, 1, -1 });
+		const psimd_f32 g2 = __builtin_shuffle(g0123, (psimd_s32) { 2, 1, 0, -1 });
+	#endif
 
 	psimd_f32 w[8];
 	winograd_f6k3_kernel_transform(g0, g1, g2,

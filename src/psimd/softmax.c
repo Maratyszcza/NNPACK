@@ -19,10 +19,10 @@ static float max__scalar(size_t n, const float v[restrict static n]) {
 }
 
 static psimd_f32 max__psimd(size_t n, const float v[restrict static n]) {
-	NNP_ALIGN(16) static const psimd_s32 mask[3] = {
-		(psimd_s32) { UINT32_C(0x00000000), UINT32_C(0x00000000), UINT32_C(0x00000000), UINT32_C(0xFFFFFFFF) },
-		(psimd_s32) { UINT32_C(0x00000000), UINT32_C(0x00000000), UINT32_C(0xFFFFFFFF), UINT32_C(0xFFFFFFFF) },
-		(psimd_s32) { UINT32_C(0x00000000), UINT32_C(0xFFFFFFFF), UINT32_C(0xFFFFFFFF), UINT32_C(0xFFFFFFFF) },
+	NNP_ALIGN(16) static const int32_t mask[12] = {
+		0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFF,
+		0x00000000, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFF,
+		0x00000000, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
 	};
 
 	psimd_f32 max0, max1, max2, max3;
@@ -46,7 +46,7 @@ static psimd_f32 max__psimd(size_t n, const float v[restrict static n]) {
 		n -= 4;
 	}
 	if (n != 0) {
-		max0 = psimd_max_f32(max0, psimd_blend_f32(mask[n - 1], psimd_load_f32(v + n - 4), max0));
+		max0 = psimd_max_f32(max0, psimd_blend_f32(psimd_load_s32(&mask[4 * (n - 1)]), psimd_load_f32(v + n - 4), max0));
 	}
 	return psimd_allreduce_max_f32(max0);
 }
@@ -60,10 +60,10 @@ static float sum_exp_minus_c__scalar(size_t n, const float v[restrict static n],
 }
 
 static float sum_exp_minus_c__psimd(size_t n, const float v[restrict static n], psimd_f32 c) {
-	NNP_ALIGN(16) static const psimd_s32 mask[3] = {
-		(psimd_s32) { UINT32_C(0x00000000), UINT32_C(0x00000000), UINT32_C(0x00000000), UINT32_C(0xFFFFFFFF) },
-		(psimd_s32) { UINT32_C(0x00000000), UINT32_C(0x00000000), UINT32_C(0xFFFFFFFF), UINT32_C(0xFFFFFFFF) },
-		(psimd_s32) { UINT32_C(0x00000000), UINT32_C(0xFFFFFFFF), UINT32_C(0xFFFFFFFF), UINT32_C(0xFFFFFFFF) },
+	NNP_ALIGN(16) static const int32_t mask[12] = {
+		0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFF,
+		0x00000000, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFF,
+		0x00000000, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
 	};
 	psimd_f32 sum0, sum1, sum2, sum3;
 	sum0 = sum1 = sum2 = sum3 = psimd_zero_f32();
@@ -84,7 +84,7 @@ static float sum_exp_minus_c__psimd(size_t n, const float v[restrict static n], 
 		n -= 4;
 	}
 	if (n != 0) {
-		sum0 += psimd_exp_f32(psimd_andmask_f32(mask[n - 1], psimd_load_f32(v + n - 4)) - c);
+		sum0 += psimd_exp_f32(psimd_andmask_f32(psimd_load_s32(&mask[4 * (n - 1)]), psimd_load_f32(v + n - 4)) - c);
 	}
 	return psimd_reduce_sum_f32(sum0);
 }

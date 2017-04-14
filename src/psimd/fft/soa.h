@@ -56,12 +56,12 @@ static inline void psimd_fft8_soa_f32(
 		(psimd_f32) { SIN_0PI_OVER_4, SIN_1PI_OVER_4, SIN_2PI_OVER_4, SIN_3PI_OVER_4 });
 
 	/* 2x FFT4: butterfly */
-	psimd_f32 w0145r = __builtin_shufflevector(w0123r, w4567r, 0, 1, 4, 5);
-	psimd_f32 w2367r = __builtin_shufflevector(w0123r, w4567r, 2, 3, 6, 7);
+	psimd_f32 w0145r = psimd_concat_lo_f32(w0123r, w4567r);
+	psimd_f32 w2367r = psimd_concat_hi_f32(w0123r, w4567r);
 	psimd_butterfly_f32(&w0145r, &w2367r);
 
-	psimd_f32 w0145i = __builtin_shufflevector(w0123i, w4567i, 0, 1, 4, 5);
-	psimd_f32 w2367i = __builtin_shufflevector(w0123i, w4567i, 2, 3, 6, 7);
+	psimd_f32 w0145i = psimd_concat_lo_f32(w0123i, w4567i);
+	psimd_f32 w2367i = psimd_concat_hi_f32(w0123i, w4567i);
 	psimd_butterfly_f32(&w0145i, &w2367i);
 
 	/* 2x FFT4: multiplication by twiddle factors */
@@ -70,12 +70,12 @@ static inline void psimd_fft8_soa_f32(
 		(psimd_f32) { SIN_0PI_OVER_2, SIN_1PI_OVER_2, SIN_0PI_OVER_2, SIN_1PI_OVER_2 });
 
 	/* 4x FFT2: butterfly */
-	psimd_f32 w0426r = __builtin_shufflevector(w0145r, w2367r, 0, 2, 4, 6);
-	psimd_f32 w1537r = __builtin_shufflevector(w0145r, w2367r, 1, 3, 5, 7);
+	psimd_f32 w0426r = psimd_concat_even_f32(w0145r, w2367r);
+	psimd_f32 w1537r = psimd_concat_odd_f32(w0145r, w2367r);
 	psimd_butterfly_f32(&w0426r, &w1537r);
 
-	psimd_f32 w0426i = __builtin_shufflevector(w0145i, w2367i, 0, 2, 4, 6);
-	psimd_f32 w1537i = __builtin_shufflevector(w0145i, w2367i, 1, 3, 5, 7);
+	psimd_f32 w0426i = psimd_concat_even_f32(w0145i, w2367i);
+	psimd_f32 w1537i = psimd_concat_odd_f32(w0145i, w2367i);
 	psimd_butterfly_f32(&w0426i, &w1537i);
 
 	/*
@@ -111,12 +111,12 @@ static inline void psimd_ifft8_soa_f32(
 
 	/* 4x IFFT2: butterfly */
 	psimd_butterfly_f32(&w0426r, &w1537r);
-	psimd_f32 w0145r = __builtin_shufflevector(w0426r, w1537r, 0, 4, 1, 5);
-	psimd_f32 w2367r = __builtin_shufflevector(w0426r, w1537r, 2, 6, 3, 7);
+	psimd_f32 w0145r = psimd_interleave_lo_f32(w0426r, w1537r);
+	psimd_f32 w2367r = psimd_interleave_hi_f32(w0426r, w1537r);
 
 	psimd_butterfly_f32(&w0426i, &w1537i);
-	psimd_f32 w0145i = __builtin_shufflevector(w0426i, w1537i, 0, 4, 1, 5);
-	psimd_f32 w2367i = __builtin_shufflevector(w0426i, w1537i, 2, 6, 3, 7);
+	psimd_f32 w0145i = psimd_interleave_lo_f32(w0426i, w1537i);
+	psimd_f32 w2367i = psimd_interleave_hi_f32(w0426i, w1537i);
 
 	/* 2x IFFT4: multiplication by twiddle factors */
 	psimd_cmul_soa_f32(&w2367r, &w2367i,
@@ -125,12 +125,12 @@ static inline void psimd_ifft8_soa_f32(
 
 	/* 2x IFFT4: butterfly */
 	psimd_butterfly_f32(&w0145r, &w2367r);
-	psimd_f32 w0123r = __builtin_shufflevector(w0145r, w2367r, 0, 1, 4, 5);
-	psimd_f32 w4567r = __builtin_shufflevector(w0145r, w2367r, 2, 3, 6, 7);
+	psimd_f32 w0123r = psimd_concat_lo_f32(w0145r, w2367r);
+	psimd_f32 w4567r = psimd_concat_hi_f32(w0145r, w2367r);
 
 	psimd_butterfly_f32(&w0145i, &w2367i);
-	psimd_f32 w0123i = __builtin_shufflevector(w0145i, w2367i, 0, 1, 4, 5);
-	psimd_f32 w4567i = __builtin_shufflevector(w0145i, w2367i, 2, 3, 6, 7);
+	psimd_f32 w0123i = psimd_concat_lo_f32(w0145i, w2367i);
+	psimd_f32 w4567i = psimd_concat_hi_f32(w0145i, w2367i);
 
 	/* IFFT8: multiplication by twiddle factors and scaling by 1/8 */
 	psimd_cmul_soa_f32(&w4567r, &w4567i,
@@ -198,20 +198,20 @@ static inline void psimd_fft16_soa_f32(
 	psimd_cmulc_soa_f32(&wCDEFr, &wCDEFi, fft8_cos_twiddle_factor, fft8_sin_twiddle_factor);
 
 	/* 4x FFT4: butterfly */
-	psimd_f32 w0189r = __builtin_shufflevector(w0123r, w89ABr, 0, 1, 4, 5);
-	psimd_f32 w23ABr = __builtin_shufflevector(w0123r, w89ABr, 2, 3, 6, 7);
+	psimd_f32 w0189r = psimd_concat_lo_f32(w0123r, w89ABr);
+	psimd_f32 w23ABr = psimd_concat_hi_f32(w0123r, w89ABr);
 	psimd_butterfly_f32(&w0189r, &w23ABr);
 
-	psimd_f32 w0189i = __builtin_shufflevector(w0123i, w89ABi, 0, 1, 4, 5);
-	psimd_f32 w23ABi = __builtin_shufflevector(w0123i, w89ABi, 2, 3, 6, 7);
+	psimd_f32 w0189i = psimd_concat_lo_f32(w0123i, w89ABi);
+	psimd_f32 w23ABi = psimd_concat_hi_f32(w0123i, w89ABi);
 	psimd_butterfly_f32(&w0189i, &w23ABi);
 
-	psimd_f32 w45CDr = __builtin_shufflevector(w4567r, wCDEFr, 0, 1, 4, 5);
-	psimd_f32 w67EFr = __builtin_shufflevector(w4567r, wCDEFr, 2, 3, 6, 7);
+	psimd_f32 w45CDr = psimd_concat_lo_f32(w4567r, wCDEFr);
+	psimd_f32 w67EFr = psimd_concat_hi_f32(w4567r, wCDEFr);
 	psimd_butterfly_f32(&w45CDr, &w67EFr);
 
-	psimd_f32 w45CDi = __builtin_shufflevector(w4567i, wCDEFi, 0, 1, 4, 5);
-	psimd_f32 w67EFi = __builtin_shufflevector(w4567i, wCDEFi, 2, 3, 6, 7);
+	psimd_f32 w45CDi = psimd_concat_lo_f32(w4567i, wCDEFi);
+	psimd_f32 w67EFi = psimd_concat_hi_f32(w4567i, wCDEFi);
 	psimd_butterfly_f32(&w45CDi, &w67EFi);
 
 	/* 4x FFT4: multiplication by twiddle factors */
@@ -221,20 +221,20 @@ static inline void psimd_fft16_soa_f32(
 	psimd_cmulc_soa_f32(&w67EFr, &w67EFi, fft4_cos_twiddle_factor, fft4_sin_twiddle_factor);
 
 	/* 8x FFT2: butterfly */
-	psimd_f32 w084Cr = __builtin_shufflevector(w0189r, w45CDr, 0, 2, 4, 6);
-	psimd_f32 w195Dr = __builtin_shufflevector(w0189r, w45CDr, 1, 3, 5, 7);
+	psimd_f32 w084Cr = psimd_concat_even_f32(w0189r, w45CDr);
+	psimd_f32 w195Dr = psimd_concat_odd_f32(w0189r, w45CDr);
 	psimd_butterfly_f32(&w084Cr, &w195Dr);
 
-	psimd_f32 w084Ci = __builtin_shufflevector(w0189i, w45CDi, 0, 2, 4, 6);
-	psimd_f32 w195Di = __builtin_shufflevector(w0189i, w45CDi, 1, 3, 5, 7);
+	psimd_f32 w084Ci = psimd_concat_even_f32(w0189i, w45CDi);
+	psimd_f32 w195Di = psimd_concat_odd_f32(w0189i, w45CDi);
 	psimd_butterfly_f32(&w084Ci, &w195Di);
 
-	psimd_f32 w2A6Er = __builtin_shufflevector(w23ABr, w67EFr, 0, 2, 4, 6);
-	psimd_f32 w3B7Fr = __builtin_shufflevector(w23ABr, w67EFr, 1, 3, 5, 7);
+	psimd_f32 w2A6Er = psimd_concat_even_f32(w23ABr, w67EFr);
+	psimd_f32 w3B7Fr = psimd_concat_odd_f32(w23ABr, w67EFr);
 	psimd_butterfly_f32(&w2A6Er, &w3B7Fr);
 
-	psimd_f32 w2A6Ei = __builtin_shufflevector(w23ABi, w67EFi, 0, 2, 4, 6);
-	psimd_f32 w3B7Fi = __builtin_shufflevector(w23ABi, w67EFi, 1, 3, 5, 7);
+	psimd_f32 w2A6Ei = psimd_concat_even_f32(w23ABi, w67EFi);
+	psimd_f32 w3B7Fi = psimd_concat_odd_f32(w23ABi, w67EFi);
 	psimd_butterfly_f32(&w2A6Ei, &w3B7Fi);
 
 	/*
@@ -282,20 +282,20 @@ static inline void psimd_ifft16_soa_f32(
 
 	/* 8x IFFT2: butterfly */
 	psimd_butterfly_f32(&w084Cr, &w195Dr);
-	psimd_f32 w0189r = __builtin_shufflevector(w084Cr, w195Dr, 0, 4, 1, 5);
-	psimd_f32 w45CDr = __builtin_shufflevector(w084Cr, w195Dr, 2, 6, 3, 7);
+	psimd_f32 w0189r = psimd_interleave_lo_f32(w084Cr, w195Dr);
+	psimd_f32 w45CDr = psimd_interleave_hi_f32(w084Cr, w195Dr);
 
 	psimd_butterfly_f32(&w084Ci, &w195Di);
-	psimd_f32 w0189i = __builtin_shufflevector(w084Ci, w195Di, 0, 4, 1, 5);
-	psimd_f32 w45CDi = __builtin_shufflevector(w084Ci, w195Di, 2, 6, 3, 7);
+	psimd_f32 w0189i = psimd_interleave_lo_f32(w084Ci, w195Di);
+	psimd_f32 w45CDi = psimd_interleave_hi_f32(w084Ci, w195Di);
 
 	psimd_butterfly_f32(&w2A6Er, &w3B7Fr);
-	psimd_f32 w23ABr = __builtin_shufflevector(w2A6Er, w3B7Fr, 0, 4, 1, 5);
-	psimd_f32 w67EFr = __builtin_shufflevector(w2A6Er, w3B7Fr, 2, 6, 3, 7);
+	psimd_f32 w23ABr = psimd_interleave_lo_f32(w2A6Er, w3B7Fr);
+	psimd_f32 w67EFr = psimd_interleave_hi_f32(w2A6Er, w3B7Fr);
 
 	psimd_butterfly_f32(&w2A6Ei, &w3B7Fi);
-	psimd_f32 w23ABi = __builtin_shufflevector(w2A6Ei, w3B7Fi, 0, 4, 1, 5);
-	psimd_f32 w67EFi = __builtin_shufflevector(w2A6Ei, w3B7Fi, 2, 6, 3, 7);
+	psimd_f32 w23ABi = psimd_interleave_lo_f32(w2A6Ei, w3B7Fi);
+	psimd_f32 w67EFi = psimd_interleave_hi_f32(w2A6Ei, w3B7Fi);
 
 	/* 4x IFFT4: multiplication by twiddle factors */
 	const psimd_f32 fft4_cos_twiddle_factor = { COS_0PI_OVER_2, COS_1PI_OVER_2, COS_0PI_OVER_2, COS_1PI_OVER_2 };
@@ -305,20 +305,20 @@ static inline void psimd_ifft16_soa_f32(
 
 	/* 4x IFFT4: butterfly */
 	psimd_butterfly_f32(&w0189r, &w23ABr);
-	psimd_f32 w0123r = __builtin_shufflevector(w0189r, w23ABr, 0, 1, 4, 5);
-	psimd_f32 w89ABr = __builtin_shufflevector(w0189r, w23ABr, 2, 3, 6, 7);
+	psimd_f32 w0123r = psimd_concat_lo_f32(w0189r, w23ABr);
+	psimd_f32 w89ABr = psimd_concat_hi_f32(w0189r, w23ABr);
 
 	psimd_butterfly_f32(&w0189i, &w23ABi);
-	psimd_f32 w0123i = __builtin_shufflevector(w0189i, w23ABi, 0, 1, 4, 5);
-	psimd_f32 w89ABi = __builtin_shufflevector(w0189i, w23ABi, 2, 3, 6, 7);
+	psimd_f32 w0123i = psimd_concat_lo_f32(w0189i, w23ABi);
+	psimd_f32 w89ABi = psimd_concat_hi_f32(w0189i, w23ABi);
 
 	psimd_butterfly_f32(&w45CDr, &w67EFr);
-	psimd_f32 w4567r = __builtin_shufflevector(w45CDr, w67EFr, 0, 1, 4, 5);
-	psimd_f32 wCDEFr = __builtin_shufflevector(w45CDr, w67EFr, 2, 3, 6, 7);
+	psimd_f32 w4567r = psimd_concat_lo_f32(w45CDr, w67EFr);
+	psimd_f32 wCDEFr = psimd_concat_hi_f32(w45CDr, w67EFr);
 
 	psimd_butterfly_f32(&w45CDi, &w67EFi);
-	psimd_f32 w4567i = __builtin_shufflevector(w45CDi, w67EFi, 0, 1, 4, 5);
-	psimd_f32 wCDEFi = __builtin_shufflevector(w45CDi, w67EFi, 2, 3, 6, 7);
+	psimd_f32 w4567i = psimd_concat_lo_f32(w45CDi, w67EFi);
+	psimd_f32 wCDEFi = psimd_concat_hi_f32(w45CDi, w67EFi);
 
 	/* 2x IFFT8: multiplication by twiddle factors */
 	const psimd_f32 fft8_cos_twiddle_factor = { COS_0PI_OVER_4, COS_1PI_OVER_4, COS_2PI_OVER_4, COS_3PI_OVER_4 };
