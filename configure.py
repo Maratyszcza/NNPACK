@@ -20,8 +20,6 @@ def main(args):
             backend = "scalar"
         else:
             backend = "psimd"
-    if backend == "psimd" or backend == "arm":
-        options.toolchain = "clang"
 
     build = confu.Build.from_options(options)
 
