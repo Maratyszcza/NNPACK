@@ -113,7 +113,6 @@ void nnp_conv1x1_upto_2x4__psimd(
 
 	psimd_f32 vkernel00, vkernel01, vkernel10, vkernel11, vkernel20, vkernel21, vkernel30, vkernel31;
 	vkernel00 = psimd_splat_f32(kernel[0]);
-	vkernel01 = vkernel10 = vkernel11 = vkernel20 = vkernel21 = vkernel30 = vkernel31 = psimd_zero_f32();
 	if (input_channels_subblock_size > 1) {
 		vkernel01 = psimd_splat_f32(kernel[1]);
 	}
