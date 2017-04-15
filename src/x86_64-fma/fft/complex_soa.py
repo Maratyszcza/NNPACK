@@ -1,11 +1,12 @@
+from __future__ import absolute_import
+from __future__ import division
+
 from peachpy import *
 from peachpy.x86_64 import *
-
 
 from common import cos_npi_over_8, sin_npi_over_8, cos_npi_over_4, sin_npi_over_4
 from common import _MM_SHUFFLE
 from common import butterfly, transpose2x2x128, transpose2x2x2x64, interleave
-
 
 def fft8_within_rows(ymm_real_rows, ymm_imag_rows, transformation="forward"):
     if isinstance(ymm_real_rows, YMMRegister) and isinstance(ymm_imag_rows, YMMRegister):

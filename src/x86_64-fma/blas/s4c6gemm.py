@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+from __future__ import division
+
 mr, nr = 2, 2
 
 for conjugate_b, transpose_c in [(False, False), (True, False), (True, True)]:

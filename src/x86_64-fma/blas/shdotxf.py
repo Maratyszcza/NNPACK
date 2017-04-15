@@ -1,7 +1,10 @@
+from __future__ import absolute_import
+from __future__ import division
+
 from fp16.avx import fp16_alt_xmm_to_fp32_xmm
 from fp16.avx2 import fp16_alt_xmm_to_fp32_ymm
 
-simd_width = YMMRegister.size / float_.size
+simd_width = YMMRegister.size // float_.size
 
 for fusion_factor in range(1, 8 + 1):
 	arg_x = Argument(ptr(const_float_), "x")
@@ -38,7 +41,7 @@ for fusion_factor in range(1, 8 + 1):
 		main_loop = Loop()
 		edge_loop = Loop()
 
-		SUB(reg_n, XMMRegister.size / uint16_t.size)
+		SUB(reg_n, XMMRegister.size // uint16_t.size)
 		JB(main_loop.end)
 
 		with main_loop:
@@ -54,10 +57,10 @@ for fusion_factor in range(1, 8 + 1):
 				ymm_y = fp16_alt_xmm_to_fp32_ymm(xmm_half)
 				VFMADD231PS(ymm_acc, ymm_x, ymm_y)
 
-			SUB(reg_n, YMMRegister.size / float_.size)
+			SUB(reg_n, YMMRegister.size // float_.size)
 			JAE(main_loop.begin)
 
-		ADD(reg_n, XMMRegister.size / uint16_t.size)
+		ADD(reg_n, XMMRegister.size // uint16_t.size)
 		JE(edge_loop.end)
 
 		with edge_loop:

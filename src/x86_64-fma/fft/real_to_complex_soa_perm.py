@@ -1,10 +1,13 @@
+from __future__ import absolute_import
+from __future__ import division
+
 from peachpy import *
 from peachpy.x86_64 import *
 
 from common import sqrt2_over_2
 from common import butterfly
 
-import complex_soa
+import fft.complex_soa
 
 
 def fft8_across_rows(ymm_data):
@@ -12,7 +15,7 @@ def fft8_across_rows(ymm_data):
     ymm_real = ymm_data[0::2]
     ymm_imag = ymm_data[1::2]
 
-    complex_soa.fft4_across_rows(ymm_real, ymm_imag)
+    fft.complex_soa.fft4_across_rows(ymm_real, ymm_imag)
 
     butterfly(ymm_real[0], ymm_imag[0])
 
