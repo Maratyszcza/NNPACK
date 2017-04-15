@@ -580,8 +580,8 @@ TEST(DIRECT_1x1, odd_image_size) {
 					ConvolutionTester()
 						.inputSize(height, width)
 						.kernelSize(1, 1)
-						.inputChannels(nnp_hwinfo.conv1x1.mr)
-						.outputChannels(nnp_hwinfo.conv1x1.nr)
+						.inputChannels(nnp_hwinfo.conv1x1.mr + 1)
+						.outputChannels(nnp_hwinfo.conv1x1.nr + 1)
 						.iterations(100)
 						.errorLimit(1.0e-5)
 						.testInference(nnp_convolution_algorithm_direct);

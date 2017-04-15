@@ -73,6 +73,8 @@ def main(args):
                 build.peachpy("x86_64-fma/blas/s8gemm.py"),
                 build.peachpy("x86_64-fma/blas/c8gemm.py"),
                 build.peachpy("x86_64-fma/blas/s4c6gemm.py"),
+                # Direct convolution
+                build.peachpy("x86_64-fma/blas/conv1x1.py"),
                 # BLAS microkernels
                 build.peachpy("x86_64-fma/blas/sgemm.py"),
                 build.peachpy("x86_64-fma/blas/sdotxf.py"),
