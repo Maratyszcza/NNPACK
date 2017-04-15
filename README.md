@@ -16,13 +16,15 @@ NNPACK is not intended to be directly used by machine learning researchers; inst
 - x86-64 processor with AVX2 instruction set
   - NNPACK is optimized for Intel Skylake, but can run on Haswell & Broadwell processors too
   - SSE2 instruction set can be targeted using `--backend=psimd` or `--backend=scalar` configuration options, but for performance reasons it is not recommended for production use
+- ARMv7 processor with NEON instruction set
+  - VFP instruction set (including ARMv6 systems with VFPv2) can be targeted using `--backend=scalar` configuration option, but for performance reasons it is not recommended for production use.
 
 ### Cross-compilation options:
-- Native Client (x86-64) to run as a packaged Google Chrome App
-- Portable Native Client to run inside Google Chrome (no packaging required)
-- Emscripten/Asm.js to run inside any modern Web browser
-- WebAssembly for next-generation Web browsers
 - Android with x86/x86-64 (SSE2), ARMv7 with NEON, or ARM64 architecture
+- WebAssembly for next-generation Web browsers
+- Emscripten/Asm.js to run inside any modern Web browser
+- Portable Native Client to run inside Google Chrome (no packaging required)
+- Native Client (x86-64) to run as a packaged Google Chrome App
 
 ## Features
 
@@ -102,23 +104,12 @@ python ./configure.py
 ninja
 ```
 
-### Cross-compilation for Native Client
+### Cross-compilation for Android
 
-- Download and setup Native Client SDK
-- Set `NACL_SDK_ROOT` variable to a versioned SDK directory (e.g. `/opt/nacl_sdk/pepper_49`).
-- Configure NNPACK with `--target=x86_64-nacl-newlib` (recommended) or `--target=x86_64-nacl-gnu` option.
-
-### Cross-compilation for Portable Native Client
-
-- Download and setup Native Client SDK
-- Set `NACL_SDK_ROOT` variable to a versioned SDK directory (e.g. `/opt/nacl_sdk/pepper_49`).
-- Configure NNPACK with `--target=pnacl` option.
-
-### Cross-compilation for Emscripten/Asm.js
-
-- Download and setup Emscripten SDK
-- Using `emsdk`, download, build and activate one of the environments, and setup environment variables. `$EMSCRIPTEN` should specify the path to activated Emscripten environment.
-- Configure NNPACK with `--target=asmjs`  option.
+- Download and setup Android NDK
+- Add `ndk-build` to `PATH` variable
+- Navigate to NNPACK directory and setup dependencies (`confu setup`)
+- Build NNPACK with `ndk-build` build system.
 
 ### Cross-compilation for Emscripten/WebAssembly
 
@@ -126,12 +117,23 @@ ninja
 - Using `emsdk`, download, build and activate `incoming` version of Emscripten and Binaryen, and setup environment variables. `$EMSCRIPTEN` should specify the path to activated Emscripten environment.
 - Configure NNPACK with `--target=wasm`  option.
 
-### Cross-compilation for Android
+### Cross-compilation for Emscripten/Asm.js
 
-- Download and setup Android NDK
-- Add `ndk-build` to `PATH` variable
-- Navigate to NNPACK directory and setup dependencies (`confu setup`)
-- Build NNPACK with `ndk-build` build system. **Note: an NDK project must be built with Clang toolchain to use NNPACK as a static libray**.
+- Download and setup Emscripten SDK
+- Using `emsdk`, download, build and activate one of the environments, and setup environment variables. `$EMSCRIPTEN` should specify the path to activated Emscripten environment.
+- Configure NNPACK with `--target=asmjs`  option.
+
+### Cross-compilation for Portable Native Client
+
+- Download and setup Native Client SDK
+- Set `NACL_SDK_ROOT` variable to a versioned SDK directory (e.g. `/opt/nacl_sdk/pepper_49`).
+- Configure NNPACK with `--target=pnacl` option.
+
+### Cross-compilation for Native Client
+
+- Download and setup Native Client SDK
+- Set `NACL_SDK_ROOT` variable to a versioned SDK directory (e.g. `/opt/nacl_sdk/pepper_49`).
+- Configure NNPACK with `--target=x86_64-nacl-newlib` (recommended) or `--target=x86_64-nacl-gnu` option.
 
 ## Testing
 
