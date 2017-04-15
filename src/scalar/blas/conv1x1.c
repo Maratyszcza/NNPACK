@@ -42,13 +42,12 @@ void nnp_conv1x1_only_2x4__scalar(
 
 		const float input1 = *pinput1++;
 		output0 += kernel01 * input1;
-		output1 += kernel11 * input1;
-		output2 += kernel21 * input1;
-		output3 += kernel31 * input1;
-
 		*poutput0++ = output0;
+		output1 += kernel11 * input1;
 		*poutput1++ = output1;
+		output2 += kernel21 * input1;
 		*poutput2++ = output2;
+		output3 += kernel31 * input1;
 		*poutput3++ = output3;
 	} while (--image_size != 0);
 }
@@ -67,7 +66,6 @@ void nnp_conv1x1_upto_2x4__scalar(
 
 	float kernel00, kernel01, kernel10, kernel11, kernel20, kernel21, kernel30, kernel31;
 	kernel00 = kernel[0];
-	kernel01 = kernel10 = kernel11 = kernel20 = kernel21 = kernel30 = kernel31 = 0.0f;
 	if (input_channels_subblock_size > 1) {
 		kernel01 = kernel[1];
 	}
@@ -98,33 +96,38 @@ void nnp_conv1x1_upto_2x4__scalar(
 	float* poutput2 = poutput1 + image_size;
 	float* poutput3 = poutput2 + image_size;
 	do {
-		float input0, input1;
-		input0 = input1 = *pinput0++;
-		if (input_channels_subblock_size > 1) {
-			input1 = *pinput1++;
+		float output0, output1, output2, output3;
+		output0 = *poutput0;
+		if (output_channels_subblock_size > 1) {
+			output1 = *poutput1;
+			if (output_channels_subblock_size > 2) {
+				output2 = *poutput2;
+				if (output_channels_subblock_size > 3) {
+					output3 = *poutput3;
+				}
+			}
 		}
 
-		float output0 = *poutput0;
+		const float input0 = *pinput0++;
 		output0 += kernel00 * input0;
-		output0 += kernel01 * input1;
-		*poutput0++ = output0;
+		output1 += kernel10 * input0;
+		output2 += kernel20 * input0;
+		output3 += kernel30 * input0;
 
-		if (output_channels_subblock_size > 1) {
-			float output1 = *poutput1;
-			output1 += kernel10 * input0;
+		if (input_channels_subblock_size > 1) {
+			const float input1 = *pinput1++;
+			output0 += kernel01 * input1;
 			output1 += kernel11 * input1;
+			output2 += kernel21 * input1;
+			output3 += kernel31 * input1;
+		}
+
+		*poutput0++ = output0;
+		if (output_channels_subblock_size > 1) {
 			*poutput1++ = output1;
-
 			if (output_channels_subblock_size > 2) {
-				float output2 = *poutput2;
-				output2 += kernel20 * input0;
-				output2 += kernel21 * input1;
 				*poutput2++ = output2;
-
 				if (output_channels_subblock_size > 3) {
-					float output3 = *poutput3;
-					output3 += kernel30 * input0;
-					output3 += kernel31 * input1;
 					*poutput3++ = output3;
 				}
 			}
