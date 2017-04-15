@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+from __future__ import division
+
 mr, nr = 3, 4
 
 arg_k = Argument(size_t, "k")

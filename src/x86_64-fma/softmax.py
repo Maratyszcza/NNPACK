@@ -17,7 +17,7 @@ with Function("max__avx", (arg_n, arg_v), float_,
     vector_loop = Loop()
     final_block = Block()
 
-    simd_width = YMMRegister.size / float_.size
+    simd_width = YMMRegister.size // float_.size
     unroll_factor = 4
 
     # Initialize reduction registers with the first element (v[0])
@@ -105,7 +105,7 @@ with Function("sum_exp_minus_c__avx2", (arg_n, arg_v, arg_c), float_,
     vector_loop = Loop()
     final_block = Block()
 
-    simd_width = YMMRegister.size / float_.size
+    simd_width = YMMRegister.size // float_.size
     unroll_factor = 3
 
     # Clear reduction registers
@@ -190,7 +190,7 @@ def scaled_exp_minus_c(reg_n, reg_x, reg_y, ymm_scale, ymm_c):
     vector_loop = Loop()
     final_block = Block()
 
-    simd_width = YMMRegister.size / float_.size
+    simd_width = YMMRegister.size // float_.size
     unroll_factor = 3
 
     # Unrolled vectorized loop

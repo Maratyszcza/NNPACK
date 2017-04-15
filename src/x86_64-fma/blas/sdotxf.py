@@ -1,4 +1,7 @@
-simd_width = YMMRegister.size / float_.size
+from __future__ import absolute_import
+from __future__ import division
+
+simd_width = YMMRegister.size // float_.size
 
 for fusion_factor in range(1, 8 + 1):
 	arg_x = Argument(ptr(const_float_), "x")
@@ -35,7 +38,7 @@ for fusion_factor in range(1, 8 + 1):
 		main_loop = Loop()
 		end_block = Block()
 
-		SUB(reg_n, YMMRegister.size / float_.size)
+		SUB(reg_n, YMMRegister.size // float_.size)
 		JB(main_loop.end)
 
 		with main_loop:
@@ -47,10 +50,10 @@ for fusion_factor in range(1, 8 + 1):
 				VFMADD231PS(ymm_acc, ymm_x, [reg_y])
 				ADD(reg_y, YMMRegister.size)
 
-			SUB(reg_n, YMMRegister.size / float_.size)
+			SUB(reg_n, YMMRegister.size // float_.size)
 			JAE(main_loop.begin)
 
-		ADD(reg_n, YMMRegister.size / float_.size)
+		ADD(reg_n, YMMRegister.size // float_.size)
 		JE(end_block.end)
 
 		with end_block:

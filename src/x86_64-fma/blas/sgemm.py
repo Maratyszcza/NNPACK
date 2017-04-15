@@ -1,6 +1,9 @@
+from __future__ import absolute_import
+from __future__ import division
+
 from common import _MM_SHUFFLE
 
-simd_width = YMMRegister.size / float_.size
+simd_width = YMMRegister.size // float_.size
 mr = 4
 nr = 3 * simd_width
 

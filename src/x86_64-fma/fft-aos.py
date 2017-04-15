@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+from __future__ import division
+
 import fft.complex_soa
 
 arg_t = Argument(ptr(const_float_), name="t")

@@ -40,7 +40,7 @@ with Function("nnp_relu__avx2",
 		VMOVNTPS([reg_output], ymm_data)
 		ADD(reg_output, YMMRegister.size)
 
-		SUB(reg_length, YMMRegister.size / float_.size)
+		SUB(reg_length, YMMRegister.size // float_.size)
 		JNZ(loop.begin)
 
 	RETURN()
@@ -83,7 +83,7 @@ with Function("nnp_inplace_relu__avx2",
 		VMOVAPS([reg_data], ymm_data)
 		ADD(reg_data, YMMRegister.size)
 
-		SUB(reg_length, YMMRegister.size / float_.size)
+		SUB(reg_length, YMMRegister.size // float_.size)
 		JNZ(loop.begin)
 
 	RETURN()
@@ -140,7 +140,7 @@ with Function("nnp_grad_relu__avx2",
 		VMOVAPS([reg_input_gradient], ymm_gradient)
 		ADD(reg_input_gradient, YMMRegister.size)
 
-		SUB(reg_length, YMMRegister.size / float_.size)
+		SUB(reg_length, YMMRegister.size // float_.size)
 		JNZ(loop.begin)
 
 	RETURN()

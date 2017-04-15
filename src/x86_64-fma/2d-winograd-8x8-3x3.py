@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+from __future__ import division
+
 import winograd.o6x6k3x3
 import block8x8
 from common import _MM_SHUFFLE

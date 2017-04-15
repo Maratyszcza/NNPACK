@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+from __future__ import division
+
 mr, nr = 2, 4
 
 arg_input_channels = Argument(size_t, "input_channels")
