@@ -144,38 +144,43 @@ void nnp_conv1x1_upto_2x4__psimd(
 	float* output2 = output1 + image_size;
 	float* output3 = output2 + image_size;
 	while (image_size >= 4) {
-		psimd_f32 vinput0, vinput1;
-		vinput0 = vinput1 = psimd_load_f32(input0);
-		input0 += 4;
-		if (input_channels_subblock_size > 1) {
-			vinput1 = psimd_load_f32(input1);
-			input1 += 4;
+		psimd_f32 voutput0, voutput1, voutput2, voutput3;
+		voutput0 = psimd_load_f32(output0);
+		if (output_channels_subblock_size > 1) {
+			voutput1 = psimd_load_f32(output1);
+			if (output_channels_subblock_size > 2) {
+				voutput2 = psimd_load_f32(output2);
+				if (output_channels_subblock_size > 3) {
+					voutput3 = psimd_load_f32(output3);
+				}
+			}
 		}
 
-		psimd_f32 voutput0 = psimd_load_f32(output0);
+		const psimd_f32 vinput0 = psimd_load_f32(input0);
+		input0 += 4;
 		voutput0 += vkernel00 * vinput0;
-		voutput0 += vkernel01 * vinput1;
+		voutput1 += vkernel10 * vinput0;
+		voutput2 += vkernel20 * vinput0;
+		voutput3 += vkernel30 * vinput0;
+
+		if (input_channels_subblock_size > 1) {
+			const psimd_f32 vinput1 = psimd_load_f32(input1);
+			input1 += 4;
+			voutput0 += vkernel01 * vinput1;
+			voutput1 += vkernel11 * vinput1;
+			voutput2 += vkernel21 * vinput1;
+			voutput3 += vkernel31 * vinput1;
+		}
+
 		psimd_store_f32(output0, voutput0);
 		output0 += 4;
-
 		if (output_channels_subblock_size > 1) {
-			psimd_f32 voutput1 = psimd_load_f32(output1);
-			voutput1 += vkernel10 * vinput0;
-			voutput1 += vkernel11 * vinput1;
 			psimd_store_f32(output1, voutput1);
 			output1 += 4;
-
 			if (output_channels_subblock_size > 2) {
-				psimd_f32 voutput2 = psimd_load_f32(output2);
-				voutput2 += vkernel20 * vinput0;
-				voutput2 += vkernel21 * vinput1;
 				psimd_store_f32(output2, voutput2);
 				output2 += 4;
-
 				if (output_channels_subblock_size > 3) {
-					psimd_f32 voutput3 = psimd_load_f32(output3);
-					voutput3 += vkernel30 * vinput0;
-					voutput3 += vkernel31 * vinput1;
 					psimd_store_f32(output3, voutput3);
 					output3 += 4;
 				}
@@ -187,37 +192,42 @@ void nnp_conv1x1_upto_2x4__psimd(
 	if (image_size != 0) {
 		const psimd_s32 vmask = psimd_load_s32(&mask_array[image_size]);
 
-		psimd_f32 vinput0, vinput1;
-		vinput0 = vinput1 = psimd_andmask_f32(vmask, psimd_load_f32(&input0[image_size - 4]));
-		if (input_channels_subblock_size > 1) {
-			vinput1 = psimd_andmask_f32(vmask, psimd_load_f32(&input1[image_size - 4]));
-		}
-
+		psimd_f32 voutput0, voutput1, voutput2, voutput3;
 		output0 += image_size - 4;
-		psimd_f32 voutput0 = psimd_load_f32(&output0);
-		voutput0 += vkernel00 * vinput0;
-		voutput0 += vkernel01 * vinput1;
-		psimd_store_f32(output0, voutput0);
-
+		voutput0 = psimd_load_f32(output0);
 		if (output_channels_subblock_size > 1) {
 			output1 += image_size - 4;
-			psimd_f32 voutput1 = psimd_load_f32(output1);
-			voutput1 += vkernel10 * vinput0;
-			voutput1 += vkernel11 * vinput1;
-			psimd_store_f32(output1, voutput1);
-
+			voutput1 = psimd_load_f32(output1);
 			if (output_channels_subblock_size > 2) {
 				output2 += image_size - 4;
-				psimd_f32 voutput2 = psimd_load_f32(output2);
-				voutput2 += vkernel20 * vinput0;
-				voutput2 += vkernel21 * vinput1;
-				psimd_store_f32(output2, voutput2);
-
+				voutput2 = psimd_load_f32(output2);
 				if (output_channels_subblock_size > 3) {
 					output3 += image_size - 4;
-					psimd_f32 voutput3 = psimd_load_f32(output3);
-					voutput3 += vkernel30 * vinput0;
-					voutput3 += vkernel31 * vinput1;
+					voutput3 = psimd_load_f32(output3);
+				}
+			}
+		}
+
+		const psimd_f32 vinput0 = psimd_andmask_f32(vmask, psimd_load_f32(&input0[image_size - 4]));
+		voutput0 += vkernel00 * vinput0;
+		voutput1 += vkernel10 * vinput0;
+		voutput2 += vkernel20 * vinput0;
+		voutput3 += vkernel30 * vinput0;
+
+		if (input_channels_subblock_size > 1) {
+			const psimd_f32 vinput1 = psimd_andmask_f32(vmask, psimd_load_f32(&input1[image_size - 4]));
+			voutput0 += vkernel01 * vinput1;
+			voutput1 += vkernel11 * vinput1;
+			voutput2 += vkernel21 * vinput1;
+			voutput3 += vkernel31 * vinput1;
+		}
+
+		psimd_store_f32(output0, voutput0);
+		if (output_channels_subblock_size > 1) {
+			psimd_store_f32(output1, voutput1);
+			if (output_channels_subblock_size > 2) {
+				psimd_store_f32(output2, voutput2);
+				if (output_channels_subblock_size > 3) {
 					psimd_store_f32(output3, voutput3);
 				}
 			}
