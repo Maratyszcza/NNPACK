@@ -5,6 +5,7 @@ LOCAL_MODULE := pthreadpool
 LOCAL_SRC_FILES := $(LOCAL_PATH)/deps/pthreadpool/src/threadpool-pthreads.c
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/deps/pthreadpool/include
 LOCAL_C_INCLUDES := $(LOCAL_EXPORT_C_INCLUDES) $(LOCAL_PATH)/deps/fxdiv/include
+LOCAL_CFLAGS := -std=gnu99
 include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
@@ -50,7 +51,7 @@ LOCAL_SRC_FILES += \
 	$(LOCAL_PATH)/src/psimd/blas/sdotxf.c
 endif
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include $(LOCAL_PATH)/src $(LOCAL_PATH)/deps/fp16/include $(LOCAL_PATH)/deps/psimd/include
-LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
+LOCAL_CFLAGS := -std=gnu99 -D__STDC_CONSTANT_MACROS=1
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 LOCAL_ARM_NEON := true
 LOCAL_ARM_MODE := arm
@@ -73,6 +74,7 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/src/relu-input-gradient.c
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
 LOCAL_C_INCLUDES := $(LOCAL_EXPORT_C_INCLUDES) $(LOCAL_PATH)/deps/fxdiv/include $(LOCAL_PATH)/src
+LOCAL_CFLAGS := -std=gnu99
 ifneq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),armeabi-v7a arm64-v8a))
 endif
 LOCAL_STATIC_LIBRARIES := nnpack_ukernels pthreadpool
@@ -93,7 +95,7 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/src/ref/relu-output.c \
 	$(LOCAL_PATH)/src/ref/relu-input-gradient.c
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include $(LOCAL_PATH)/deps/fp16/include
-LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS=1
+LOCAL_CFLAGS := -std=gnu99 -D__STDC_CONSTANT_MACROS=1
 LOCAL_STATIC_LIBRARIES := pthreadpool
 include $(BUILD_STATIC_LIBRARY)
 
@@ -101,6 +103,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := bench_utils
 LOCAL_SRC_FILES := $(LOCAL_PATH)/bench/median.c
 LOCAL_STATIC_LIBRARIES := nnpack
+LOCAL_CFLAGS := -std=gnu99
 include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)

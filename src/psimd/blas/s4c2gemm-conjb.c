@@ -30,8 +30,13 @@ void nnp_s4c2gemm_conjb_only_2x2__psimd(
 
 		psimd_f32 b0i = psimd_load_f32(b +  4);
 		psimd_f32 b1i = psimd_load_f32(b + 12);
-		b0r = __builtin_shufflevector(b0i, b0r, 0, 1, 6, 7);
-		b1r = __builtin_shufflevector(b1i, b1r, 0, 1, 6, 7);
+		#ifdef __clang__
+			b0r = __builtin_shufflevector(b0i, b0r, 0, 1, 6, 7);
+			b1r = __builtin_shufflevector(b1i, b1r, 0, 1, 6, 7);
+		#else
+			b0r = __builtin_shuffle(b0i, b0r, (psimd_s32) { 0, 1, 6, 7 });
+			b1r = __builtin_shuffle(b1i, b1r, (psimd_s32) { 0, 1, 6, 7 });
+		#endif
 		acc00i += a0i * b0r;
 		acc01i += a0i * b1r;
 		acc10i += a1i * b0r;
@@ -106,7 +111,11 @@ void nnp_s4c2gemm_conjb_upto_2x2__psimd(
 
 		acc00r += a0r * b0r;
 		acc10r += a1r * b0r;
-		b0r = __builtin_shufflevector(b0i, b0r, 0, 1, 6, 7);
+		#ifdef __clang__
+			b0r = __builtin_shufflevector(b0i, b0r, 0, 1, 6, 7);
+		#else
+			b0r = __builtin_shuffle(b0i, b0r, (psimd_s32) { 0, 1, 6, 7 });
+		#endif
 		acc00i += a0i * b0r;
 		acc10i += a1i * b0r;
 
@@ -123,7 +132,11 @@ void nnp_s4c2gemm_conjb_upto_2x2__psimd(
 
 			acc01r += a0r * b1r;
 			acc11r += a1r * b1r;
-			b1r = __builtin_shufflevector(b1i, b1r, 0, 1, 6, 7);
+			#ifdef __clang__
+				b1r = __builtin_shufflevector(b1i, b1r, 0, 1, 6, 7);
+			#else
+				b1r = __builtin_shuffle(b1i, b1r, (psimd_s32) { 0, 1, 6, 7 });
+			#endif
 			acc01i += a0i * b1r;
 			acc11i += a1i * b1r;
 

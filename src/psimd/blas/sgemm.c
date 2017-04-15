@@ -17,19 +17,19 @@ void nnp_sgemm_only_4x8__psimd(size_t k, size_t update, const float* a, const fl
 		const psimd_f32 vb1 = psimd_load_f32(b + 4);
 		b += 8;
 
-		const psimd_f32 va0 = __builtin_shufflevector(va, va, 0, 0, 0, 0);
+		const psimd_f32 va0 = psimd_splat0_f32(va);
 		vc00 += va0 * vb0;
 		vc01 += va0 * vb1;
 
-		const psimd_f32 va1 = __builtin_shufflevector(va, va, 1, 1, 1, 1);
+		const psimd_f32 va1 = psimd_splat1_f32(va);
 		vc10 += va1 * vb0;
 		vc11 += va1 * vb1;
 
-		const psimd_f32 va2 = __builtin_shufflevector(va, va, 2, 2, 2, 2);
+		const psimd_f32 va2 = psimd_splat2_f32(va);
 		vc20 += va2 * vb0;
 		vc21 += va2 * vb1;
 
-		const psimd_f32 va3 = __builtin_shufflevector(va, va, 3, 3, 3, 3);
+		const psimd_f32 va3 = psimd_splat3_f32(va);
 		vc30 += va3 * vb0;
 		vc31 += va3 * vb1;
 	} while (--k);
