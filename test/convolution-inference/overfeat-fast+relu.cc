@@ -12,206 +12,113 @@
 TEST(IMPLICIT_GEMM, conv1) {
 	OverFeat_Fast::conv1()
 		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_implicit_gemm, nnp_convolution_transform_strategy_tuple_based,
-			nnp_activation_relu);
+		.testInference(nnp_convolution_algorithm_implicit_gemm, nnp_activation_relu);
 }
 
 /*
  * OverFeat (Fast model) conv2 layer
  */
 
-TEST(FT8x8_BLOCK, DISABLED_conv2) {
+TEST(FT8x8, conv2) {
 	OverFeat_Fast::conv2()
 		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_ft8x8, nnp_convolution_transform_strategy_block_based,
-			nnp_activation_relu);
+		.testInference(nnp_convolution_algorithm_ft8x8, nnp_activation_relu);
 }
 
-TEST(FT8x8_TUPLE, conv2) {
+TEST(FT16x16, conv2) {
 	OverFeat_Fast::conv2()
 		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_ft8x8, nnp_convolution_transform_strategy_tuple_based,
-			nnp_activation_relu);
-}
-
-TEST(FT16x16_BLOCK, DISABLED_conv2) {
-	OverFeat_Fast::conv2()
-		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_ft16x16, nnp_convolution_transform_strategy_block_based,
-			nnp_activation_relu);
-}
-
-TEST(FT16x16_TUPLE, conv2) {
-	OverFeat_Fast::conv2()
-		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_ft16x16, nnp_convolution_transform_strategy_tuple_based,
-			nnp_activation_relu);
+		.testInference(nnp_convolution_algorithm_ft16x16, nnp_activation_relu);
 }
 
 TEST(IMPLICIT_GEMM, conv2) {
 	OverFeat_Fast::conv2()
 		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_implicit_gemm, nnp_convolution_transform_strategy_tuple_based,
-			nnp_activation_relu);
+		.testInference(nnp_convolution_algorithm_implicit_gemm, nnp_activation_relu);
 }
 
 /*
  * OverFeat (Fast model) conv3 layer
  */
 
-TEST(FT8x8_BLOCK, DISABLED_conv3) {
+TEST(FT8x8, conv3) {
 	OverFeat_Fast::conv3()
 		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_ft8x8, nnp_convolution_transform_strategy_block_based,
-			nnp_activation_relu);
+		.testInference(nnp_convolution_algorithm_ft8x8, nnp_activation_relu);
 }
 
-TEST(FT8x8_TUPLE, conv3) {
+TEST(FT16x16, conv3) {
 	OverFeat_Fast::conv3()
 		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_ft8x8, nnp_convolution_transform_strategy_tuple_based,
-			nnp_activation_relu);
+		.testInference(nnp_convolution_algorithm_ft16x16, nnp_activation_relu);
 }
 
-TEST(FT16x16_BLOCK, DISABLED_conv3) {
+TEST(WT8x8, conv3) {
 	OverFeat_Fast::conv3()
 		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_ft16x16, nnp_convolution_transform_strategy_block_based,
-			nnp_activation_relu);
-}
-
-TEST(FT16x16_TUPLE, conv3) {
-	OverFeat_Fast::conv3()
-		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_ft16x16, nnp_convolution_transform_strategy_tuple_based,
-			nnp_activation_relu);
-}
-
-TEST(WT8x8_BLOCK, DISABLED_conv3) {
-	OverFeat_Fast::conv3()
-		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_transform_strategy_block_based,
-			nnp_activation_relu);
-}
-
-TEST(WT8x8_TUPLE, conv3) {
-	OverFeat_Fast::conv3()
-		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_transform_strategy_tuple_based,
-			nnp_activation_relu);
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
 }
 
 TEST(IMPLICIT_GEMM, conv3) {
 	OverFeat_Fast::conv3()
 		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_implicit_gemm, nnp_convolution_transform_strategy_tuple_based,
-			nnp_activation_relu);
+		.testInference(nnp_convolution_algorithm_implicit_gemm, nnp_activation_relu);
 }
 
 /*
  * OverFeat (Fast model) conv4 layer
  */
 
-TEST(FT8x8_BLOCK, DISABLED_conv4) {
+TEST(FT8x8, conv4) {
 	OverFeat_Fast::conv4()
 		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_ft8x8, nnp_convolution_transform_strategy_block_based,
-			nnp_activation_relu);
+		.testInference(nnp_convolution_algorithm_ft8x8, nnp_activation_relu);
 }
 
-TEST(FT8x8_TUPLE, conv4) {
+TEST(FT16x16, conv4) {
 	OverFeat_Fast::conv4()
 		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_ft8x8, nnp_convolution_transform_strategy_tuple_based,
-			nnp_activation_relu);
+		.testInference(nnp_convolution_algorithm_ft16x16, nnp_activation_relu);
 }
 
-TEST(FT16x16_BLOCK, DISABLED_conv4) {
+TEST(WT8x8, conv4) {
 	OverFeat_Fast::conv4()
 		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_ft16x16, nnp_convolution_transform_strategy_block_based,
-			nnp_activation_relu);
-}
-
-TEST(FT16x16_TUPLE, conv4) {
-	OverFeat_Fast::conv4()
-		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_ft16x16, nnp_convolution_transform_strategy_tuple_based,
-			nnp_activation_relu);
-}
-
-TEST(WT8x8_BLOCK, DISABLED_conv4) {
-	OverFeat_Fast::conv4()
-		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_transform_strategy_block_based,
-			nnp_activation_relu);
-}
-
-TEST(WT8x8_TUPLE, conv4) {
-	OverFeat_Fast::conv4()
-		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_transform_strategy_tuple_based,
-			nnp_activation_relu);
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
 }
 
 TEST(IMPLICIT_GEMM, conv4) {
 	OverFeat_Fast::conv4()
 		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_implicit_gemm, nnp_convolution_transform_strategy_tuple_based,
-			nnp_activation_relu);
+		.testInference(nnp_convolution_algorithm_implicit_gemm, nnp_activation_relu);
 }
 
 /*
  * OverFeat (Fast model) conv5 layer
  */
 
-TEST(FT8x8_BLOCK, DISABLED_conv5) {
+TEST(FT8x8, conv5) {
 	OverFeat_Fast::conv5()
 		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_ft8x8, nnp_convolution_transform_strategy_block_based,
-			nnp_activation_relu);
+		.testInference(nnp_convolution_algorithm_ft8x8, nnp_activation_relu);
 }
 
-TEST(FT8x8_TUPLE, conv5) {
+TEST(FT16x16, conv5) {
 	OverFeat_Fast::conv5()
 		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_ft8x8, nnp_convolution_transform_strategy_tuple_based,
-			nnp_activation_relu);
+		.testInference(nnp_convolution_algorithm_ft16x16, nnp_activation_relu);
 }
 
-TEST(FT16x16_BLOCK, DISABLED_conv5) {
+TEST(WT8x8, conv5) {
 	OverFeat_Fast::conv5()
 		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_ft16x16, nnp_convolution_transform_strategy_block_based,
-			nnp_activation_relu);
-}
-
-TEST(FT16x16_TUPLE, conv5) {
-	OverFeat_Fast::conv5()
-		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_ft16x16, nnp_convolution_transform_strategy_tuple_based,
-			nnp_activation_relu);
-}
-
-TEST(WT8x8_BLOCK, DISABLED_conv5) {
-	OverFeat_Fast::conv5()
-		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_transform_strategy_block_based,
-			nnp_activation_relu);
-}
-
-TEST(WT8x8_TUPLE, conv5) {
-	OverFeat_Fast::conv5()
-		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_wt8x8, nnp_convolution_transform_strategy_tuple_based,
-			nnp_activation_relu);
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
 }
 
 TEST(IMPLICIT_GEMM, conv5) {
 	OverFeat_Fast::conv5()
 		.errorLimit(1.0e-5)
-		.testInference(nnp_convolution_algorithm_implicit_gemm, nnp_convolution_transform_strategy_tuple_based,
-			nnp_activation_relu);
+		.testInference(nnp_convolution_algorithm_implicit_gemm, nnp_activation_relu);
 }
 
 int main(int argc, char* argv[]) {
