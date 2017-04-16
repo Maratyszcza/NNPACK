@@ -482,6 +482,8 @@ static enum nnp_status compute_fast_convolution_inference(
 	const float* kernel,
 	const float* bias,
 	float* output,
+	void* buffer,
+	size_t* buffer_size,
 	const nnp_transform_2d_with_offset input_transform_function,
 	const nnp_transform_2d_with_offset kernel_transform_function,
 	const nnp_transform_2d_with_bias output_transform_function,
@@ -489,6 +491,7 @@ static enum nnp_status compute_fast_convolution_inference(
 	struct nnp_profile* profile)
 {
 	enum nnp_status status = nnp_status_success;
+	void* memory_block = NULL;
 	const size_t simd_width = nnp_hwinfo.simd_width;
 	const size_t tuple_elements = (fourier_transform ? simd_width * 2 : simd_width);
 	const size_t tile_elements = tile_size.height * tile_size.width;
@@ -529,10 +532,23 @@ static enum nnp_status compute_fast_convolution_inference(
 	const size_t output_transform_size = tiles_count * output_channels * transform_tile_size;
 	const size_t memory_size = input_transform_size + kernel_transform_size + output_transform_size;
 
-	void* memory_block = allocate_memory(memory_size);
-	if (memory_block == NULL) {
-		status = nnp_status_out_of_memory;
-		goto cleanup;
+	if (buffer == NULL) {
+		if (buffer_size == NULL) {
+			memory_block = allocate_memory(memory_size);
+			if (memory_block == NULL) {
+				status = nnp_status_out_of_memory;
+				goto cleanup;
+			}
+		} else {
+			*buffer_size = memory_size;
+			goto cleanup;
+		}
+	} else {
+		if (*buffer_size < memory_size) {
+			status = nnp_status_insufficient_buffer;
+			goto cleanup;
+		}
+		memory_block = buffer;
 	}
 
 	float* input_transform = memory_block;
@@ -661,7 +677,9 @@ static enum nnp_status compute_fast_convolution_inference(
 	}
 
 cleanup:
-	release_memory(memory_block, memory_size);
+	if (memory_block != buffer) {
+		release_memory(memory_block, memory_size);
+	}
 	return status;
 }
 
@@ -677,11 +695,14 @@ static enum nnp_status compute_gemm_convolution_inference(
 	const float* kernel,
 	const float* bias,
 	float* output,
+	void* buffer,
+	size_t* buffer_size,
 	enum nnp_activation activation,
 	pthreadpool_t threadpool,
 	struct nnp_profile* profile)
 {
 	enum nnp_status status = nnp_status_success;
+	void* memory_block = NULL;
 	const size_t simd_width = nnp_hwinfo.simd_width;
 
 	const float (*input)[input_size.height][input_size.width] =
@@ -710,10 +731,23 @@ static enum nnp_status compute_gemm_convolution_inference(
 		min(reduction_block_max, reduction_size) * sizeof(float);
 	const size_t memory_size = packed_kernel_size + packed_input_size;
 
-	void* memory_block = allocate_memory(memory_size);
-	if (memory_block == NULL) {
-		status = nnp_status_out_of_memory;
-		goto cleanup;
+	if (buffer == NULL) {
+		if (buffer_size == NULL) {
+			memory_block = allocate_memory(memory_size);
+			if (memory_block == NULL) {
+				status = nnp_status_out_of_memory;
+				goto cleanup;
+			}
+		} else {
+			*buffer_size = memory_size;
+			goto cleanup;
+		}
+	} else {
+		if (*buffer_size < memory_size) {
+			status = nnp_status_insufficient_buffer;
+			goto cleanup;
+		}
+		memory_block = buffer;
 	}
 
 	float* packed_input = memory_block;
@@ -814,7 +848,9 @@ static enum nnp_status compute_gemm_convolution_inference(
 	NNP_OUTPUT_TRANSFORM_END(profile)
 
 cleanup:
-	release_memory(memory_block, memory_size);
+	if (memory_block != buffer) {
+		release_memory(memory_block, memory_size);
+	}
 	return status;
 }
 
@@ -827,6 +863,8 @@ static enum nnp_status compute_direct_convolution_inference(
 	const float* kernel,
 	const float* bias,
 	float* output,
+	void* buffer,
+	size_t* buffer_size,
 	enum nnp_activation activation,
 	pthreadpool_t threadpool,
 	struct nnp_profile* profile)
@@ -835,6 +873,11 @@ static enum nnp_status compute_direct_convolution_inference(
 	const size_t simd_width = nnp_hwinfo.simd_width;
 
 	const size_t image_elements = image_size.height * image_size.width;
+
+	if (buffer == NULL && buffer_size != NULL) {
+		*buffer_size = 0;
+		goto cleanup;
+	}
 
 	NNP_BLOCK_MULTIPLICATION_START(profile)
 	struct direct_convolution_context direct_convolution_context = {
@@ -892,10 +935,12 @@ enum nnp_status nnp_convolution_inference(
 	struct nnp_padding input_padding,
 	struct nnp_size kernel_size,
 	struct nnp_size output_subsampling,
-	const float input[],
-	const float kernel[],
-	const float bias[],
-	float output[],
+	const float* input,
+	const float* kernel,
+	const float* bias,
+	float* output,
+	void* buffer,
+	size_t* buffer_size,
 	enum nnp_activation activation,
 	const void* activation_parameters,
 	pthreadpool_t threadpool,
@@ -1037,7 +1082,7 @@ enum nnp_status nnp_convolution_inference(
 				fourier_transform, transform_strategy,
 				input_channels, output_channels,
 				tile_size, input_size, input_padding, kernel_size, output_size,
-				input, kernel, bias, output,
+				input, kernel, bias, output, buffer, buffer_size,
 				input_transform_function, kernel_transform_function, output_transform_function,
 				threadpool, profile);
 			break;
@@ -1045,7 +1090,7 @@ enum nnp_status nnp_convolution_inference(
 			status = compute_gemm_convolution_inference(
 				input_channels, output_channels,
 				input_size, input_padding, kernel_size, output_size, output_subsampling,
-				input, kernel, bias, output,
+				input, kernel, bias, output, buffer, buffer_size,
 				activation,
 				threadpool, profile);
 			break;
@@ -1060,7 +1105,7 @@ enum nnp_status nnp_convolution_inference(
 			}
 			status = compute_direct_convolution_inference(
 				input_channels, output_channels, input_size, kernel_size,
-				input, kernel, bias, output,
+				input, kernel, bias, output, buffer, buffer_size,
 				activation,
 				threadpool, profile);
 			break;

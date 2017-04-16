@@ -79,7 +79,11 @@ enum nnp_status {
 	/** NNPACK does not implement this function for the host CPU */
 	nnp_status_unsupported_hardware = 51,
 	/** NNPACK failed to allocate memory for temporary buffers */
-	nnp_status_out_of_memory = 52
+	nnp_status_out_of_memory = 52,
+	/** Scratch space buffer is too small */
+	nnp_status_insufficient_buffer = 53,
+	/** Scratch space buffer is not properly aligned */
+	nnp_status_misaligned_buffer = 54
 };
 
 /**
@@ -346,6 +350,20 @@ enum nnp_status nnp_convolution_kernel_gradient(
  *                                             (kernel_size.height - 1)
  *                        output_size.width  = (input_padding.left + input_size.width + input_padding.right) -
  *                                             (kernel_size.width - 1)
+ * @param[in] workspace_buffer Buffer for scratch memory used during computation. Buffer must be aligned on 64 bytes.
+ *                             If workspace_buffer is NULL and workspace_size is non-NULL, NNPACK would store the size
+ *                             of required workspace memory at the workspace_size location, and exit without
+ *                             computations.
+ *                             If workspace_buffer is NULL and workspace_size is NULL, NNPACK would allocate memory
+ *                             before and deallocate after this computation, potentially at significant runtime cost.
+ * @param[in,out] workspace_size Pointer to the size of workspace buffer.
+ *                               If workspace_buffer is NULL, NNPACK will write the size of required scratch memory to
+ *                               the location specified by this pointer.
+ *                               If workspace_buffer is non-NULL, NNPACK expects workspace_size to specify the size of
+ *                               the buffer, in bytes.
+ *                               If workspace_size is NULL, workspace_buffer must be NULL as well. In this case NNPACK
+ *                               would allocate memory before and deallocate after this computation, potentially at
+ *                               significant runtime cost.
  * @param threadpool A thread pool for parallelization of the computation.
  *                   If threadpool is NULL, the computation would run on the caller thread without parallelization.
  * @param[out] profile An optional pointer to profiling structure.
@@ -360,10 +378,12 @@ enum nnp_status nnp_convolution_inference(
 	struct nnp_padding input_padding,
 	struct nnp_size kernel_size,
 	struct nnp_size output_subsampling,
-	const float input[],
-	const float kernel[],
-	const float bias[],
-	float output[],
+	const float* input,
+	const float* kernel,
+	const float* bias,
+	float* output,
+	void* workspace_buffer,
+	size_t* workspace_size,
 	enum nnp_activation activation,
 	const void* activation_parameters,
 	pthreadpool_t threadpool,
@@ -541,11 +561,14 @@ inline enum nnp_status nnp_convolution_output(
 	const float bias[],
 	float output[],
 	pthreadpool_t threadpool,
-	struct nnp_profile* profile) {
-  return nnp_convolution_output(
-      algorithm, batch_size, input_channels, output_channels, input_size,
-      input_padding, kernel_size, input, kernel, bias, output,
-      nnp_activation_identity, NULL, threadpool, profile);
+	struct nnp_profile* profile)
+{
+	return nnp_convolution_output(
+		algorithm,
+		batch_size, input_channels, output_channels,
+		input_size, input_padding, kernel_size,
+		input, kernel, bias, output,
+		nnp_activation_identity, NULL, threadpool, profile);
 }
 
 inline enum nnp_status nnp_convolution_input_gradient(
@@ -560,11 +583,14 @@ inline enum nnp_status nnp_convolution_input_gradient(
 	const float kernel[],
 	float grad_input[],
 	pthreadpool_t threadpool,
-	struct nnp_profile* profile) {
-  return nnp_convolution_input_gradient(
-      algorithm, batch_size, input_channels, output_channels, input_size,
-      input_padding, kernel_size, grad_output, kernel, grad_input,
-      nnp_activation_identity, NULL, threadpool, profile);
+	struct nnp_profile* profile)
+{
+	return nnp_convolution_input_gradient(
+		algorithm,
+		batch_size, input_channels, output_channels,
+		input_size, input_padding, kernel_size,
+		grad_output, kernel, grad_input,
+		nnp_activation_identity, NULL, threadpool, profile);
 }
 
 inline enum nnp_status nnp_convolution_kernel_gradient(
@@ -579,11 +605,14 @@ inline enum nnp_status nnp_convolution_kernel_gradient(
 	const float grad_output[],
 	float grad_kernel[],
 	pthreadpool_t threadpool,
-	struct nnp_profile* profile) {
-  return nnp_convolution_kernel_gradient(
-      algorithm, batch_size, input_channels, output_channels, input_size,
-      input_padding, kernel_size, input, grad_output, grad_kernel,
-      nnp_activation_identity, NULL, threadpool, profile);
+	struct nnp_profile* profile)
+{
+	return nnp_convolution_kernel_gradient(
+		algorithm,
+		batch_size, input_channels, output_channels,
+		input_size, input_padding, kernel_size,
+		input, grad_output, grad_kernel,
+		nnp_activation_identity, NULL, threadpool, profile);
 }
 
 inline enum nnp_status nnp_convolution_inference(
@@ -601,11 +630,13 @@ inline enum nnp_status nnp_convolution_inference(
 	float output[],
 	pthreadpool_t threadpool,
 	struct nnp_profile* profile) {
-  return nnp_convolution_inference(
-      algorithm, transform_strategy, input_channels, output_channels,
-      input_size, input_padding, kernel_size, output_subsampling, input,
-      kernel, bias, output, nnp_activation_identity, NULL, threadpool,
-      profile);
+	return nnp_convolution_inference(
+		algorithm, transform_strategy,
+		input_channels, output_channels,
+		input_size, input_padding, kernel_size, output_subsampling,
+		input, kernel, bias, output, NULL, NULL,
+		nnp_activation_identity, NULL,
+		threadpool, profile);
 }
 
 #endif // __cplusplus

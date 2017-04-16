@@ -371,7 +371,7 @@ public:
 				algorithm, transform_strategy,
 				inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(), outputSubsampling(),
-				input.data(), kernel.data(), bias.data(), output.data(),
+				input.data(), kernel.data(), bias.data(), output.data(), NULL, NULL,
 				activation, NULL,
 				this->threadpool, nullptr);
 			ASSERT_EQ(nnp_status_success, status);

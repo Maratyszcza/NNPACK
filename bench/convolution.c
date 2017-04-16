@@ -87,7 +87,7 @@ struct nnp_profile benchmark_convolution(
 					input_size, input_padding,
 					kernel_size,
 					output_subsampling,
-					input, kernel, bias, output,
+					input, kernel, bias, output, NULL, NULL,
 					nnp_activation_identity, NULL,
 					threadpool,
 					&computation_profile[iteration]);
