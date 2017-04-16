@@ -96,8 +96,6 @@ enum nnp_activation {
 	nnp_activation_relu = 1,
 };
 
-
-
 /**
  * @brief Algorithm for computing convolutional layers.
  */
@@ -117,10 +115,14 @@ enum nnp_convolution_algorithm {
 };
 
 enum nnp_convolution_transform_strategy {
-	nnp_convolution_transform_strategy_block_based = 1,
-	nnp_convolution_transform_strategy_tuple_based = 2,
-	nnp_convolution_transform_strategy_precomputed = 3
+	nnp_convolution_transform_strategy_compute = 1,
+	nnp_convolution_transform_strategy_precompute = 2,
+	nnp_convolution_transform_strategy_reuse = 3
 };
+
+/* For backward compatibility */
+#define nnp_convolution_transform_strategy_block_based nnp_convolution_transform_strategy_compute
+#define nnp_convolution_transform_strategy_tuple_based nnp_convolution_transform_strategy_compute
 
 /**
  * @brief Size of images, kernels, and pooling filters in NNPACK.

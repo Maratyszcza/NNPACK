@@ -124,7 +124,6 @@ static void print_options_help(const char* program_name) {
 "Optional parameters:\n"
 "  -m   --mode               The convolution mode (output, inference, input-gradient, kernel-gradient)\n"
 "  -a   --algorithm          The algorithm (auto, ft8x8, ft16x16, wt8x8, implicit-gemm, or direct) for computing convolution (default: auto)\n"
-"  -s   --strategy           The transform strategy (block, tuple, precompute) in inference mode (default: tuple)\n"
 "  -b   --batch              The size of a minibatch (default: 1)\n"
 "       --output-subsampling The size of a output subsampling region (default: 1x1)\n"
 "  -ip  --padding            Implicit input padding (default: 0)\n"
@@ -144,7 +143,7 @@ static struct options parse_options(int argc, char** argv) {
 		.kernel_size = { 0, 0 },
 		.output_subsampling = { 1, 1 },
 		.algorithm = nnp_convolution_algorithm_auto,
-		.transform_strategy = nnp_convolution_transform_strategy_tuple_based,
+		.transform_strategy = nnp_convolution_transform_strategy_compute,
 		.threads = 0,
 		.iterations = 3,
 		.threadpool = true,
@@ -287,22 +286,6 @@ static struct options parse_options(int argc, char** argv) {
 				options.algorithm = nnp_convolution_algorithm_direct;
 			} else {
 				fprintf(stderr, "Error: invalid convolution algorithm name %s\n", argv[argi + 1]);
-				exit(EXIT_FAILURE);
-			}
-			argi += 1;
-		} else if ((strcmp(argv[argi], "--transform-strategy") == 0) || (strcmp(argv[argi], "-s") == 0)) {
-			if (argi + 1 == argc) {
-				fprintf(stderr, "Error: expected transform strategy\n");
-				exit(EXIT_FAILURE);
-			}
-			if (strcmp(argv[argi + 1], "block") == 0) {
-				options.transform_strategy = nnp_convolution_transform_strategy_block_based;
-			} else if (strcmp(argv[argi + 1], "tuple") == 0) {
-				options.transform_strategy = nnp_convolution_transform_strategy_tuple_based;
-			} else if (strcmp(argv[argi + 1], "precomputed") == 0) {
-				options.transform_strategy = nnp_convolution_transform_strategy_precomputed;
-			} else {
-				fprintf(stderr, "Error: invalid kernel transform strategy %s\n", argv[argi]);
 				exit(EXIT_FAILURE);
 			}
 			argi += 1;
