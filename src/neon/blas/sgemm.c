@@ -11,12 +11,12 @@ void nnp_sgemm_only_4x12__neon(size_t k, size_t update, const float* a, const fl
 	float32x4_t vc20 = vdupq_n_f32(0.0f), vc21 = vdupq_n_f32(0.0f), vc22 = vdupq_n_f32(0.0f);
 	float32x4_t vc30 = vdupq_n_f32(0.0f), vc31 = vdupq_n_f32(0.0f), vc32 = vdupq_n_f32(0.0f);
 	do {
-		const float32x4_t va = vld1q_f32(a);
+		const float32x4_t va = vld1q_f32_aligned(a);
 		a += 4;
 
-		const float32x4_t vb0 = vld1q_f32(b + 0);
-		const float32x4_t vb1 = vld1q_f32(b + 4);
-		const float32x4_t vb2 = vld1q_f32(b + 8);
+		const float32x4_t vb0 = vld1q_f32_aligned(b + 0);
+		const float32x4_t vb1 = vld1q_f32_aligned(b + 4);
+		const float32x4_t vb2 = vld1q_f32_aligned(b + 8);
 		b += 12;
 
 		#if defined(__aarch64__)
@@ -91,13 +91,13 @@ void nnp_sgemm_upto_4x12__neon(uint32_t mr, uint32_t nr, size_t k, size_t update
 	do {
 		float32x4_t vb0, vb1, vb2;
 		
-		vb0 = vld1q_f32(b);
+		vb0 = vld1q_f32_aligned(b);
 		b += 4;
 		if (nr > 4) {
-			vb1 = vld1q_f32(b);
+			vb1 = vld1q_f32_aligned(b);
 			b += 4;
 			if (nr > 8) {
-				vb2 = vld1q_f32(b);
+				vb2 = vld1q_f32_aligned(b);
 				b += 4;
 			}
 		}
