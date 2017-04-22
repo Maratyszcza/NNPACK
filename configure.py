@@ -14,7 +14,7 @@ def main(args):
     if backend == "auto":
         if options.target.is_x86_64:
             backend = "x86_64"
-        elif options.target.is_arm:
+        elif options.target.is_arm or options.target.is_arm64:
             backend = "arm"
         elif options.target.is_emscripten:
             backend = "scalar"
@@ -106,7 +106,7 @@ def main(args):
             ]
         elif backend == "arm":
             from confu import arm
-            with build.options(isa=arm.neon):
+            with build.options(isa=arm.neon if options.target.is_arm else None):
                 arch_nnpack_objects = [
                     # Transformations
                     build.cc("psimd/2d-fourier-8x8.c"),
