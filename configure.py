@@ -45,7 +45,7 @@ def main(args):
             build.cc("init.c"),
             build.cc("convolution-output.c"),
             build.cc("convolution-input-gradient.c"),
-            build.cc("convolution-kernel.c"),
+            build.cc("convolution-kernel-gradient.c"),
             build.cc("convolution-inference.c"),
             build.cc("fully-connected-output.c"),
             build.cc("fully-connected-inference.c"),

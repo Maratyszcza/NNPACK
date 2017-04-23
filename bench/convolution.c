@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <math.h>
 
 #include <perf_counter.h>
 
@@ -40,17 +41,75 @@ struct nnp_profile benchmark_convolution(
 	size_t max_iterations)
 {
 	struct nnp_profile computation_profile[max_iterations];
+	enum nnp_status status = nnp_status_success;
+	void* memory_block = NULL;
+	size_t memory_size = 0;
+	switch (mode) {
+		case mode_output:
+			status = nnp_convolution_output(
+				algorithm,
+				batch_size, input_channels, output_channels,
+				input_size, input_padding, kernel_size,
+				NULL, NULL, NULL, NULL, NULL, &memory_size,
+				nnp_activation_identity, NULL,
+				threadpool, NULL);
+			break;
+		case mode_input_gradient:
+			status = nnp_convolution_input_gradient(
+				algorithm,
+				batch_size, input_channels, output_channels,
+				input_size, input_padding, kernel_size,
+				NULL, NULL, NULL, NULL, &memory_size,
+				nnp_activation_identity, NULL,
+				threadpool, NULL);
+			break;
+		case mode_kernel_gradient:
+			status = nnp_convolution_kernel_gradient(
+				algorithm,
+				batch_size, input_channels, output_channels,
+				input_size, input_padding, kernel_size,
+				NULL, NULL, NULL, NULL, &memory_size,
+				nnp_activation_identity, NULL,
+				threadpool, NULL);
+			break;
+		case mode_inference:
+			status = nnp_convolution_inference(
+				algorithm, transform_strategy,
+				input_channels, output_channels,
+				input_size, input_padding, kernel_size, output_subsampling,
+				NULL, NULL, NULL, NULL, NULL, &memory_size,
+				nnp_activation_identity, NULL,
+				threadpool, NULL);
+			break;
+	}
+	switch (status) {
+		case nnp_status_success:
+			break;
+		case nnp_status_invalid_algorithm:
+		case nnp_status_unsupported_algorithm:
+			return (struct nnp_profile) { nanf("") };
+			break;
+		default:
+			fprintf(stderr, "Error: failed to detect workspace memory size: status %d\n", status);
+			exit(EXIT_FAILURE);
+	}
+	if (memory_size != 0) {
+		int allocation_result = posix_memalign(&memory_block, 64, memory_size);
+		if (allocation_result != 0) {
+			fprintf(stderr, "Error: failed to allocate %zu bytes for workspace\n", memory_size);
+			exit(EXIT_FAILURE);
+		}
+	}
+
 	for (size_t iteration = 0; iteration < max_iterations; iteration++) {
 		read_memory(memory, cache_size);
 		switch (mode) {
 			case mode_output:
 				nnp_convolution_output(
 					algorithm,
-					batch_size,
-					input_channels, output_channels,
-					input_size, input_padding,
-					kernel_size,
-					input, kernel, bias, output,
+					batch_size, input_channels, output_channels,
+					input_size, input_padding, kernel_size,
+					input, kernel, bias, output, memory_block, &memory_size,
 					nnp_activation_identity, NULL,
 					threadpool,
 					&computation_profile[iteration]);
@@ -58,11 +117,9 @@ struct nnp_profile benchmark_convolution(
 			case mode_input_gradient:
 				nnp_convolution_input_gradient(
 					algorithm,
-					batch_size,
-					input_channels, output_channels,
-					input_size, input_padding,
-					kernel_size,
-					output, kernel, input,
+					batch_size, input_channels, output_channels,
+					input_size, input_padding, kernel_size,
+					output, kernel, input, memory_block, &memory_size,
 					nnp_activation_identity, NULL,
 					threadpool,
 					&computation_profile[iteration]);
@@ -70,30 +127,27 @@ struct nnp_profile benchmark_convolution(
 			case mode_kernel_gradient:
 				nnp_convolution_kernel_gradient(
 					algorithm,
-					batch_size,
-					input_channels, output_channels,
-					input_size, input_padding,
-					kernel_size,
-					input, output, kernel,
+					batch_size, input_channels, output_channels,
+					input_size, input_padding, kernel_size,
+					input, output, kernel, memory_block, &memory_size,
 					nnp_activation_identity, NULL,
 					threadpool,
 					&computation_profile[iteration]);
 				break;
 			case mode_inference:
 				nnp_convolution_inference(
-					algorithm,
-					transform_strategy,
+					algorithm, transform_strategy,
 					input_channels, output_channels,
-					input_size, input_padding,
-					kernel_size,
-					output_subsampling,
-					input, kernel, bias, output, NULL, NULL,
+					input_size, input_padding, kernel_size, output_subsampling,
+					input, kernel, bias, output, memory_block, &memory_size,
 					nnp_activation_identity, NULL,
 					threadpool,
 					&computation_profile[iteration]);
 				break;
 		}
 	}
+	free(memory_block);
+
 	return median_profile(computation_profile, max_iterations);
 }
 

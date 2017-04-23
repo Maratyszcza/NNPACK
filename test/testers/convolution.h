@@ -236,7 +236,7 @@ public:
 				algorithm,
 				batchSize(), inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(),
-				input.data(), kernel.data(), bias.data(), output.data(),
+				input.data(), kernel.data(), bias.data(), output.data(), NULL, NULL,
 				activation, NULL,
 				this->threadpool, nullptr);
 			ASSERT_EQ(nnp_status_success, status);
@@ -275,7 +275,7 @@ public:
 				algorithm,
 				batchSize(), inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(),
-				outputGradient.data(), kernel.data(), inputGradient.data(),
+				outputGradient.data(), kernel.data(), inputGradient.data(), NULL, NULL,
 				nnp_activation_identity, NULL,
 				this->threadpool, nullptr);
 			ASSERT_EQ(nnp_status_success, status);
@@ -313,7 +313,7 @@ public:
 				algorithm,
 				batchSize(), inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(),
-				input.data(), outputGradient.data(), kernelGradient.data(),
+				input.data(), outputGradient.data(), kernelGradient.data(), NULL, NULL,
 				nnp_activation_identity, NULL,
 				this->threadpool,
 				NULL);

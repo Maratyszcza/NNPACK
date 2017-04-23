@@ -494,18 +494,13 @@ static enum nnp_status compute_fast_convolution_inference(
 	const size_t tile_elements = tile_size.height * tile_size.width;
 	const size_t tuple_count = tile_elements / tuple_elements;
 
-	const struct nnp_size input_tile = {
-		.width = tile_size.width,
-		.height = tile_size.height
+	const struct nnp_size output_tile_size = {
+		.width = tile_size.width - kernel_size.width + 1,
+		.height = tile_size.height - kernel_size.height + 1
 	};
 
-	const struct nnp_size output_tile = {
-		.width = input_tile.width - kernel_size.width + 1,
-		.height = input_tile.height - kernel_size.height + 1
-	};
-
-	const size_t tiles_y_count = divide_round_up(output_size.height, output_tile.height);
-	const size_t tiles_x_count = divide_round_up(output_size.width, output_tile.width);
+	const size_t tiles_y_count = divide_round_up(output_size.height, output_tile_size.height);
+	const size_t tiles_x_count = divide_round_up(output_size.width, output_tile_size.width);
 	const size_t tiles_count = tiles_x_count * tiles_y_count;
 
 	/* Calculate cache blocking parameters */
@@ -594,8 +589,8 @@ static enum nnp_status compute_fast_convolution_inference(
 					.input_size = input_size,
 					.input_padding_left = input_padding.left,
 					.input_padding_top = input_padding.top,
-					.input_tile = input_tile,
-					.output_tile = output_tile,
+					.input_tile = tile_size,
+					.output_tile = output_tile_size,
 				};
 				pthreadpool_compute_2d_tiled(threadpool,
 					(pthreadpool_function_2d_tiled_t) compute_input_transform,
@@ -660,7 +655,7 @@ static enum nnp_status compute_fast_convolution_inference(
 				.tiles_block_max = fxdiv_init_size_t(tiles_block_max),
 				.output_channels = output_channels,
 				.output_size = output_size,
-				.output_tile = output_tile,
+				.output_tile = output_tile_size,
 			};
 			pthreadpool_compute_2d_tiled(threadpool,
 				(pthreadpool_function_2d_tiled_t) compute_output_transform,
@@ -710,7 +705,6 @@ static enum nnp_status compute_fast_convolution_inference(
 			return nnp_status_invalid_transform_strategy;
 	}
 
-cleanup:
 	if (memory_block != workspace_buffer) {
 		release_memory(memory_block, memory_size);
 	}
@@ -725,7 +719,7 @@ static enum nnp_status compute_gemm_convolution_inference(
 	const struct nnp_size kernel_size,
 	const struct nnp_size output_size,
 	const struct nnp_size output_subsampling,
-	const float* input_ptr,
+	const float* input,
 	const float* kernel,
 	const float* bias,
 	float* output,
@@ -738,9 +732,6 @@ static enum nnp_status compute_gemm_convolution_inference(
 	enum nnp_status status = nnp_status_success;
 	void* memory_block = NULL;
 	const size_t simd_width = nnp_hwinfo.simd_width;
-
-	const float (*input)[input_size.height][input_size.width] =
-		(const float(*)[input_size.height][input_size.width]) input_ptr;
 
 	/* Calculate cache blocking parameters */
 	const size_t cache_elements_l1 = nnp_hwinfo.blocking.l1 / sizeof(float);
@@ -769,17 +760,15 @@ static enum nnp_status compute_gemm_convolution_inference(
 		if (workspace_size == NULL) {
 			memory_block = allocate_memory(memory_size);
 			if (memory_block == NULL) {
-				status = nnp_status_out_of_memory;
-				goto cleanup;
+				return nnp_status_out_of_memory;
 			}
 		} else {
 			*workspace_size = memory_size;
-			goto cleanup;
+			return nnp_status_success;
 		}
 	} else {
 		if (*workspace_size < memory_size) {
-			status = nnp_status_insufficient_buffer;
-			goto cleanup;
+			return nnp_status_insufficient_buffer;
 		}
 		memory_block = workspace_buffer;
 	}
@@ -815,7 +804,7 @@ static enum nnp_status compute_gemm_convolution_inference(
 			/* Pack image into L3 block */
 			NNP_INPUT_TRANSFORM_START(profile)
 			struct input_packing_context input_packing_context = {
-				.input = input_ptr,
+				.input = input,
 				.packed_input = packed_input,
 				.simd_width = simd_width,
 				.reduction_block_start = reduction_block_start,
@@ -881,7 +870,6 @@ static enum nnp_status compute_gemm_convolution_inference(
 	}
 	NNP_OUTPUT_TRANSFORM_END(profile)
 
-cleanup:
 	if (memory_block != workspace_buffer) {
 		release_memory(memory_block, memory_size);
 	}
@@ -903,14 +891,11 @@ static enum nnp_status compute_direct_convolution_inference(
 	pthreadpool_t threadpool,
 	struct nnp_profile* profile)
 {
-	enum nnp_status status = nnp_status_success;
-	const size_t simd_width = nnp_hwinfo.simd_width;
-
 	const size_t image_elements = image_size.height * image_size.width;
 
 	if (workspace_buffer == NULL && workspace_size != NULL) {
 		*workspace_size = 0;
-		goto cleanup;
+		return nnp_status_success;
 	}
 
 	NNP_BLOCK_MULTIPLICATION_START(profile)
@@ -956,8 +941,7 @@ static enum nnp_status compute_direct_convolution_inference(
 	}
 	NNP_OUTPUT_TRANSFORM_END(profile)
 
-cleanup:
-	return status;
+	return nnp_status_success;
 }
 
 enum nnp_status nnp_convolution_inference(
@@ -980,7 +964,6 @@ enum nnp_status nnp_convolution_inference(
 	pthreadpool_t threadpool,
 	struct nnp_profile* profile)
 {
-	void* memory_block = NULL;
 	NNP_TOTAL_START(profile)
 
 	/* Basic validation of parameters. This check detects invalid, but not unsupported parameters. */

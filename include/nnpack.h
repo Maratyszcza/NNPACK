@@ -211,10 +211,12 @@ enum nnp_status nnp_convolution_output(
 	struct nnp_size input_size,
 	struct nnp_padding input_padding,
 	struct nnp_size kernel_size,
-	const float input[],
-	const float kernel[],
-	const float bias[],
-	float output[],
+	const float* input,
+	const float* kernel,
+	const float* bias,
+	float* output,
+	void* workspace_buffer,
+	size_t* workspace_size,
 	enum nnp_activation activation,
 	const void* activation_parameters,
 	pthreadpool_t threadpool,
@@ -261,9 +263,11 @@ enum nnp_status nnp_convolution_input_gradient(
 	struct nnp_size input_size,
 	struct nnp_padding input_padding,
 	struct nnp_size kernel_size,
-	const float grad_output[],
-	const float kernel[],
-	float grad_input[],
+	const float* grad_output,
+	const float* kernel,
+	float* grad_input,
+	void* workspace_buffer,
+	size_t* workspace_size,
 	enum nnp_activation activation,
 	const void* activation_parameters,
 	pthreadpool_t threadpool,
@@ -309,9 +313,11 @@ enum nnp_status nnp_convolution_kernel_gradient(
 	struct nnp_size input_size,
 	struct nnp_padding input_padding,
 	struct nnp_size kernel_size,
-	const float input[],
-	const float grad_output[],
-	float grad_kernel[],
+	const float* input,
+	const float* grad_output,
+	float* grad_kernel,
+	void* workspace_buffer,
+	size_t* workspace_size,
 	enum nnp_activation activation,
 	const void* activation_parameters,
 	pthreadpool_t threadpool,
@@ -570,6 +576,7 @@ inline enum nnp_status nnp_convolution_output(
 		batch_size, input_channels, output_channels,
 		input_size, input_padding, kernel_size,
 		input, kernel, bias, output,
+		NULL, NULL,
 		nnp_activation_identity, NULL, threadpool, profile);
 }
 
@@ -592,6 +599,7 @@ inline enum nnp_status nnp_convolution_input_gradient(
 		batch_size, input_channels, output_channels,
 		input_size, input_padding, kernel_size,
 		grad_output, kernel, grad_input,
+		NULL, NULL,
 		nnp_activation_identity, NULL, threadpool, profile);
 }
 
@@ -614,6 +622,7 @@ inline enum nnp_status nnp_convolution_kernel_gradient(
 		batch_size, input_channels, output_channels,
 		input_size, input_padding, kernel_size,
 		input, grad_output, grad_kernel,
+		NULL, NULL,
 		nnp_activation_identity, NULL, threadpool, profile);
 }
 
