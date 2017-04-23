@@ -26,6 +26,8 @@
 	#define NNP_BACKEND_PSIMD 1
 #elif defined(__x86_64__)
 	#define NNP_BACKEND_X86_64 1
+#elif defined(__ANDROID__) && defined(__mips__)
+	#define NNP_BACKEND_SCALAR 1
 #else
 	#define NNP_BACKEND_PSIMD 1
 #endif

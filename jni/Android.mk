@@ -17,13 +17,13 @@ include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := nnpack_ukernels
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),x86 x86_64 armeabi-v7a arm64-v8a))
 LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/src/psimd/2d-fourier-8x8.c \
 	$(LOCAL_PATH)/src/psimd/2d-fourier-16x16.c \
 	$(LOCAL_PATH)/src/psimd/2d-winograd-8x8-3x3.c \
 	$(LOCAL_PATH)/src/psimd/relu.c \
 	$(LOCAL_PATH)/src/psimd/softmax.c \
-	$(LOCAL_PATH)/src/psimd/fft-block-mac.c \
 	$(LOCAL_PATH)/src/psimd/blas/shdotxf.c
 ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),armeabi-v7a arm64-v8a))
 LOCAL_SRC_FILES += \
@@ -50,7 +50,24 @@ LOCAL_SRC_FILES += \
 	$(LOCAL_PATH)/src/psimd/blas/sgemm.c \
 	$(LOCAL_PATH)/src/psimd/blas/sdotxf.c
 endif
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/include $(LOCAL_PATH)/src $(LOCAL_PATH)/deps/fp16/include $(LOCAL_PATH)/deps/psimd/include
+else
+LOCAL_SRC_FILES := \
+	$(LOCAL_PATH)/src/scalar/2d-fourier-8x8.c \
+	$(LOCAL_PATH)/src/scalar/2d-fourier-16x16.c \
+	$(LOCAL_PATH)/src/scalar/2d-winograd-8x8-3x3.c \
+	$(LOCAL_PATH)/src/scalar/relu.c \
+	$(LOCAL_PATH)/src/scalar/softmax.c \
+	$(LOCAL_PATH)/src/scalar/blas/shdotxf.c \
+	$(LOCAL_PATH)/src/scalar/blas/conv1x1.c \
+	$(LOCAL_PATH)/src/scalar/blas/s2gemm.c \
+	$(LOCAL_PATH)/src/scalar/blas/cgemm.c \
+	$(LOCAL_PATH)/src/scalar/blas/cgemm-conjb.c \
+	$(LOCAL_PATH)/src/scalar/blas/s2gemm-transc.c \
+	$(LOCAL_PATH)/src/scalar/blas/cgemm-conjb-transc.c \
+	$(LOCAL_PATH)/src/scalar/blas/sgemm.c \
+	$(LOCAL_PATH)/src/scalar/blas/sdotxf.c
+endif
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/include $(LOCAL_PATH)/src $(LOCAL_PATH)/deps/fp16/include $(LOCAL_PATH)/deps/psimd/include $(LOCAL_PATH)/deps/scalar/include
 LOCAL_CFLAGS := -std=gnu99 -D__STDC_CONSTANT_MACROS=1
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 LOCAL_ARM_NEON := true
@@ -64,7 +81,7 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/src/init.c \
 	$(LOCAL_PATH)/src/convolution-output.c \
 	$(LOCAL_PATH)/src/convolution-input-gradient.c \
-	$(LOCAL_PATH)/src/convolution-kernel.c \
+	$(LOCAL_PATH)/src/convolution-kernel-gradient.c \
 	$(LOCAL_PATH)/src/convolution-inference.c \
 	$(LOCAL_PATH)/src/fully-connected-output.c \
 	$(LOCAL_PATH)/src/fully-connected-inference.c \
