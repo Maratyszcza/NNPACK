@@ -20,7 +20,6 @@ script:
 addons:
   apt:
     packages:
-    - linux-headers-3.13.0-40-generic
     - python-pip
 env:
  - BACKEND=psimd
