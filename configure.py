@@ -374,13 +374,13 @@ def main(args):
         if build.target.is_linux and build.target.is_x86_64:
             support_objects += [build.cc("perf_counter.c")]
 
-        build.executable("transform-bench",
+        build.executable("transform-benchmark",
             [build.cc("transform.c")] + support_objects)
 
         build.executable("convolution-benchmark",
             [build.cc("convolution.c")] + support_objects)
 
-        build.executable("fully-connected-bench",
+        build.executable("fully-connected-benchmark",
             [build.cc("fully-connected.c")] + support_objects)
 
         build.executable("pooling-benchmark",
