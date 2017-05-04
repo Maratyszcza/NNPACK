@@ -183,7 +183,7 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 					/* ecx: number of sets - 1 */
 					const uint32_t sets = cache_info.ecx + 1;
 					/* edx[bit 1]: cache inclusiveness */
-					const bool inclusive = !!(cache_info.edx & 0x1);
+					const bool inclusive = !!(cache_info.edx & 0x2);
 
 					const struct cache_info cache_info = {
 						.size = sets * associativity * line_partitions * line_size,
