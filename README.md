@@ -18,6 +18,7 @@ NNPACK is not intended to be directly used by machine learning researchers; inst
   - SSE2 instruction set can be targeted using `--backend=psimd` or `--backend=scalar` configuration options, but for performance reasons it is not recommended for production use
 - ARMv7 processor with NEON instruction set
   - VFP instruction set (including ARMv6 systems with VFPv2) can be targeted using `--backend=scalar` configuration option, but for performance reasons it is not recommended for production use.
+- ARMv8 (AArch64) processor
 
 ### Cross-compilation options:
 - Android with x86/x86-64 (SSE2), ARMv7 with NEON, or ARM64 architecture
