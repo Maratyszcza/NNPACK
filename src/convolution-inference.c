@@ -846,29 +846,31 @@ static enum nnp_status compute_gemm_convolution_inference(
 		}
 	}
 	/* Add bias */
-	NNP_OUTPUT_TRANSFORM_START(profile)
-	switch (activation) {
-		case nnp_activation_identity:
-			for (size_t output_channel = 0; output_channel < output_channels; output_channel += 1) {
-				const float bias_value = bias[output_channel];
-				for (size_t index = 0; index < output_image_size; index += 1) {
-					output[output_channel * output_image_size + index] += bias_value;
+	if (bias) {
+		NNP_OUTPUT_TRANSFORM_START(profile)
+		switch (activation) {
+			case nnp_activation_identity:
+				for (size_t output_channel = 0; output_channel < output_channels; output_channel += 1) {
+					const float bias_value = bias[output_channel];
+					for (size_t index = 0; index < output_image_size; index += 1) {
+						output[output_channel * output_image_size + index] += bias_value;
+					}
 				}
-			}
-			break;
-		case nnp_activation_relu:
-			for (size_t output_channel = 0; output_channel < output_channels; output_channel += 1) {
-				const float bias_value = bias[output_channel];
-				for (size_t index = 0; index < output_image_size; index += 1) {
-					output[output_channel * output_image_size + index] =
-						relu(output[output_channel * output_image_size + index] + bias_value, 0.0f);
+				break;
+			case nnp_activation_relu:
+				for (size_t output_channel = 0; output_channel < output_channels; output_channel += 1) {
+					const float bias_value = bias[output_channel];
+					for (size_t index = 0; index < output_image_size; index += 1) {
+						output[output_channel * output_image_size + index] =
+							relu(output[output_channel * output_image_size + index] + bias_value, 0.0f);
+					}
 				}
-			}
-			break;
-		default:
-			NNP_UNREACHABLE;
+				break;
+			default:
+				NNP_UNREACHABLE;
+		}
+		NNP_OUTPUT_TRANSFORM_END(profile)
 	}
-	NNP_OUTPUT_TRANSFORM_END(profile)
 
 	if (memory_block != workspace_buffer) {
 		release_memory(memory_block, memory_size);
