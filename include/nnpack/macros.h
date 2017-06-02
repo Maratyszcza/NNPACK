@@ -59,3 +59,8 @@
 	#define NNP_UNLIKELY(condition) (!!(condition))
 #endif
 
+#if defined(__GNUC__)
+	#define NNP_INLINE inline __attribute__((__always_inline__))
+#else
+	#define NNP_INLINE inline
+#endif

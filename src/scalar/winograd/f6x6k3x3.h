@@ -2,8 +2,10 @@
 
 #include <stdbool.h>
 
+#include <nnpack/macros.h>
 
-static inline void winograd_f6k3_input_transform(
+
+static NNP_INLINE void winograd_f6k3_input_transform(
 	const float d0, const float d1, const float d2, const float d3, 
 	const float d4, const float d5, const float d6, const float d7,
 	float transform0[restrict static 1],
@@ -75,7 +77,7 @@ static inline void winograd_f6k3_input_transform(
 	*transform7 = wd7;
 }
 
-static inline void winograd_f6k3_kernel_transform(
+static NNP_INLINE void winograd_f6k3_kernel_transform(
 	const float g0, const float g1, const float g2,
 	float transform0[restrict static 1],
 	float transform1[restrict static 1],
@@ -150,7 +152,7 @@ static inline void winograd_f6k3_kernel_transform(
 	*transform7 = g2;
 }
 
-static inline void winograd_f6k3_output_transform(
+static NNP_INLINE void winograd_f6k3_output_transform(
 	const float m0, const float m1, const float m2, const float m3, const float m4, const float m5, const float m6, const float m7,
 	float output0[restrict static 1],
 	float output1[restrict static 1],

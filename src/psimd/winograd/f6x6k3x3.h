@@ -4,8 +4,10 @@
 
 #include <psimd.h>
 
+#include <nnpack/macros.h>
 
-static inline void winograd_f6k3_input_transform(
+
+static NNP_INLINE void winograd_f6k3_input_transform(
 	const psimd_f32 d0, const psimd_f32 d1, const psimd_f32 d2, const psimd_f32 d3, const psimd_f32 d4, const psimd_f32 d5, const psimd_f32 d6, const psimd_f32 d7,
 	psimd_f32 transform0[restrict static 1],
 	psimd_f32 transform1[restrict static 1],
@@ -76,7 +78,7 @@ static inline void winograd_f6k3_input_transform(
 	*transform7 = wd7;
 }
 
-static inline void winograd_f6k3_kernel_transform(
+static NNP_INLINE void winograd_f6k3_kernel_transform(
 	const psimd_f32 g0, const psimd_f32 g1, const psimd_f32 g2,
 	psimd_f32 transform0[restrict static 1],
 	psimd_f32 transform1[restrict static 1],
@@ -151,7 +153,7 @@ static inline void winograd_f6k3_kernel_transform(
 	*transform7 = g2;
 }
 
-static inline void winograd_f6k3_output_transform(
+static NNP_INLINE void winograd_f6k3_output_transform(
 	const psimd_f32 m0, const psimd_f32 m1, const psimd_f32 m2, const psimd_f32 m3, const psimd_f32 m4, const psimd_f32 m5, const psimd_f32 m6, const psimd_f32 m7,
 	psimd_f32 output0[restrict static 1],
 	psimd_f32 output1[restrict static 1],
