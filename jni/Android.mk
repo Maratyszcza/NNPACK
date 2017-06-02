@@ -27,6 +27,7 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/src/psimd/blas/shdotxf.c
 ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),armeabi-v7a arm64-v8a))
 LOCAL_SRC_FILES += \
+	$(LOCAL_PATH)/src/neon/2d-winograd-8x8-3x3.c \
 	$(LOCAL_PATH)/src/neon/blas/conv1x1.c \
 	$(LOCAL_PATH)/src/neon/blas/s4gemm.c \
 	$(LOCAL_PATH)/src/neon/blas/c4gemm.c \

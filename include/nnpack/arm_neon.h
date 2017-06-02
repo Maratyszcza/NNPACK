@@ -2,6 +2,17 @@
 
 #include <arm_neon.h>
 
+
+static inline void vswapq_f32(
+	float32x4_t a[restrict static 1],
+	float32x4_t b[restrict static 1])
+{
+	const float32x4_t new_a = *b;
+	const float32x4_t new_b = *a;
+	*a = new_a;
+	*b = new_b;
+}
+
 static inline float32x4_t vld1q_f32_aligned(const float* address) {
 	return vld1q_f32((const float*) __builtin_assume_aligned(address, sizeof(float32x4_t)));
 }
@@ -41,4 +52,3 @@ static inline float32x2_t vmulsub_f32(float32x2_t c, float32x2_t a, float32x2_t 
 		return vmls_f32(c, a, b);
 	#endif
 }
-
