@@ -234,6 +234,29 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 	}
 #endif
 
+#if !defined(__i386__) && !defined(__x86_64__) && defined(__APPLE__)
+	static void init_static_ios_hwinfo(void) {
+		nnp_hwinfo.cache.l1 = (struct cache_info) {
+			.size = 32 * 1024,
+			.associativity = 1,
+			.threads = 1,
+			.inclusive = false,
+		};
+		nnp_hwinfo.cache.l2 = (struct cache_info) {
+			.size = 1 * 1024 * 1024,
+			.associativity = 1,
+			.threads = 1,
+			.inclusive = false,
+		};
+		nnp_hwinfo.cache.l3 = (struct cache_info) {
+			.size = 2 * 1024 * 1024,
+			.associativity = 8,
+			.threads = 1,
+			.inclusive = false,
+		};
+	}
+#endif
+
 #if NNP_BACKEND_X86_64
 	static const nnp_sdotxf_function sdotxf[8] = {
 		[0] = nnp_sdotxf1__avx2,
@@ -327,6 +350,8 @@ static pthread_once_t hwinfo_init_control = PTHREAD_ONCE_INIT;
 static void init_hwinfo(void) {
 	#if (defined(__i386__) || defined(__x86_64__)) && !defined(__ANDROID__)
 		init_x86_hwinfo();
+	#elif !defined(__i386__) && !defined(__x86_64__) && defined(__APPLE__)
+		init_static_ios_hwinfo();
 	#else
 		init_static_hwinfo();
 	#endif
