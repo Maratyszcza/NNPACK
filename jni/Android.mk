@@ -211,6 +211,33 @@ LOCAL_STATIC_LIBRARIES := nnpack nnpack_test_ukernels gtest
 include $(BUILD_EXECUTABLE)
 endif # TARGET_ARCH_ABI is mips or mips64
 
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),armeabi-v7a arm64-v8a))
+include $(CLEAR_VARS)
+LOCAL_MODULE := sgemm-neon-test
+LOCAL_SRC_FILES := $(LOCAL_PATH)/test/sgemm/neon.cc
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_STATIC_LIBRARIES := nnpack gtest
+include $(BUILD_EXECUTABLE)
+endif # TARGET_ARCH_ABI is armeabi-v7a or arm64-v8a
+
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),x86 x86_64))
+include $(CLEAR_VARS)
+LOCAL_MODULE := sgemm-psimd-test
+LOCAL_SRC_FILES := $(LOCAL_PATH)/test/sgemm/psimd.cc
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_STATIC_LIBRARIES := nnpack gtest
+include $(BUILD_EXECUTABLE)
+endif # TARGET_ARCH_ABI is x86 or x86_64
+
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),mips mips64))
+include $(CLEAR_VARS)
+LOCAL_MODULE := sgemm-scalar-test
+LOCAL_SRC_FILES := $(LOCAL_PATH)/test/sgemm/scalar.cc
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_STATIC_LIBRARIES := nnpack gtest
+include $(BUILD_EXECUTABLE)
+endif # TARGET_ARCH_ABI is mips or mips64
+
 include $(CLEAR_VARS)
 LOCAL_MODULE := convolution-output-smoketest
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/convolution-output/smoke.cc
