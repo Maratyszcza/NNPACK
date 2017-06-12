@@ -76,17 +76,26 @@ LOCAL_ARM_MODE := arm
 endif # TARGET_ARCH_ABI == armeabi-v7a
 include $(BUILD_STATIC_LIBRARY)
 
-ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),armeabi-v7a arm64-v8a))
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),x86 x86_64 armeabi-v7a arm64-v8a))
 include $(CLEAR_VARS)
 LOCAL_MODULE := nnpack_test_ukernels
-LOCAL_SRC_FILES := $(LOCAL_PATH)/src/neon/winograd-f6x3.c
+LOCAL_SRC_FILES := \
+	$(LOCAL_PATH)/src/psimd/fft-aos.c \
+	$(LOCAL_PATH)/src/psimd/fft-soa.c \
+	$(LOCAL_PATH)/src/psimd/fft-real.c \
+	$(LOCAL_PATH)/src/psimd/fft-dualreal.c
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),armeabi-v7a arm64-v8a))
+LOCAL_SRC_FILES += $(LOCAL_PATH)/src/neon/winograd-f6k3.c
+else
+LOCAL_SRC_FILES += $(LOCAL_PATH)/src/psimd/winograd-f6k3.c
+endif # TARGET_ARCH_ABI is armeabi-v7a arm64-v8a
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include $(LOCAL_PATH)/src $(LOCAL_PATH)/deps/psimd/include
 LOCAL_CFLAGS := -std=gnu99 -D__STDC_CONSTANT_MACROS=1
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 LOCAL_ARM_NEON := true
 endif # TARGET_ARCH_ABI == armeabi-v7a
 include $(BUILD_STATIC_LIBRARY)
-endif # TARGET_ARCH_ABI is armeabi-v7a or arm64-v8a
+endif # TARGET_ARCH_ABI is x86, x86-64, armeabi-v7a, or arm64-v8a
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := nnpack
@@ -130,11 +139,33 @@ LOCAL_STATIC_LIBRARIES := pthreadpool
 include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
+LOCAL_MODULE := fourier_reference
+LOCAL_SRC_FILES := \
+    $(LOCAL_PATH)/src/ref/fft/aos.c \
+	$(LOCAL_PATH)/src/ref/fft/soa.c \
+	$(LOCAL_PATH)/src/ref/fft/forward-real.c \
+	$(LOCAL_PATH)/src/ref/fft/forward-dualreal.c \
+	$(LOCAL_PATH)/src/ref/fft/inverse-real.c \
+	$(LOCAL_PATH)/src/ref/fft/inverse-dualreal.c
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/include $(LOCAL_PATH)/src $(LOCAL_PATH)/src/ref
+LOCAL_CFLAGS := -std=gnu99 -D__STDC_CONSTANT_MACROS=1
+include $(BUILD_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
 LOCAL_MODULE := bench_utils
 LOCAL_SRC_FILES := $(LOCAL_PATH)/bench/median.c
 LOCAL_STATIC_LIBRARIES := nnpack
 LOCAL_CFLAGS := -std=gnu99
 include $(BUILD_STATIC_LIBRARY)
+
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),x86 x86_64 armeabi-v7a arm64-v8a))
+include $(CLEAR_VARS)
+LOCAL_MODULE := fourier-psimd-test
+LOCAL_SRC_FILES := $(LOCAL_PATH)/test/fourier/psimd.cc
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_STATIC_LIBRARIES := nnpack nnpack_test_ukernels fourier_reference gtest
+include $(BUILD_EXECUTABLE)
+endif # TARGET_ARCH_ABI is armeabi-v7a or arm64-v8a
 
 ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),armeabi-v7a arm64-v8a))
 include $(CLEAR_VARS)

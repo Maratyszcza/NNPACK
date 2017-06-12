@@ -45,7 +45,7 @@ void nnp_iwt8x8_3x3_with_offset__neon(
 	}
 
 	for (size_t col = 0; col < 2; col++) {
-		winograd_f6k3_input_transform_inplace__neon(&wd[0][col],
+		winograd_f6k3_input_transform_inplace(&wd[0][col],
 			&wd[1][col],
 			&wd[2][col],
 			&wd[3][col],
@@ -63,7 +63,7 @@ void nnp_iwt8x8_3x3_with_offset__neon(
 	vswapq_f32(&wd[7][0], &wd[3][1]);
 
 	for (size_t col = 0; col < 2; col++) {
-		winograd_f6k3_input_transform_inplace__neon(&wd[0][col],
+		winograd_f6k3_input_transform_inplace(&wd[0][col],
 			&wd[1][col],
 			&wd[2][col],
 			&wd[3][col],
@@ -98,18 +98,18 @@ void nnp_kwt8x8_3x3__neon(
 	// g2[3] is junk
 	const float32x4_t g2 = vextq_f32(vld1q_f32(g + 5), vld1q_f32(g + 5), 1);
 	NNP_SIMD_ALIGN float32x4_t w[8];
-	winograd_f6k3_kernel_transform__neon(g0, g1, g2,
+	winograd_f6k3_kernel_transform(g0, g1, g2,
 		&w[0], &w[1], &w[2], &w[3], &w[4], &w[5], &w[6], &w[7],
 		true /* rescale coefficients */);
 	neon_transpose4x4_inplace_f32(&w[0], &w[1], &w[2], &w[3]);
 	neon_transpose4x4_inplace_f32(&w[4], &w[5], &w[6], &w[7]);
 
 	NNP_SIMD_ALIGN float32x4_t wg[8][2];
-	winograd_f6k3_kernel_transform__neon(w[0], w[1], w[2],
+	winograd_f6k3_kernel_transform(w[0], w[1], w[2],
 		&wg[0][0], &wg[1][0], &wg[2][0], &wg[3][0],
 		&wg[4][0], &wg[5][0], &wg[6][0], &wg[7][0],
 		true /* rescale coefficients */);
-	winograd_f6k3_kernel_transform__neon(w[4], w[5], w[6],
+	winograd_f6k3_kernel_transform(w[4], w[5], w[6],
 		&wg[0][1], &wg[1][1], &wg[2][1], &wg[3][1],
 		&wg[4][1], &wg[5][1], &wg[6][1], &wg[7][1],
 		true /* rescale coefficients */);
@@ -152,7 +152,7 @@ void nnp_owt8x8_3x3__neon(
 		transform += transform_stride;
 		s[7][col] = vld1q_f32(transform);
 		transform += transform_stride;
-		winograd_f6k3_output_transform_inplace__neon(
+		winograd_f6k3_output_transform_inplace(
 			&s[0][col], &s[1][col], &s[2][col], &s[3][col],
 			&s[4][col], &s[5][col], &s[6][col], &s[7][col]);
 		neon_transpose4x4_inplace_f32(&s[0][col], &s[1][col], &s[2][col], &s[3][col]);
@@ -166,13 +166,13 @@ void nnp_owt8x8_3x3__neon(
 
 	if NNP_LIKELY(row_count == 6 && column_count == 6 && output_stride >= 6) {
 		// Fast path to reuse `s` array and write directly into `output`.
-		winograd_f6k3_output_transform_inplace__neon(
+		winograd_f6k3_output_transform_inplace(
 			&s[0][0], &s[1][0], &s[2][0], &s[3][0],
 			&s[4][0], &s[5][0], &s[6][0], &s[7][0]);
 		for (size_t i = 0; i < 6; i++) {
 			vst1q_f32(&output[i * output_stride], s[i][0]);
 		}
-		winograd_f6k3_output_transform_inplace__neon(
+		winograd_f6k3_output_transform_inplace(
 			&s[0][1], &s[1][1], &s[2][1], &s[3][1],
 			&s[4][1], &s[5][1], &s[6][1], &s[7][1]);
 		for (size_t i = 0; i < 6; i++) {
@@ -181,7 +181,7 @@ void nnp_owt8x8_3x3__neon(
 	} else {
 		NNP_SIMD_ALIGN float block[6][8];
 		for (size_t col = 0; col < 2; col++) {
-			winograd_f6k3_output_transform_inplace__neon(
+			winograd_f6k3_output_transform_inplace(
 				&s[0][col], &s[1][col], &s[2][col], &s[3][col],
 				&s[4][col], &s[5][col], &s[6][col], &s[7][col]);
 			vst1q_f32(&block[0][col * 4], s[0][col]);
@@ -233,7 +233,7 @@ void nnp_owt8x8_3x3_with_bias__neon(
 		s[7][col] = vld1q_f32(transform);
 		transform += transform_stride;
 
-		winograd_f6k3_output_transform_inplace__neon(
+		winograd_f6k3_output_transform_inplace(
 			&s[0][col], &s[1][col], &s[2][col], &s[3][col],
 			&s[4][col], &s[5][col], &s[6][col], &s[7][col]);
 		neon_transpose4x4_inplace_f32(&s[0][col], &s[1][col], &s[2][col], &s[3][col]);
@@ -246,13 +246,13 @@ void nnp_owt8x8_3x3_with_bias__neon(
 	vswapq_f32(&s[7][0], &s[3][1]);
 	if NNP_LIKELY(row_count == 6 && column_count == 6 && output_stride >= 6) {
 		// Fast path to reuse `s` array and write directly into `output`.
-		winograd_f6k3_output_transform_inplace__neon(
+		winograd_f6k3_output_transform_inplace(
 			&s[0][0], &s[1][0], &s[2][0], &s[3][0],
 			&s[4][0], &s[5][0], &s[6][0], &s[7][0]);
 		for (size_t i = 0; i < row_count; i++) {
 			vst1q_f32(&output[i * output_stride], s[i][0]);
 		}
-		winograd_f6k3_output_transform_inplace__neon(
+		winograd_f6k3_output_transform_inplace(
 			&s[0][1], &s[1][1], &s[2][1], &s[3][1],
 			&s[4][1], &s[5][1], &s[6][1], &s[7][1]);
 		for (size_t i = 0; i < row_count; i++) {
@@ -261,7 +261,7 @@ void nnp_owt8x8_3x3_with_bias__neon(
 	} else {
 		NNP_SIMD_ALIGN float block[6][8];
 		for (size_t col = 0; col < 2; col++) {
-			winograd_f6k3_output_transform_inplace__neon(
+			winograd_f6k3_output_transform_inplace(
 				&s[0][col], &s[1][col], &s[2][col], &s[3][col],
 				&s[4][col], &s[5][col], &s[6][col], &s[7][col]);
 			vst1q_f32(&block[0][col * 4], s[0][col]);

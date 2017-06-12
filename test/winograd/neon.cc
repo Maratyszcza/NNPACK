@@ -51,7 +51,7 @@ TEST(F6x6_3x3, input) {
 /**
  * Test 1D kernel Winograd gransform F(6, 3).
  */
-#if 0
+
 TEST(F6k3, kernel) {
 	auto tester = WinogradTransformTester()
 		.kernelSize(3)
@@ -70,7 +70,6 @@ TEST(F6k3, kernel) {
 	};
 	tester.testKernelTransform(nnp_kwt_f6k3__neon, kernelTransformMatrix);
 }
-#endif
 
 /**
  * Test 2D kernel Winograd gransform F(6x6, 3x3).
@@ -99,7 +98,6 @@ TEST(F6x6_3x3, kernel) {
  * Test 1D output Winograd gransform F(6, 3).
  */
 
-#if 0
 TEST(F6k3, output) {
 	const float outputTransformMatrix[6 * 8] = {
 		1.0f, 1.0f,  1.0f,  1.0f,   1.0f,  32.0f,   32.0f, 0.0f,
@@ -116,7 +114,6 @@ TEST(F6k3, output) {
 		.errorLimit(1.0e-6f)
 		.testOutputTransform(nnp_owt_f6k3__neon, outputTransformMatrix);
 }
-#endif
 
 /**
  * Test 2D output Winograd gransform F(6x6, 3x3).

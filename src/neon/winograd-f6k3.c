@@ -14,7 +14,7 @@ void nnp_iwt_f6k3__neon(
 	float32x4_t w6 = vld1q_f32(d + 24);
 	float32x4_t w7 = vld1q_f32(d + 28);
 
-	winograd_f6k3_input_transform_inplace__neon(
+	winograd_f6k3_input_transform_inplace(
 		&w0, &w1, &w2, &w3, &w4, &w5, &w6, &w7);
 
 	vst1q_f32(w +  0, w0);
@@ -64,7 +64,7 @@ void nnp_owt_f6k3__neon(
 	float32x4_t w6 = vld1q_f32(m + 24);
 	float32x4_t w7 = vld1q_f32(m + 28);
 
-	winograd_f6k3_output_transform_inplace__neon(
+	winograd_f6k3_output_transform_inplace(
 		&w0, &w1, &w2, &w3, &w4, &w5, &w6, &w7);
 
 	vst1q_f32(s +  0, w0);

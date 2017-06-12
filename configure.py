@@ -210,9 +210,14 @@ def main(args):
                 build.cc("psimd/fft-dualreal.c"),
             ]
 
-            arch_winograd_stub_objects = [
-                build.cc("psimd/winograd-f6k3.c"),
-            ]
+            if backend == "psimd":
+                arch_winograd_stub_objects = [
+                    build.cc("psimd/winograd-f6k3.c"),
+                ]
+            else:
+                arch_winograd_stub_objects = [
+                    build.cc("neon/winograd-f6k3.c"),
+                ]
 
             arch_math_stub_objects = [
                 build.cc("psimd/exp.c"),

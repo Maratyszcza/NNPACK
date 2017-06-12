@@ -6,7 +6,7 @@
 #include <nnpack/macros.h>
 
 
-static NNP_INLINE void winograd_f6k3_input_transform_inplace__neon(
+static NNP_INLINE void winograd_f6k3_input_transform_inplace(
 	float32x4_t d0[restrict static 1],
 	float32x4_t d1[restrict static 1],
 	float32x4_t d2[restrict static 1],
@@ -76,7 +76,7 @@ static NNP_INLINE void winograd_f6k3_input_transform_inplace__neon(
 	//*d7 = wd7;
 }
 
-static NNP_INLINE void winograd_f6k3_kernel_transform__neon(
+static NNP_INLINE void winograd_f6k3_kernel_transform(
 	const float32x4_t g0, const float32x4_t g1, const float32x4_t g2,
 	float32x4_t transform0[restrict static 1],
 	float32x4_t transform1[restrict static 1],
@@ -151,7 +151,7 @@ static NNP_INLINE void winograd_f6k3_kernel_transform__neon(
 	*transform7 = g2;
 }
 
-static NNP_INLINE void winograd_f6k3_output_transform_inplace__neon(
+static NNP_INLINE void winograd_f6k3_output_transform_inplace(
 	float32x4_t m0[restrict static 1],
 	float32x4_t m1[restrict static 1],
 	float32x4_t m2[restrict static 1],

@@ -3,6 +3,18 @@
 #include <nnpack/fft-constants.h>
 
 
+/* Android's libm doesn't even have conjf (!) */
+#ifdef __ANDROID__
+	inline static float _Complex nnp_conjf(float _Complex x) {
+		float _Complex y = x;
+		__imag y = - __imag y;
+		return y;
+	}
+
+	#define conjf(x) nnp_conjf(x)
+#endif
+
+
 inline static void butterflyfc(float _Complex a[restrict static 1], float _Complex b[restrict static 1]) {
 	const float _Complex new_a = *a + *b;
 	const float _Complex new_b = *a - *b;
