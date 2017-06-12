@@ -252,6 +252,13 @@ def main(args):
 
             build.smoketest("sgemm-psimd-test",
                 arch_nnpack_objects + [build.cxx("sgemm/psimd.cc")])
+        elif backend == "arm":
+            # No ARM-specific Fourier implementation; use PSIMD
+            build.smoketest("fourier-psimd-test",
+                reference_fft_objects + arch_fft_stub_objects + [build.cxx("fourier/psimd.cc")])
+
+            build.smoketest("winograd-neon-test",
+                arch_winograd_stub_objects + arch_nnpack_objects + [build.cxx("winograd/neon.cc")])
         elif backend == "scalar":
             build.smoketest("fourier-scalar-test",
                 reference_fft_objects + arch_fft_stub_objects + [build.cxx("fourier/scalar.cc")])

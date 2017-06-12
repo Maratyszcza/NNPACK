@@ -68,13 +68,25 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/src/scalar/blas/sgemm.c \
 	$(LOCAL_PATH)/src/scalar/blas/sdotxf.c
 endif
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/include $(LOCAL_PATH)/src $(LOCAL_PATH)/deps/fp16/include $(LOCAL_PATH)/deps/psimd/include $(LOCAL_PATH)/deps/scalar/include
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/include $(LOCAL_PATH)/src $(LOCAL_PATH)/deps/fp16/include $(LOCAL_PATH)/deps/psimd/include
 LOCAL_CFLAGS := -std=gnu99 -D__STDC_CONSTANT_MACROS=1
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 LOCAL_ARM_NEON := true
 LOCAL_ARM_MODE := arm
 endif # TARGET_ARCH_ABI == armeabi-v7a
 include $(BUILD_STATIC_LIBRARY)
+
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),armeabi-v7a arm64-v8a))
+include $(CLEAR_VARS)
+LOCAL_MODULE := nnpack_test_ukernels
+LOCAL_SRC_FILES := $(LOCAL_PATH)/src/neon/winograd-f6x3.c
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/include $(LOCAL_PATH)/src $(LOCAL_PATH)/deps/psimd/include
+LOCAL_CFLAGS := -std=gnu99 -D__STDC_CONSTANT_MACROS=1
+ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
+LOCAL_ARM_NEON := true
+endif # TARGET_ARCH_ABI == armeabi-v7a
+include $(BUILD_STATIC_LIBRARY)
+endif # TARGET_ARCH_ABI is armeabi-v7a or arm64-v8a
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := nnpack
@@ -123,6 +135,15 @@ LOCAL_SRC_FILES := $(LOCAL_PATH)/bench/median.c
 LOCAL_STATIC_LIBRARIES := nnpack
 LOCAL_CFLAGS := -std=gnu99
 include $(BUILD_STATIC_LIBRARY)
+
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),armeabi-v7a arm64-v8a))
+include $(CLEAR_VARS)
+LOCAL_MODULE := winograd-neon-test
+LOCAL_SRC_FILES := $(LOCAL_PATH)/test/winograd/neon.cc
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_STATIC_LIBRARIES := nnpack nnpack_test_ukernels gtest
+include $(BUILD_EXECUTABLE)
+endif # TARGET_ARCH_ABI is armeabi-v7a or arm64-v8a
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := convolution-output-smoketest
