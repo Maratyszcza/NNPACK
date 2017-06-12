@@ -202,6 +202,10 @@ def main(args):
                 build.cc("scalar/fft-real.c"),
                 build.cc("scalar/fft-dualreal.c"),
             ]
+
+            arch_winograd_stub_objects = [
+                build.cc("scalar/winograd-f6k3.c"),
+            ]
         elif backend == "psimd" or backend == "arm":
             arch_fft_stub_objects = [
                 build.cc("psimd/fft-aos.c"),

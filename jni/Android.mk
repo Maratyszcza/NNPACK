@@ -76,9 +76,11 @@ LOCAL_ARM_MODE := arm
 endif # TARGET_ARCH_ABI == armeabi-v7a
 include $(BUILD_STATIC_LIBRARY)
 
-ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),x86 x86_64 armeabi-v7a arm64-v8a))
 include $(CLEAR_VARS)
 LOCAL_MODULE := nnpack_test_ukernels
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/include $(LOCAL_PATH)/src
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),x86 x86_64 armeabi-v7a arm64-v8a))
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/deps/psimd/include
 LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/src/psimd/fft-aos.c \
 	$(LOCAL_PATH)/src/psimd/fft-soa.c \
@@ -89,13 +91,19 @@ LOCAL_SRC_FILES += $(LOCAL_PATH)/src/neon/winograd-f6k3.c
 else
 LOCAL_SRC_FILES += $(LOCAL_PATH)/src/psimd/winograd-f6k3.c
 endif # TARGET_ARCH_ABI is armeabi-v7a arm64-v8a
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/include $(LOCAL_PATH)/src $(LOCAL_PATH)/deps/psimd/include
+else  # TARGET_ARCH_ABI is x86, x86-64, armeabi-v7a, or arm64-v8a
+LOCAL_SRC_FILES := \
+	$(LOCAL_PATH)/src/scalar/fft-aos.c \
+	$(LOCAL_PATH)/src/scalar/fft-soa.c \
+	$(LOCAL_PATH)/src/scalar/fft-real.c \
+	$(LOCAL_PATH)/src/scalar/fft-dualreal.c \
+	$(LOCAL_PATH)/src/scalar/winograd-f6k3.c
+endif # TARGET_ARCH_ABI is x86, x86-64, armeabi-v7a, or arm64-v8a
 LOCAL_CFLAGS := -std=gnu99 -D__STDC_CONSTANT_MACROS=1
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 LOCAL_ARM_NEON := true
 endif # TARGET_ARCH_ABI == armeabi-v7a
 include $(BUILD_STATIC_LIBRARY)
-endif # TARGET_ARCH_ABI is x86, x86-64, armeabi-v7a, or arm64-v8a
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := nnpack
@@ -165,7 +173,16 @@ LOCAL_SRC_FILES := $(LOCAL_PATH)/test/fourier/psimd.cc
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_test_ukernels fourier_reference gtest
 include $(BUILD_EXECUTABLE)
-endif # TARGET_ARCH_ABI is armeabi-v7a or arm64-v8a
+endif # TARGET_ARCH_ABI is x86, x86_64, armeabi-v7a, or arm64-v8a
+
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),mips mips64))
+include $(CLEAR_VARS)
+LOCAL_MODULE := fourier-scalar-test
+LOCAL_SRC_FILES := $(LOCAL_PATH)/test/fourier/scalar.cc
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_STATIC_LIBRARIES := nnpack nnpack_test_ukernels fourier_reference gtest
+include $(BUILD_EXECUTABLE)
+endif # TARGET_ARCH_ABI is mips or mips64
 
 ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),armeabi-v7a arm64-v8a))
 include $(CLEAR_VARS)
@@ -175,6 +192,24 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_test_ukernels gtest
 include $(BUILD_EXECUTABLE)
 endif # TARGET_ARCH_ABI is armeabi-v7a or arm64-v8a
+
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),x86 x86_64))
+include $(CLEAR_VARS)
+LOCAL_MODULE := winograd-psimd-test
+LOCAL_SRC_FILES := $(LOCAL_PATH)/test/winograd/psimd.cc
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_STATIC_LIBRARIES := nnpack nnpack_test_ukernels gtest
+include $(BUILD_EXECUTABLE)
+endif # TARGET_ARCH_ABI is x86 or x86_64
+
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),mips mips64))
+include $(CLEAR_VARS)
+LOCAL_MODULE := winograd-scalar-test
+LOCAL_SRC_FILES := $(LOCAL_PATH)/test/winograd/scalar.cc
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
+LOCAL_STATIC_LIBRARIES := nnpack nnpack_test_ukernels gtest
+include $(BUILD_EXECUTABLE)
+endif # TARGET_ARCH_ABI is mips or mips64
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := convolution-output-smoketest
