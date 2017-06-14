@@ -10,7 +10,7 @@ TEST(F6k3, input) {
 	auto tester = WinogradTransformTester()
 		.kernelSize(3)
 		.outputSize(6)
-		.simdWidth(4)
+		.simdWidth(1)
 		.errorLimit(1.0e-6f);
 	const float inputTransformMatrix[8 * 8] = {
 		1.0f,  0.0f, -5.25f,  0.00f,  5.25f,  0.00f, -1.0f, 0.0f,
@@ -29,11 +29,11 @@ TEST(F6k3, input) {
  * Test 2D input Winograd gransform F(6x6, 3x3).
  */
 
-TEST(F6x6_3x3, input) {
+TEST(F6x6_3x3, DISABLED_input) {
 	auto tester = WinogradTransformTester()
 		.kernelSize(3)
 		.outputSize(6)
-		.simdWidth(4)
+		.simdWidth(1)
 		.errorLimit(1.0e-6f);
 	const float inputTransformMatrix[8 * 8] = {
 		1.0f,  0.0f, -5.25f,  0.00f,  5.25f,  0.00f, -1.0f, 0.0f,
@@ -56,7 +56,7 @@ TEST(F6k3, kernel) {
 	auto tester = WinogradTransformTester()
 		.kernelSize(3)
 		.outputSize(6)
-		.simdWidth(4)
+		.simdWidth(1)
 		.errorLimit(1.0e-6f);
 	const float kernelTransformMatrix[8 * 3] = {
 		 1.0f,     0.0f,     0.0f,
@@ -75,11 +75,11 @@ TEST(F6k3, kernel) {
  * Test 2D kernel Winograd gransform F(6x6, 3x3).
  */
 
-TEST(F6x6_3x3, kernel) {
+TEST(F6x6_3x3, DISABLED_kernel) {
 	auto tester = WinogradTransformTester()
 		.kernelSize(3)
 		.outputSize(6)
-		.simdWidth(4)
+		.simdWidth(1)
 		.errorLimit(1.0e-6f);
 	const float kernelTransformMatrix[8 * 3] = {
 		 1.0f,     0.0f,     0.0f,
@@ -110,7 +110,7 @@ TEST(F6k3, output) {
 	WinogradTransformTester()
 		.kernelSize(3)
 		.outputSize(6)
-		.simdWidth(4)
+		.simdWidth(1)
 		.errorLimit(1.0e-6f)
 		.testOutputTransform(nnp_owt_f6k3__scalar, outputTransformMatrix);
 }
@@ -119,7 +119,7 @@ TEST(F6k3, output) {
  * Test 2D output Winograd gransform F(6x6, 3x3).
  */
 
-TEST(F6x6_3x3, output) {
+TEST(F6x6_3x3, DISABLED_output) {
 	const float outputTransformMatrix[6 * 8] = {
 		1.0f, 1.0f,  1.0f,  1.0f,   1.0f,  32.0f,   32.0f, 0.0f,
 		0.0f, 1.0f, -1.0f,  2.0f,  -2.0f,  16.0f,  -16.0f, 0.0f,
@@ -131,7 +131,7 @@ TEST(F6x6_3x3, output) {
 	WinogradTransformTester()
 		.kernelSize(3)
 		.outputSize(6)
-		.simdWidth(4)
+		.simdWidth(1)
 		.errorLimit(1.0e-6f)
 		.testOutputTransform2D(nnp_owt8x8_3x3__scalar, outputTransformMatrix);
 }

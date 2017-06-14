@@ -272,6 +272,9 @@ def main(args):
             build.smoketest("fourier-scalar-test",
                 reference_fft_objects + arch_fft_stub_objects + [build.cxx("fourier/scalar.cc")])
 
+            build.smoketest("winograd-scalar-test",
+                arch_winograd_stub_objects + arch_nnpack_objects + [build.cxx("winograd/scalar.cc")])
+
             build.smoketest("sgemm-scalar-test",
                 arch_nnpack_objects + [build.cxx("sgemm/scalar.cc")])
 

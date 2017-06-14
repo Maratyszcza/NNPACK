@@ -219,7 +219,7 @@ private:
 
 			for (size_t p = 0; p < outputSize; p += 1) {
 				for (size_t q = 0; q < outputSize; q += 1) {
-				/* Transformation matrix is outputSize x inputSize */
+					/* Transformation matrix is outputSize x inputSize */
 					for (size_t r = 0; r < inputSize; r += 1) {
 						for (size_t s = 0; s < inputSize; s += 1) {
 							referenceOutput[p * outputSize + q] +=
