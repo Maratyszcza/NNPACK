@@ -59,6 +59,12 @@ TEST(WT8x8, conv3) {
 		.testInference(nnp_convolution_algorithm_wt8x8);
 }
 
+TEST(WT8x8_FP16, conv3) {
+	AlexNet::conv3()
+		.errorLimit(1.0e-2)
+		.testInference(nnp_convolution_algorithm_wt8x8_fp16);
+}
+
 TEST(IMPLICIT_GEMM, conv3) {
 	AlexNet::conv3()
 		.errorLimit(1.0e-5)
@@ -87,6 +93,12 @@ TEST(WT8x8, conv4) {
 		.testInference(nnp_convolution_algorithm_wt8x8);
 }
 
+TEST(WT8x8_FP16, conv4) {
+	AlexNet::conv4()
+		.errorLimit(1.0e-2)
+		.testInference(nnp_convolution_algorithm_wt8x8_fp16);
+}
+
 TEST(IMPLICIT_GEMM, conv4) {
 	AlexNet::conv4()
 		.errorLimit(1.0e-5)
@@ -113,6 +125,12 @@ TEST(WT8x8, conv5) {
 	AlexNet::conv5()
 		.errorLimit(1.0e-5)
 		.testInference(nnp_convolution_algorithm_wt8x8);
+}
+
+TEST(WT8x8_FP16, conv5) {
+	AlexNet::conv5()
+		.errorLimit(1.0e-2)
+		.testInference(nnp_convolution_algorithm_wt8x8_fp16);
 }
 
 TEST(IMPLICIT_GEMM, conv5) {

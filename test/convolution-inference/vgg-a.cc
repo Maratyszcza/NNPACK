@@ -27,6 +27,12 @@ TEST(WT8x8, conv1) {
 		.testInference(nnp_convolution_algorithm_wt8x8);
 }
 
+TEST(WT8x8_FP16, conv1) {
+	VGG_A::conv1()
+		.errorLimit(1.5e-1)
+		.testInference(nnp_convolution_algorithm_wt8x8_fp16);
+}
+
 TEST(IMPLICIT_GEMM, conv1) {
 	VGG_A::conv1()
 		.errorLimit(1.0e-4)
@@ -53,6 +59,12 @@ TEST(WT8x8, conv2) {
 	VGG_A::conv2()
 		.errorLimit(1.0e-4)
 		.testInference(nnp_convolution_algorithm_wt8x8);
+}
+
+TEST(WT8x8_FP16, conv2) {
+	VGG_A::conv2()
+		.errorLimit(1.0e-2)
+		.testInference(nnp_convolution_algorithm_wt8x8_fp16);
 }
 
 TEST(IMPLICIT_GEMM, conv2) {
@@ -83,6 +95,12 @@ TEST(WT8x8, conv3) {
 		.testInference(nnp_convolution_algorithm_wt8x8);
 }
 
+TEST(WT8x8_FP16, conv3) {
+	VGG_A::conv3()
+		.errorLimit(1.0e-2)
+		.testInference(nnp_convolution_algorithm_wt8x8_fp16);
+}
+
 TEST(IMPLICIT_GEMM, conv3) {
 	VGG_A::conv3()
 		.errorLimit(1.0e-4)
@@ -109,6 +127,12 @@ TEST(WT8x8, conv4) {
 	VGG_A::conv4()
 		.errorLimit(1.0e-4)
 		.testInference(nnp_convolution_algorithm_wt8x8);
+}
+
+TEST(WT8x8_FP16, conv4) {
+	VGG_A::conv4()
+		.errorLimit(1.0e-2)
+		.testInference(nnp_convolution_algorithm_wt8x8_fp16);
 }
 
 TEST(IMPLICIT_GEMM, conv4) {
@@ -139,6 +163,12 @@ TEST(WT8x8, conv5) {
 		.testInference(nnp_convolution_algorithm_wt8x8);
 }
 
+TEST(WT8x8_FP16, conv5) {
+	VGG_A::conv5()
+		.errorLimit(1.0e-2)
+		.testInference(nnp_convolution_algorithm_wt8x8_fp16);
+}
+
 TEST(IMPLICIT_GEMM, conv5) {
 	VGG_A::conv5()
 		.errorLimit(1.0e-4)
@@ -167,6 +197,12 @@ TEST(WT8x8, conv6) {
 		.testInference(nnp_convolution_algorithm_wt8x8);
 }
 
+TEST(WT8x8_FP16, conv6) {
+	VGG_A::conv6()
+		.errorLimit(1.0e-2)
+		.testInference(nnp_convolution_algorithm_wt8x8_fp16);
+}
+
 TEST(IMPLICIT_GEMM, conv6) {
 	VGG_A::conv6()
 		.errorLimit(1.0e-4)
@@ -193,6 +229,12 @@ TEST(WT8x8, conv8) {
 	VGG_A::conv8()
 		.errorLimit(1.0e-4)
 		.testInference(nnp_convolution_algorithm_wt8x8);
+}
+
+TEST(WT8x8_FP16, conv8) {
+	VGG_A::conv8()
+		.errorLimit(1.0e-2)
+		.testInference(nnp_convolution_algorithm_wt8x8_fp16);
 }
 
 TEST(IMPLICIT_GEMM, conv8) {

@@ -42,9 +42,9 @@ struct cache_blocking_info {
 	#define NNP_COMPLEX_TUPLE_INDEX 1
 #endif
 
-typedef void (*nnp_transform_2d)(const float*, float*, size_t, size_t, uint32_t, uint32_t);
-typedef void (*nnp_transform_2d_with_bias)(const float*, float*, const float*, size_t, size_t, uint32_t, uint32_t);
-typedef void (*nnp_transform_2d_with_offset)(const float*, float*, size_t, size_t, uint32_t, uint32_t, uint32_t, uint32_t);
+typedef void (*nnp_transform_2d)(const void*, void*, size_t, size_t, uint32_t, uint32_t);
+typedef void (*nnp_transform_2d_with_bias)(const void*, void*, const void*, size_t, size_t, uint32_t, uint32_t);
+typedef void (*nnp_transform_2d_with_offset)(const void*, void*, size_t, size_t, uint32_t, uint32_t, uint32_t, uint32_t);
 
 typedef void (*nnp_blockmac)(float*, const float*, const float*);
 
@@ -54,8 +54,8 @@ typedef void (*nnp_full_sgemm_function)(uint32_t, uint32_t, size_t, size_t, cons
 typedef void (*nnp_fast_conv_function)(size_t, size_t, const float*, const float*, float*);
 typedef void (*nnp_full_conv_function)(uint32_t, uint32_t, size_t, size_t, const float*, const float*, float*);
 
-typedef void (*nnp_fast_tuple_gemm_function)(size_t, size_t, const float*, const float*, float*, size_t);
-typedef void (*nnp_full_tuple_gemm_function)(uint32_t, uint32_t, size_t, size_t, const float*, const float*, float*, size_t);
+typedef void (*nnp_fast_tuple_gemm_function)(size_t, size_t, const void*, const void*, void*, size_t);
+typedef void (*nnp_full_tuple_gemm_function)(uint32_t, uint32_t, size_t, size_t, const void*, const void*, void*, size_t);
 
 typedef void (*nnp_sdotxf_function)(const float*, const float*, size_t, float*, size_t);
 typedef void (*nnp_shdotxf_function)(const float*, const void*, size_t, float*, size_t);
@@ -85,6 +85,12 @@ struct transforms {
 	nnp_transform_2d_with_offset owt_f6x6_3x3;
 	nnp_transform_2d_with_bias owt_f6x6_3x3_with_bias;
 	nnp_transform_2d_with_bias owt_f6x6_3x3_with_bias_with_relu;
+#if NNP_BACKEND_ARM
+	nnp_transform_2d_with_offset iwt_f6x6_3x3_fp16_with_offset;
+	nnp_transform_2d_with_offset kwt_f6x6_3x3_fp16;
+	nnp_transform_2d_with_bias owt_f6x6_3x3_fp16_with_bias;
+	nnp_transform_2d_with_bias owt_f6x6_3x3_fp16_with_bias_with_relu;
+#endif /* NNP_BACKEND_ARM */
 };
 
 struct blockmac {
@@ -121,6 +127,15 @@ struct sxgemm {
 	uint32_t mr;
 	uint32_t nr;
 };
+
+#if NNP_BACKEND_ARM
+struct hxgemm {
+	nnp_fast_tuple_gemm_function only_mr_x_nr;
+	nnp_full_tuple_gemm_function upto_mr_x_nr;
+	uint32_t mr;
+	uint32_t nr;
+};
+#endif /* NNP_BACKEND_ARM */
 
 struct cxgemm {
 	nnp_fast_tuple_gemm_function s4cX_only_mr_x_nr;
@@ -163,6 +178,9 @@ struct hardware_info {
 	struct convolution conv1x1;
 	struct sgemm sgemm;
 	struct sxgemm sxgemm;
+#if NNP_BACKEND_ARM
+	struct hxgemm hxgemm;
+#endif /* NNP_BACKEND_ARM */
 	struct cxgemm cxgemm;
 	struct sdotxf sdotxf;
 	struct shdotxf shdotxf;

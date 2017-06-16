@@ -45,7 +45,7 @@ TEST(F6x6_3x3, input) {
 		0.0f, -2.0f,  4.00f,  2.50f, -5.00f, -0.50f,  1.0f, 0.0f,
 		0.0f, -1.0f,  0.00f,  5.25f,  0.00f, -5.25f,  0.0f, 1.0f
 	};
-	tester.testInputTransform2D(nnp_iwt8x8_3x3_with_offset_and_store__avx2, inputTransformMatrix);
+	tester.testInputTransform2D(nnp_transform_2d_with_offset(nnp_iwt8x8_3x3_with_offset_and_store__avx2), inputTransformMatrix);
 }
 
 /**
@@ -91,7 +91,7 @@ TEST(F6x6_3x3, kernel) {
 		 1.0f/45, -1.0f/90,  1.0f/180,
 		 0.0f,     0.0f,     1.0f
 	};
-	tester.testKernelTransform2D(nnp_kwt8x8_3x3_and_store__avx2, kernelTransformMatrix);
+	tester.testKernelTransform2D(nnp_transform_2d_with_offset(nnp_kwt8x8_3x3_and_store__avx2), kernelTransformMatrix);
 }
 
 /**
@@ -133,7 +133,7 @@ TEST(F6x6_3x3, output) {
 		.outputSize(6)
 		.simdWidth(8)
 		.errorLimit(1.0e-6f)
-		.testOutputTransform2D(nnp_owt8x8_3x3__avx2, outputTransformMatrix);
+		.testOutputTransform2D(nnp_transform_2d_with_offset(nnp_owt8x8_3x3__avx2), outputTransformMatrix);
 }
 
 int main(int argc, char* argv[]) {

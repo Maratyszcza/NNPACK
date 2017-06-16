@@ -33,6 +33,14 @@ TEST(WT8x8, single_tile) {
 		.testInference(nnp_convolution_algorithm_wt8x8);
 }
 
+TEST(WT8x8_FP16, single_tile) {
+	ConvolutionTester()
+		.inputSize(8, 8)
+		.iterations(100)
+		.errorLimit(1.0e-2)
+		.testInference(nnp_convolution_algorithm_wt8x8_fp16);
+}
+
 /*
  * Test that the implementation handles extraction of input subtile
  */
@@ -61,6 +69,14 @@ TEST(WT8x8, input_subtile) {
 		.testInference(nnp_convolution_algorithm_wt8x8);
 }
 
+TEST(WT8x8_FP16, input_subtile) {
+	ConvolutionTester()
+		.inputSize(4, 4)
+		.iterations(100)
+		.errorLimit(1.0e-2)
+		.testInference(nnp_convolution_algorithm_wt8x8_fp16);
+}
+
 /*
  * Test that the implementation handles multi-tile inputs
  */
@@ -87,6 +103,14 @@ TEST(WT8x8, multi_tile) {
 		.iterations(100)
 		.errorLimit(1.0e-3)
 		.testInference(nnp_convolution_algorithm_wt8x8);
+}
+
+TEST(WT8x8_FP16, multi_tile) {
+	ConvolutionTester()
+		.inputSize(13, 13)
+		.iterations(100)
+		.errorLimit(1.0e-2)
+		.testInference(nnp_convolution_algorithm_wt8x8_fp16);
 }
 
 /*
@@ -147,6 +171,24 @@ TEST(WT8x8, implicit_padding) {
 	}
 }
 
+TEST(WT8x8_FP16, implicit_padding) {
+	ConvolutionTester tester;
+	tester.inputSize(8, 8)
+		.kernelSize(3, 3)
+		.iterations(15)
+		.errorLimit(1.0e-1);
+	for (size_t paddingTop = 0; paddingTop < tester.kernelHeight(); paddingTop++) {
+		for (size_t paddingRight = 0; paddingRight < tester.kernelWidth(); paddingRight++) {
+			for (size_t paddingLeft = 0; paddingLeft < tester.kernelWidth(); paddingLeft++) {
+				for (size_t paddingBottom = 0; paddingBottom < tester.kernelHeight(); paddingBottom++) {
+					tester.inputPadding(paddingTop, paddingRight, paddingBottom, paddingLeft)
+						.testInference(nnp_convolution_algorithm_wt8x8_fp16);
+				}
+			}
+		}
+	}
+}
+
 /*
  * Test that the implementation can handle small non-unit number of input channels
  */
@@ -184,6 +226,17 @@ TEST(WT8x8, few_input_channels) {
 	}
 }
 
+TEST(WT8x8_FP16, few_input_channels) {
+	ConvolutionTester tester;
+	tester.inputSize(8, 8)
+		.iterations(100)
+		.errorLimit(1.0e-2);
+	for (size_t inputChannels = 2; inputChannels <= 5; inputChannels++) {
+		tester.inputChannels(inputChannels)
+			.testInference(nnp_convolution_algorithm_wt8x8_fp16);
+	}
+}
+
 /*
  * Test that the implementation can handle small non-unit number of output channels
  */
@@ -218,6 +271,17 @@ TEST(WT8x8, few_output_channels) {
 	for (size_t outputChannels = 2; outputChannels <= 5; outputChannels++) {
 		tester.outputChannels(outputChannels)
 			.testInference(nnp_convolution_algorithm_wt8x8);
+	}
+}
+
+TEST(WT8x8_FP16, few_output_channels) {
+	ConvolutionTester tester;
+	tester.inputSize(8, 8)
+		.iterations(100)
+		.errorLimit(3.0e-2);
+	for (size_t outputChannels = 2; outputChannels <= 5; outputChannels++) {
+		tester.outputChannels(outputChannels)
+			.testInference(nnp_convolution_algorithm_wt8x8_fp16);
 	}
 }
 
@@ -271,6 +335,17 @@ TEST(WT8x8, non_square_image) {
 		.testInference(nnp_convolution_algorithm_wt8x8);
 }
 
+TEST(WT8x8_FP16, non_square_image) {
+	ConvolutionTester tester;
+	tester.inputSize(9, 10)
+		.iterations(100)
+		.errorLimit(1.0e-2)
+		.testInference(nnp_convolution_algorithm_wt8x8_fp16);
+}
+
+/*
+ * Test direct 1x1 convolution
+ */
 
 TEST(DIRECT_1x1, channel_tile) {
 	ConvolutionTester()

@@ -497,10 +497,15 @@ enum nnp_status nnp_convolution_kernel_gradient(
 			tile_size = (struct nnp_size) { .height = 16, .width = 16 };
 			break;
 		case nnp_convolution_algorithm_wt8x8:
+		case nnp_convolution_algorithm_wt8x8_fp16:
 			/*
 			 * Winograd transform is not supported for this operation:
 			 * it needs F(5x5, 4x4) transform and presently we implement only F(3x3, 6x6)
 			 */
+			status = nnp_status_unsupported_algorithm;
+			goto cleanup;
+		case nnp_convolution_algorithm_implicit_gemm:
+		case nnp_convolution_algorithm_direct:
 			status = nnp_status_unsupported_algorithm;
 			goto cleanup;
 		case nnp_convolution_algorithm_auto:
@@ -511,7 +516,6 @@ enum nnp_status nnp_convolution_kernel_gradient(
 	}
 
 	switch (algorithm) {
-		case nnp_convolution_algorithm_wt8x8:
 		case nnp_convolution_algorithm_ft8x8:
 		case nnp_convolution_algorithm_ft16x16:
 			if (kernel_size.height > tile_size.height || kernel_size.width > tile_size.width) {
@@ -525,6 +529,8 @@ enum nnp_status nnp_convolution_kernel_gradient(
 				input_transform_function, grad_output_transform_function, grad_kernel_transform_function,
 				threadpool, profile);
 			break;
+		case nnp_convolution_algorithm_wt8x8:
+		case nnp_convolution_algorithm_wt8x8_fp16:
 		case nnp_convolution_algorithm_implicit_gemm:
 		case nnp_convolution_algorithm_direct:
 		case nnp_convolution_algorithm_auto:

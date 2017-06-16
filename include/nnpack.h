@@ -112,6 +112,12 @@ enum nnp_convolution_algorithm {
 	nnp_convolution_algorithm_implicit_gemm = 4,
 	/** Direct convolution implementation. */
 	nnp_convolution_algorithm_direct = 5,
+	/**
+	 * Tiled convolution based on 2D Winograd transform F(3x3, 6x6) with 8x8 blocks in FP16.
+	 * Supports only 3x3 kernels. Implemented only for new ARM processors (with NEON-HP),
+	 * on non-supported processors falls back to nnp_convolution_algorithm_wt8x8.
+	 */
+	nnp_convolution_algorithm_wt8x8_fp16 = 6,
 };
 
 enum nnp_convolution_transform_strategy {

@@ -381,23 +381,23 @@ static void init_hwinfo(void) {
 		#if NNP_BACKEND_X86_64
 			if (nnp_hwinfo.isa.has_avx2 && nnp_hwinfo.isa.has_fma3) {
 				nnp_hwinfo.simd_width = 8;
-				nnp_hwinfo.transforms.fft8x8_with_offset_and_store = nnp_fft8x8_with_offset_and_store__avx2;
-				nnp_hwinfo.transforms.fft8x8_with_offset_and_stream = nnp_fft8x8_with_offset_and_stream__avx2;
-				nnp_hwinfo.transforms.ifft8x8_with_offset = nnp_ifft8x8_with_offset__avx2;
-				nnp_hwinfo.transforms.ifft8x8_with_bias = nnp_ifft8x8_with_bias__avx2;
-				nnp_hwinfo.transforms.ifft8x8_with_bias_with_relu = nnp_ifft8x8_with_bias_with_relu__avx2;
-				nnp_hwinfo.transforms.fft16x16_with_offset_and_store = nnp_fft16x16_with_offset_and_store__avx2;
-				nnp_hwinfo.transforms.fft16x16_with_offset_and_stream = nnp_fft16x16_with_offset_and_stream__avx2;
-				nnp_hwinfo.transforms.ifft16x16_with_offset = nnp_ifft16x16_with_offset__avx2;
-				nnp_hwinfo.transforms.ifft16x16_with_bias = nnp_ifft16x16_with_bias__avx2;
-				nnp_hwinfo.transforms.ifft16x16_with_bias_with_relu = nnp_ifft16x16_with_bias_with_relu__avx2;
-				nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_store = nnp_iwt8x8_3x3_with_offset_and_store__avx2;
-				nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_stream = nnp_iwt8x8_3x3_with_offset_and_stream__avx2;
-				nnp_hwinfo.transforms.kwt_f6x6_3x3 = nnp_kwt8x8_3x3_and_stream__avx2;
-				nnp_hwinfo.transforms.kwt_f6x6_3Rx3R = nnp_kwt8x8_3Rx3R_and_stream__avx2;
-				nnp_hwinfo.transforms.owt_f6x6_3x3 = nnp_owt8x8_3x3__avx2;
-				nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias = nnp_owt8x8_3x3_with_bias__avx2;
-				nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias_with_relu = nnp_owt8x8_3x3_with_bias_with_relu__avx2;
+				nnp_hwinfo.transforms.fft8x8_with_offset_and_store = (nnp_transform_2d_with_offset) nnp_fft8x8_with_offset_and_store__avx2;
+				nnp_hwinfo.transforms.fft8x8_with_offset_and_stream = (nnp_transform_2d_with_offset) nnp_fft8x8_with_offset_and_stream__avx2;
+				nnp_hwinfo.transforms.ifft8x8_with_offset = (nnp_transform_2d_with_offset) nnp_ifft8x8_with_offset__avx2;
+				nnp_hwinfo.transforms.ifft8x8_with_bias = (nnp_transform_2d_with_bias) nnp_ifft8x8_with_bias__avx2;
+				nnp_hwinfo.transforms.ifft8x8_with_bias_with_relu = (nnp_transform_2d_with_bias) nnp_ifft8x8_with_bias_with_relu__avx2;
+				nnp_hwinfo.transforms.fft16x16_with_offset_and_store = (nnp_transform_2d_with_offset) nnp_fft16x16_with_offset_and_store__avx2;
+				nnp_hwinfo.transforms.fft16x16_with_offset_and_stream = (nnp_transform_2d_with_offset) nnp_fft16x16_with_offset_and_stream__avx2;
+				nnp_hwinfo.transforms.ifft16x16_with_offset = (nnp_transform_2d_with_offset) nnp_ifft16x16_with_offset__avx2;
+				nnp_hwinfo.transforms.ifft16x16_with_bias = (nnp_transform_2d_with_bias) nnp_ifft16x16_with_bias__avx2;
+				nnp_hwinfo.transforms.ifft16x16_with_bias_with_relu = (nnp_transform_2d_with_bias) nnp_ifft16x16_with_bias_with_relu__avx2;
+				nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_store = (nnp_transform_2d_with_offset) nnp_iwt8x8_3x3_with_offset_and_store__avx2;
+				nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_stream = (nnp_transform_2d_with_offset) nnp_iwt8x8_3x3_with_offset_and_stream__avx2;
+				nnp_hwinfo.transforms.kwt_f6x6_3x3 = (nnp_transform_2d_with_offset) nnp_kwt8x8_3x3_and_stream__avx2;
+				nnp_hwinfo.transforms.kwt_f6x6_3Rx3R = (nnp_transform_2d_with_offset) nnp_kwt8x8_3Rx3R_and_stream__avx2;
+				nnp_hwinfo.transforms.owt_f6x6_3x3 = (nnp_transform_2d_with_offset) nnp_owt8x8_3x3__avx2;
+				nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias = (nnp_transform_2d_with_bias) nnp_owt8x8_3x3_with_bias__avx2;
+				nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias_with_relu = (nnp_transform_2d_with_bias) nnp_owt8x8_3x3_with_bias_with_relu__avx2;
 				// nnp_hwinfo.blockmac.fourier8x8_mac_with_conj = nnp_ft8x8gemmc__fma3;
 				// nnp_hwinfo.blockmac.fourier16x16_mac_with_conj = nnp_ft16x16gemmc__fma3;
 				// nnp_hwinfo.blockmac.winograd8x8_mac = nnp_s8x8gemm__fma3;
@@ -429,46 +429,46 @@ static void init_hwinfo(void) {
 				nnp_hwinfo.sxgemm = (struct sxgemm) {
 					.mr = 3,
 					.nr = 4,
-					.only_mr_x_nr = nnp_s8gemm_only_3x4__fma3,
-					.upto_mr_x_nr = nnp_s8gemm_upto_3x4__fma3,
+					.only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_s8gemm_only_3x4__fma3,
+					.upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_s8gemm_upto_3x4__fma3,
 				};
 				nnp_hwinfo.cxgemm = (struct cxgemm) {
 					.mr = 2,
 					.nr = 2,
-					.s4cX_only_mr_x_nr = nnp_s4c6gemm_only_2x2__fma3,
-					.s4cX_upto_mr_x_nr = nnp_s4c6gemm_upto_2x2__fma3,
-					.cX_only_mr_x_nr = nnp_c8gemm_only_2x2__fma3,
-					.cX_upto_mr_x_nr = nnp_c8gemm_upto_2x2__fma3,
-					.s4cX_conjb_only_mr_x_nr = nnp_s4c6gemm_conjb_only_2x2__fma3,
-					.s4cX_conjb_upto_mr_x_nr = nnp_s4c6gemm_conjb_upto_2x2__fma3,
-					.cX_conjb_only_mr_x_nr = nnp_c8gemm_conjb_only_2x2__fma3,
-					.cX_conjb_upto_mr_x_nr = nnp_c8gemm_conjb_upto_2x2__fma3,
-					.s4cX_conjb_transc_only_mr_x_nr = nnp_s4c6gemm_conjb_transc_only_2x2__fma3,
-					.s4cX_conjb_transc_upto_mr_x_nr = nnp_s4c6gemm_conjb_transc_upto_2x2__fma3,
-					.cX_conjb_transc_only_mr_x_nr = nnp_c8gemm_conjb_transc_only_2x2__fma3,
-					.cX_conjb_transc_upto_mr_x_nr = nnp_c8gemm_conjb_transc_upto_2x2__fma3,
+					.s4cX_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_s4c6gemm_only_2x2__fma3,
+					.s4cX_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_s4c6gemm_upto_2x2__fma3,
+					.cX_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_c8gemm_only_2x2__fma3,
+					.cX_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_c8gemm_upto_2x2__fma3,
+					.s4cX_conjb_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_s4c6gemm_conjb_only_2x2__fma3,
+					.s4cX_conjb_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_s4c6gemm_conjb_upto_2x2__fma3,
+					.cX_conjb_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_c8gemm_conjb_only_2x2__fma3,
+					.cX_conjb_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_c8gemm_conjb_upto_2x2__fma3,
+					.s4cX_conjb_transc_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_s4c6gemm_conjb_transc_only_2x2__fma3,
+					.s4cX_conjb_transc_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_s4c6gemm_conjb_transc_upto_2x2__fma3,
+					.cX_conjb_transc_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_c8gemm_conjb_transc_only_2x2__fma3,
+					.cX_conjb_transc_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_c8gemm_conjb_transc_upto_2x2__fma3,
 				};
 				nnp_hwinfo.supported = true;
 			}
 		#elif NNP_BACKEND_PSIMD
 			nnp_hwinfo.simd_width = 4;
-			nnp_hwinfo.transforms.fft8x8_with_offset_and_store = nnp_fft8x8_with_offset__psimd;
-			nnp_hwinfo.transforms.fft8x8_with_offset_and_stream = nnp_fft8x8_with_offset__psimd;
-			nnp_hwinfo.transforms.ifft8x8_with_offset = nnp_ifft8x8_with_offset__psimd;
-			nnp_hwinfo.transforms.ifft8x8_with_bias = nnp_ifft8x8_with_bias__psimd;
-			nnp_hwinfo.transforms.ifft8x8_with_bias_with_relu = nnp_ifft8x8_with_bias_with_relu__psimd;
-			nnp_hwinfo.transforms.fft16x16_with_offset_and_store = nnp_fft16x16_with_offset__psimd;
-			nnp_hwinfo.transforms.fft16x16_with_offset_and_stream = nnp_fft16x16_with_offset__psimd;
-			nnp_hwinfo.transforms.ifft16x16_with_offset = nnp_ifft16x16_with_offset__psimd;
-			nnp_hwinfo.transforms.ifft16x16_with_bias = nnp_ifft16x16_with_bias__psimd;
-			nnp_hwinfo.transforms.ifft16x16_with_bias_with_relu = nnp_ifft16x16_with_bias_with_relu__psimd;
-			nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_store = nnp_iwt8x8_3x3_with_offset__psimd;
-			nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_stream = nnp_iwt8x8_3x3_with_offset__psimd;
-			nnp_hwinfo.transforms.kwt_f6x6_3x3 = nnp_kwt8x8_3x3__psimd;
-			nnp_hwinfo.transforms.kwt_f6x6_3Rx3R = nnp_kwt8x8_3Rx3R__psimd;
-			nnp_hwinfo.transforms.owt_f6x6_3x3 = nnp_owt8x8_3x3__psimd;
-			nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias = nnp_owt8x8_3x3_with_bias__psimd;
-			nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias_with_relu = nnp_owt8x8_3x3_with_bias_with_relu__psimd;
+			nnp_hwinfo.transforms.fft8x8_with_offset_and_store = (nnp_transform_2d_with_offset) nnp_fft8x8_with_offset__psimd;
+			nnp_hwinfo.transforms.fft8x8_with_offset_and_stream = (nnp_transform_2d_with_offset) nnp_fft8x8_with_offset__psimd;
+			nnp_hwinfo.transforms.ifft8x8_with_offset = (nnp_transform_2d_with_offset) nnp_ifft8x8_with_offset__psimd;
+			nnp_hwinfo.transforms.ifft8x8_with_bias = (nnp_transform_2d_with_bias) nnp_ifft8x8_with_bias__psimd;
+			nnp_hwinfo.transforms.ifft8x8_with_bias_with_relu = (nnp_transform_2d_with_bias) nnp_ifft8x8_with_bias_with_relu__psimd;
+			nnp_hwinfo.transforms.fft16x16_with_offset_and_store = (nnp_transform_2d_with_offset) nnp_fft16x16_with_offset__psimd;
+			nnp_hwinfo.transforms.fft16x16_with_offset_and_stream = (nnp_transform_2d_with_offset) nnp_fft16x16_with_offset__psimd;
+			nnp_hwinfo.transforms.ifft16x16_with_offset = (nnp_transform_2d_with_offset) nnp_ifft16x16_with_offset__psimd;
+			nnp_hwinfo.transforms.ifft16x16_with_bias = (nnp_transform_2d_with_bias) nnp_ifft16x16_with_bias__psimd;
+			nnp_hwinfo.transforms.ifft16x16_with_bias_with_relu = (nnp_transform_2d_with_bias) nnp_ifft16x16_with_bias_with_relu__psimd;
+			nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_store = (nnp_transform_2d_with_offset) nnp_iwt8x8_3x3_with_offset__psimd;
+			nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_stream = (nnp_transform_2d_with_offset) nnp_iwt8x8_3x3_with_offset__psimd;
+			nnp_hwinfo.transforms.kwt_f6x6_3x3 = (nnp_transform_2d_with_offset) nnp_kwt8x8_3x3__psimd;
+			nnp_hwinfo.transforms.kwt_f6x6_3Rx3R = (nnp_transform_2d_with_offset) nnp_kwt8x8_3Rx3R__psimd;
+			nnp_hwinfo.transforms.owt_f6x6_3x3 = (nnp_transform_2d_with_offset) nnp_owt8x8_3x3__psimd;
+			nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias = (nnp_transform_2d_with_bias) nnp_owt8x8_3x3_with_bias__psimd;
+			nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias_with_relu = (nnp_transform_2d_with_bias) nnp_owt8x8_3x3_with_bias_with_relu__psimd;
 			// nnp_hwinfo.blockmac.fourier8x8_mac_with_conj = nnp_ft8x8gemmc__psimd;
 			// nnp_hwinfo.blockmac.fourier16x16_mac_with_conj = nnp_ft16x16gemmc__psimd;
 			// nnp_hwinfo.blockmac.winograd8x8_mac = nnp_s8x8gemm__psimd;
@@ -500,45 +500,57 @@ static void init_hwinfo(void) {
 			nnp_hwinfo.sxgemm = (struct sxgemm) {
 				.mr = 3,
 				.nr = 4,
-				.only_mr_x_nr = nnp_s4gemm_only_3x4__psimd,
-				.upto_mr_x_nr = nnp_s4gemm_upto_3x4__psimd,
+				.only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_s4gemm_only_3x4__psimd,
+				.upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_s4gemm_upto_3x4__psimd,
 			};
 			nnp_hwinfo.cxgemm = (struct cxgemm) {
 				.mr = 2,
 				.nr = 2,
-				.s4cX_only_mr_x_nr = nnp_s4c2gemm_only_2x2__psimd,
-				.s4cX_upto_mr_x_nr = nnp_s4c2gemm_upto_2x2__psimd,
-				.cX_only_mr_x_nr = nnp_c4gemm_only_2x2__psimd,
-				.cX_upto_mr_x_nr = nnp_c4gemm_upto_2x2__psimd,
-				.s4cX_conjb_only_mr_x_nr = nnp_s4c2gemm_conjb_only_2x2__psimd,
-				.s4cX_conjb_upto_mr_x_nr = nnp_s4c2gemm_conjb_upto_2x2__psimd,
-				.cX_conjb_only_mr_x_nr = nnp_c4gemm_conjb_only_2x2__psimd,
-				.cX_conjb_upto_mr_x_nr = nnp_c4gemm_conjb_upto_2x2__psimd,
-				.s4cX_conjb_transc_only_mr_x_nr = nnp_s4c2gemm_conjb_transc_only_2x2__psimd,
-				.s4cX_conjb_transc_upto_mr_x_nr = nnp_s4c2gemm_conjb_transc_upto_2x2__psimd,
-				.cX_conjb_transc_only_mr_x_nr = nnp_c4gemm_conjb_transc_only_2x2__psimd,
-				.cX_conjb_transc_upto_mr_x_nr = nnp_c4gemm_conjb_transc_upto_2x2__psimd,
+				.s4cX_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_s4c2gemm_only_2x2__psimd,
+				.s4cX_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_s4c2gemm_upto_2x2__psimd,
+				.cX_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_c4gemm_only_2x2__psimd,
+				.cX_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_c4gemm_upto_2x2__psimd,
+				.s4cX_conjb_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_s4c2gemm_conjb_only_2x2__psimd,
+				.s4cX_conjb_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_s4c2gemm_conjb_upto_2x2__psimd,
+				.cX_conjb_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_c4gemm_conjb_only_2x2__psimd,
+				.cX_conjb_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_c4gemm_conjb_upto_2x2__psimd,
+				.s4cX_conjb_transc_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_s4c2gemm_conjb_transc_only_2x2__psimd,
+				.s4cX_conjb_transc_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_s4c2gemm_conjb_transc_upto_2x2__psimd,
+				.cX_conjb_transc_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_c4gemm_conjb_transc_only_2x2__psimd,
+				.cX_conjb_transc_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_c4gemm_conjb_transc_upto_2x2__psimd,
 			};
 			nnp_hwinfo.supported = true;
 		#elif NNP_BACKEND_ARM
+			#if defined(__ANDROID__) && defined(__arm__) && !defined(__aarch64__)
+				const bool has_fp16 = (android_getCpuFeatures() & ANDROID_CPU_ARM_FEATURE_VFP_FP16) != 0;
+			#else
+				const bool has_fp16 = true;
+			#endif
+
 			nnp_hwinfo.simd_width = 4;
-			nnp_hwinfo.transforms.fft8x8_with_offset_and_store = nnp_fft8x8_with_offset__psimd;
-			nnp_hwinfo.transforms.fft8x8_with_offset_and_stream = nnp_fft8x8_with_offset__psimd;
-			nnp_hwinfo.transforms.ifft8x8_with_offset = nnp_ifft8x8_with_offset__psimd;
-			nnp_hwinfo.transforms.ifft8x8_with_bias = nnp_ifft8x8_with_bias__psimd;
-			nnp_hwinfo.transforms.ifft8x8_with_bias_with_relu = nnp_ifft8x8_with_bias_with_relu__psimd;
-			nnp_hwinfo.transforms.fft16x16_with_offset_and_store = nnp_fft16x16_with_offset__psimd;
-			nnp_hwinfo.transforms.fft16x16_with_offset_and_stream = nnp_fft16x16_with_offset__psimd;
-			nnp_hwinfo.transforms.ifft16x16_with_offset = nnp_ifft16x16_with_offset__psimd;
-			nnp_hwinfo.transforms.ifft16x16_with_bias = nnp_ifft16x16_with_bias__psimd;
-			nnp_hwinfo.transforms.ifft16x16_with_bias_with_relu = nnp_ifft16x16_with_bias_with_relu__psimd;
-			nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_store = nnp_iwt8x8_3x3_with_offset__neon;
-			nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_stream = nnp_iwt8x8_3x3_with_offset__neon;
-			nnp_hwinfo.transforms.kwt_f6x6_3x3 = nnp_kwt8x8_3x3__neon;
-			nnp_hwinfo.transforms.kwt_f6x6_3Rx3R = nnp_kwt8x8_3Rx3R__psimd;
-			nnp_hwinfo.transforms.owt_f6x6_3x3 = nnp_owt8x8_3x3__neon;
-			nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias = nnp_owt8x8_3x3_with_bias__neon;
-			nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias_with_relu = nnp_owt8x8_3x3_with_bias_with_relu__psimd;
+			nnp_hwinfo.transforms.fft8x8_with_offset_and_store = (nnp_transform_2d_with_offset) nnp_fft8x8_with_offset__psimd;
+			nnp_hwinfo.transforms.fft8x8_with_offset_and_stream = (nnp_transform_2d_with_offset) nnp_fft8x8_with_offset__psimd;
+			nnp_hwinfo.transforms.ifft8x8_with_offset = (nnp_transform_2d_with_offset) nnp_ifft8x8_with_offset__psimd;
+			nnp_hwinfo.transforms.ifft8x8_with_bias = (nnp_transform_2d_with_bias) nnp_ifft8x8_with_bias__psimd;
+			nnp_hwinfo.transforms.ifft8x8_with_bias_with_relu = (nnp_transform_2d_with_bias) nnp_ifft8x8_with_bias_with_relu__psimd;
+			nnp_hwinfo.transforms.fft16x16_with_offset_and_store = (nnp_transform_2d_with_offset) nnp_fft16x16_with_offset__psimd;
+			nnp_hwinfo.transforms.fft16x16_with_offset_and_stream = (nnp_transform_2d_with_offset) nnp_fft16x16_with_offset__psimd;
+			nnp_hwinfo.transforms.ifft16x16_with_offset = (nnp_transform_2d_with_offset) nnp_ifft16x16_with_offset__psimd;
+			nnp_hwinfo.transforms.ifft16x16_with_bias = (nnp_transform_2d_with_bias) nnp_ifft16x16_with_bias__psimd;
+			nnp_hwinfo.transforms.ifft16x16_with_bias_with_relu = (nnp_transform_2d_with_bias) nnp_ifft16x16_with_bias_with_relu__psimd;
+			nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_store = (nnp_transform_2d_with_offset) nnp_iwt8x8_3x3_with_offset__neon;
+			nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_stream = (nnp_transform_2d_with_offset) nnp_iwt8x8_3x3_with_offset__neon;
+			nnp_hwinfo.transforms.kwt_f6x6_3x3 = (nnp_transform_2d_with_offset) nnp_kwt8x8_3x3__neon;
+			nnp_hwinfo.transforms.kwt_f6x6_3Rx3R = (nnp_transform_2d_with_offset) nnp_kwt8x8_3Rx3R__psimd;
+			nnp_hwinfo.transforms.owt_f6x6_3x3 = (nnp_transform_2d_with_offset) nnp_owt8x8_3x3__neon;
+			nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias = (nnp_transform_2d_with_bias) nnp_owt8x8_3x3_with_bias__neon;
+			nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias_with_relu = (nnp_transform_2d_with_bias) nnp_owt8x8_3x3_with_bias_with_relu__psimd;
+			if (has_fp16) {
+				nnp_hwinfo.transforms.iwt_f6x6_3x3_fp16_with_offset = (nnp_transform_2d_with_offset) nnp_iwt8x8_3x3_fp16_with_offset__neonhp;
+				nnp_hwinfo.transforms.kwt_f6x6_3x3_fp16 = (nnp_transform_2d_with_offset) nnp_kwt8x8_3x3_fp16__neonhp;
+				nnp_hwinfo.transforms.owt_f6x6_3x3_fp16_with_bias = (nnp_transform_2d_with_bias) nnp_owt8x8_3x3_fp16_with_bias__neonhp;
+				nnp_hwinfo.transforms.owt_f6x6_3x3_fp16_with_bias_with_relu = NULL;
+			}
 			// nnp_hwinfo.blockmac.fourier8x8_mac_with_conj = nnp_ft8x8gemmc__psimd;
 			// nnp_hwinfo.blockmac.fourier16x16_mac_with_conj = nnp_ft16x16gemmc__psimd;
 			// nnp_hwinfo.blockmac.winograd8x8_mac = nnp_s8x8gemm__psimd;
@@ -570,24 +582,32 @@ static void init_hwinfo(void) {
 			nnp_hwinfo.sxgemm = (struct sxgemm) {
 				.mr = 3,
 				.nr = 4,
-				.only_mr_x_nr = nnp_s4gemm_only_3x4__neon,
-				.upto_mr_x_nr = nnp_s4gemm_upto_3x4__neon,
+				.only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_s4gemm_only_3x4__neon,
+				.upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_s4gemm_upto_3x4__neon,
 			};
+			if (has_fp16) {
+				nnp_hwinfo.hxgemm = (struct hxgemm) {
+					.mr = 3,
+					.nr = 4,
+					.only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_h4gemm_only_3x4__neonhp,
+					.upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_h4gemm_upto_3x4__neonhp,
+				};
+			}
 			nnp_hwinfo.cxgemm = (struct cxgemm) {
 				.mr = 2,
 				.nr = 2,
-				.s4cX_only_mr_x_nr = nnp_s4c2gemm_only_2x2__neon,
-				.s4cX_upto_mr_x_nr = nnp_s4c2gemm_upto_2x2__neon,
-				.cX_only_mr_x_nr = nnp_c4gemm_only_2x2__neon,
-				.cX_upto_mr_x_nr = nnp_c4gemm_upto_2x2__neon,
-				.s4cX_conjb_only_mr_x_nr = nnp_s4c2gemm_conjb_only_2x2__neon,
-				.s4cX_conjb_upto_mr_x_nr = nnp_s4c2gemm_conjb_upto_2x2__neon,
-				.cX_conjb_only_mr_x_nr = nnp_c4gemm_conjb_only_2x2__neon,
-				.cX_conjb_upto_mr_x_nr = nnp_c4gemm_conjb_upto_2x2__neon,
-				.s4cX_conjb_transc_only_mr_x_nr = nnp_s4c2gemm_conjb_transc_only_2x2__neon,
-				.s4cX_conjb_transc_upto_mr_x_nr = nnp_s4c2gemm_conjb_transc_upto_2x2__neon,
-				.cX_conjb_transc_only_mr_x_nr = nnp_c4gemm_conjb_transc_only_2x2__neon,
-				.cX_conjb_transc_upto_mr_x_nr = nnp_c4gemm_conjb_transc_upto_2x2__neon,
+				.s4cX_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_s4c2gemm_only_2x2__neon,
+				.s4cX_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_s4c2gemm_upto_2x2__neon,
+				.cX_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_c4gemm_only_2x2__neon,
+				.cX_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_c4gemm_upto_2x2__neon,
+				.s4cX_conjb_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_s4c2gemm_conjb_only_2x2__neon,
+				.s4cX_conjb_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_s4c2gemm_conjb_upto_2x2__neon,
+				.cX_conjb_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_c4gemm_conjb_only_2x2__neon,
+				.cX_conjb_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_c4gemm_conjb_upto_2x2__neon,
+				.s4cX_conjb_transc_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_s4c2gemm_conjb_transc_only_2x2__neon,
+				.s4cX_conjb_transc_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_s4c2gemm_conjb_transc_upto_2x2__neon,
+				.cX_conjb_transc_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_c4gemm_conjb_transc_only_2x2__neon,
+				.cX_conjb_transc_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_c4gemm_conjb_transc_upto_2x2__neon,
 			};
 			#if defined(__ANDROID__) && defined(__arm__) && !defined(__aarch64__)
 				nnp_hwinfo.supported = (android_getCpuFeatures() & ANDROID_CPU_ARM_FEATURE_NEON) != 0;
@@ -596,23 +616,23 @@ static void init_hwinfo(void) {
 			#endif
 		#elif NNP_BACKEND_SCALAR
 			nnp_hwinfo.simd_width = 1;
-			nnp_hwinfo.transforms.fft8x8_with_offset_and_store = nnp_fft8x8_with_offset__scalar;
-			nnp_hwinfo.transforms.fft8x8_with_offset_and_stream = nnp_fft8x8_with_offset__scalar;
-			nnp_hwinfo.transforms.ifft8x8_with_offset = nnp_ifft8x8_with_offset__scalar;
-			nnp_hwinfo.transforms.ifft8x8_with_bias = nnp_ifft8x8_with_bias__scalar;
-			nnp_hwinfo.transforms.ifft8x8_with_bias_with_relu = nnp_ifft8x8_with_bias_with_relu__scalar;
-			nnp_hwinfo.transforms.fft16x16_with_offset_and_store = nnp_fft16x16_with_offset__scalar;
-			nnp_hwinfo.transforms.fft16x16_with_offset_and_stream = nnp_fft16x16_with_offset__scalar;
-			nnp_hwinfo.transforms.ifft16x16_with_offset = nnp_ifft16x16_with_offset__scalar;
-			nnp_hwinfo.transforms.ifft16x16_with_bias = nnp_ifft16x16_with_bias__scalar;
-			nnp_hwinfo.transforms.ifft16x16_with_bias_with_relu = nnp_ifft16x16_with_bias_with_relu__scalar;
-			nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_store = nnp_iwt8x8_3x3_with_offset__scalar;
-			nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_stream = nnp_iwt8x8_3x3_with_offset__scalar;
-			nnp_hwinfo.transforms.kwt_f6x6_3x3 = nnp_kwt8x8_3x3__scalar;
-			nnp_hwinfo.transforms.kwt_f6x6_3Rx3R = nnp_kwt8x8_3Rx3R__scalar;
-			nnp_hwinfo.transforms.owt_f6x6_3x3 = nnp_owt8x8_3x3__scalar;
-			nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias = nnp_owt8x8_3x3_with_bias__scalar;
-			nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias_with_relu = nnp_owt8x8_3x3_with_bias_with_relu__scalar;
+			nnp_hwinfo.transforms.fft8x8_with_offset_and_store = (nnp_transform_2d_with_offset) nnp_fft8x8_with_offset__scalar;
+			nnp_hwinfo.transforms.fft8x8_with_offset_and_stream = (nnp_transform_2d_with_offset) nnp_fft8x8_with_offset__scalar;
+			nnp_hwinfo.transforms.ifft8x8_with_offset = (nnp_transform_2d_with_offset) nnp_ifft8x8_with_offset__scalar;
+			nnp_hwinfo.transforms.ifft8x8_with_bias = (nnp_transform_2d_with_bias) nnp_ifft8x8_with_bias__scalar;
+			nnp_hwinfo.transforms.ifft8x8_with_bias_with_relu = (nnp_transform_2d_with_bias) nnp_ifft8x8_with_bias_with_relu__scalar;
+			nnp_hwinfo.transforms.fft16x16_with_offset_and_store = (nnp_transform_2d_with_offset) nnp_fft16x16_with_offset__scalar;
+			nnp_hwinfo.transforms.fft16x16_with_offset_and_stream = (nnp_transform_2d_with_offset) nnp_fft16x16_with_offset__scalar;
+			nnp_hwinfo.transforms.ifft16x16_with_offset = (nnp_transform_2d_with_offset) nnp_ifft16x16_with_offset__scalar;
+			nnp_hwinfo.transforms.ifft16x16_with_bias = (nnp_transform_2d_with_bias) nnp_ifft16x16_with_bias__scalar;
+			nnp_hwinfo.transforms.ifft16x16_with_bias_with_relu = (nnp_transform_2d_with_bias) nnp_ifft16x16_with_bias_with_relu__scalar;
+			nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_store = (nnp_transform_2d_with_offset) nnp_iwt8x8_3x3_with_offset__scalar;
+			nnp_hwinfo.transforms.iwt_f6x6_3x3_with_offset_and_stream = (nnp_transform_2d_with_offset) nnp_iwt8x8_3x3_with_offset__scalar;
+			nnp_hwinfo.transforms.kwt_f6x6_3x3 = (nnp_transform_2d_with_offset) nnp_kwt8x8_3x3__scalar;
+			nnp_hwinfo.transforms.kwt_f6x6_3Rx3R = (nnp_transform_2d_with_offset) nnp_kwt8x8_3Rx3R__scalar;
+			nnp_hwinfo.transforms.owt_f6x6_3x3 = (nnp_transform_2d_with_offset) nnp_owt8x8_3x3__scalar;
+			nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias = (nnp_transform_2d_with_bias) nnp_owt8x8_3x3_with_bias__scalar;
+			nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias_with_relu = (nnp_transform_2d_with_bias) nnp_owt8x8_3x3_with_bias_with_relu__scalar;
 			// nnp_hwinfo.blockmac.fourier8x8_mac_with_conj = nnp_ft8x8gemmc__psimd;
 			// nnp_hwinfo.blockmac.fourier16x16_mac_with_conj = nnp_ft16x16gemmc__psimd;
 			// nnp_hwinfo.blockmac.winograd8x8_mac = nnp_s8x8gemm__psimd;
@@ -644,24 +664,24 @@ static void init_hwinfo(void) {
 			nnp_hwinfo.sxgemm = (struct sxgemm) {
 				.mr = 4,
 				.nr = 3,
-				.only_mr_x_nr = nnp_sgemm_only_4x3__scalar,
-				.upto_mr_x_nr = nnp_sgemm_upto_4x3__scalar,
+				.only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_sgemm_only_4x3__scalar,
+				.upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_sgemm_upto_4x3__scalar,
 			};
 			nnp_hwinfo.cxgemm = (struct cxgemm) {
 				.mr = 2,
 				.nr = 2,
-				.s4cX_only_mr_x_nr = nnp_s2gemm_only_2x2__scalar,
-				.s4cX_upto_mr_x_nr = nnp_s2gemm_upto_2x2__scalar,
-				.cX_only_mr_x_nr = nnp_cgemm_only_2x2__scalar,
-				.cX_upto_mr_x_nr = nnp_cgemm_upto_2x2__scalar,
-				.s4cX_conjb_only_mr_x_nr = nnp_s2gemm_only_2x2__scalar,
-				.s4cX_conjb_upto_mr_x_nr = nnp_s2gemm_upto_2x2__scalar,
-				.cX_conjb_only_mr_x_nr = nnp_cgemm_conjb_only_2x2__scalar,
-				.cX_conjb_upto_mr_x_nr = nnp_cgemm_conjb_upto_2x2__scalar,
-				.s4cX_conjb_transc_only_mr_x_nr = nnp_s2gemm_transc_only_2x2__scalar,
-				.s4cX_conjb_transc_upto_mr_x_nr = nnp_s2gemm_transc_upto_2x2__scalar,
-				.cX_conjb_transc_only_mr_x_nr = nnp_cgemm_conjb_transc_only_2x2__scalar,
-				.cX_conjb_transc_upto_mr_x_nr = nnp_cgemm_conjb_transc_upto_2x2__scalar,
+				.s4cX_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_s2gemm_only_2x2__scalar,
+				.s4cX_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_s2gemm_upto_2x2__scalar,
+				.cX_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_cgemm_only_2x2__scalar,
+				.cX_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_cgemm_upto_2x2__scalar,
+				.s4cX_conjb_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_s2gemm_only_2x2__scalar,
+				.s4cX_conjb_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_s2gemm_upto_2x2__scalar,
+				.cX_conjb_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_cgemm_conjb_only_2x2__scalar,
+				.cX_conjb_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_cgemm_conjb_upto_2x2__scalar,
+				.s4cX_conjb_transc_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_s2gemm_transc_only_2x2__scalar,
+				.s4cX_conjb_transc_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_s2gemm_transc_upto_2x2__scalar,
+				.cX_conjb_transc_only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_cgemm_conjb_transc_only_2x2__scalar,
+				.cX_conjb_transc_upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_cgemm_conjb_transc_upto_2x2__scalar,
 			};
 			nnp_hwinfo.supported = true;
 		#else

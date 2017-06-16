@@ -28,7 +28,9 @@ LOCAL_SRC_FILES := \
 ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI),armeabi-v7a arm64-v8a))
 LOCAL_SRC_FILES += \
 	$(LOCAL_PATH)/src/neon/2d-winograd-8x8-3x3.c \
+	$(LOCAL_PATH)/src/neon/2d-winograd-8x8-3x3-fp16.c \
 	$(LOCAL_PATH)/src/neon/blas/conv1x1.c \
+	$(LOCAL_PATH)/src/neon/blas/h4gemm.c \
 	$(LOCAL_PATH)/src/neon/blas/s4gemm.c \
 	$(LOCAL_PATH)/src/neon/blas/c4gemm.c \
 	$(LOCAL_PATH)/src/neon/blas/s4c2gemm.c \
@@ -73,6 +75,7 @@ LOCAL_CFLAGS := -std=gnu99 -D__STDC_CONSTANT_MACROS=1
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 LOCAL_ARM_NEON := true
 LOCAL_ARM_MODE := arm
+LOCAL_CFLAGS += -mfpu=neon-fp16
 endif # TARGET_ARCH_ABI == armeabi-v7a
 include $(BUILD_STATIC_LIBRARY)
 

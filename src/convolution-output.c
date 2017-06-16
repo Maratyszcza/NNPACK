@@ -198,7 +198,7 @@ static void compute_matrix_multiplication(
 		(output_channels_block_start * batch_block_size * tuple_elements);
 
 	if (batch_subblock_size == batch_subblock_max) {
-		const nnp_fast_sgemm_function fast_gemm = context->fast_gemm;
+		const nnp_fast_tuple_gemm_function fast_gemm = context->fast_gemm;
 		while (output_channels_block_size >= output_channels_subblock_max) {
 			output_channels_block_size -= output_channels_subblock_max;
 
@@ -214,7 +214,7 @@ static void compute_matrix_multiplication(
 		}
 	}
 
-	const nnp_full_sgemm_function full_gemm = context->full_gemm;
+	const nnp_full_tuple_gemm_function full_gemm = context->full_gemm;
 	while (output_channels_block_size != 0) {
 		const size_t output_channels_subblock_size = min(output_channels_block_size, output_channels_subblock_max);
 		output_channels_block_size -= output_channels_subblock_size;
@@ -532,6 +532,7 @@ enum nnp_status nnp_convolution_output(
 			fourier_transform = true;
 			break;
 		case nnp_convolution_algorithm_wt8x8:
+		case nnp_convolution_algorithm_wt8x8_fp16:
 			if ((kernel_size.height != 3) || (kernel_size.width != 3)) {
 				status = nnp_status_unsupported_algorithm;
 				goto cleanup;
@@ -552,6 +553,10 @@ enum nnp_status nnp_convolution_output(
 			tile_size = (struct nnp_size) { .height = 8, .width = 8 };
 			fourier_transform = false;
 			break;
+		case nnp_convolution_algorithm_implicit_gemm:
+		case nnp_convolution_algorithm_direct:
+			status = nnp_status_unsupported_algorithm;
+			goto cleanup;
 		case nnp_convolution_algorithm_auto:
 			NNP_UNREACHABLE;
 		default:
@@ -561,6 +566,7 @@ enum nnp_status nnp_convolution_output(
 
 	switch (algorithm) {
 		case nnp_convolution_algorithm_wt8x8:
+		case nnp_convolution_algorithm_wt8x8_fp16:
 		case nnp_convolution_algorithm_ft8x8:
 		case nnp_convolution_algorithm_ft16x16:
 			if (kernel_size.height > tile_size.height || kernel_size.width > tile_size.width) {
