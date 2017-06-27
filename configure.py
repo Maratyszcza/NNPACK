@@ -112,12 +112,15 @@ def main(args):
                     build.cc("psimd/2d-fourier-8x8.c"),
                     build.cc("psimd/2d-fourier-16x16.c"),
                     build.cc("psimd/2d-winograd-8x8-3x3.c"),
+                    build.cc("neon/2d-winograd-8x8-3x3.c"),
+                    build.cc("neon/2d-winograd-8x8-3x3-fp16.c"),
                     # ReLU and Softmax
                     build.cc("psimd/relu.c"),
                     build.cc("psimd/softmax.c"),
                     # FFT block accumulation
                     build.cc("psimd/fft-block-mac.c"),
                     # Tuple GEMM
+                    build.cc("neon/blas/h4gemm.c"),
                     build.cc("neon/blas/s4gemm.c"),
                     build.cc("neon/blas/c4gemm.c"),
                     build.cc("neon/blas/s4c2gemm.c"),
