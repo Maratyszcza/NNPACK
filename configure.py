@@ -115,7 +115,7 @@ def main(args):
                     build.cc("neon/2d-winograd-8x8-3x3.c"),
                     build.cc("neon/2d-winograd-8x8-3x3-fp16.c"),
                     # ReLU and Softmax
-                    build.cc("psimd/relu.c"),
+                    build.cc("neon/relu.c"),
                     build.cc("psimd/softmax.c"),
                     # FFT block accumulation
                     build.cc("psimd/fft-block-mac.c"),

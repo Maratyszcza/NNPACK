@@ -554,9 +554,9 @@ static void init_hwinfo(void) {
 			// nnp_hwinfo.blockmac.fourier8x8_mac_with_conj = nnp_ft8x8gemmc__psimd;
 			// nnp_hwinfo.blockmac.fourier16x16_mac_with_conj = nnp_ft16x16gemmc__psimd;
 			// nnp_hwinfo.blockmac.winograd8x8_mac = nnp_s8x8gemm__psimd;
-			nnp_hwinfo.activations.relu = nnp_relu__psimd;
-			nnp_hwinfo.activations.inplace_relu = nnp_inplace_relu__psimd;
-			nnp_hwinfo.activations.grad_relu = nnp_grad_relu__psimd;
+			nnp_hwinfo.activations.relu = nnp_relu__neon;
+			nnp_hwinfo.activations.inplace_relu = nnp_inplace_relu__neon;
+			nnp_hwinfo.activations.grad_relu = nnp_grad_relu__neon;
 			nnp_hwinfo.activations.softmax = nnp_softmax__psimd;
 			nnp_hwinfo.activations.inplace_softmax = nnp_inplace_softmax__psimd;
 			nnp_hwinfo.sdotxf = (struct sdotxf) {
