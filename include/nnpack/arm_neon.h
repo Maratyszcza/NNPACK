@@ -50,13 +50,13 @@ static inline void vst1q_f32_aligned(float* address, float32x4_t vector) {
 			vld1_u16((const uint16_t*) __builtin_assume_aligned(address, sizeof(float16x4_t))));
 	}
 
-	static inline void vst1q_f16_f32(void* address, float32x4_t src) {
-		vst1_u16((uint16_t*) address, (uint16x4_t) vcvt_f16_f32(address));
+	static inline void vst1q_f16_f32(void* address, float32x4_t vector) {
+		vst1_u16((uint16_t*) address, (uint16x4_t) vcvt_f16_f32(vector));
 	}
 
-	static inline void vst1q_f16_f32_aligned(void* address, float32x4_t src) {
+	static inline void vst1q_f16_f32_aligned(void* address, float32x4_t vector) {
 		vst1_u16((uint16_t*) __builtin_assume_aligned(address, sizeof(uint16x4_t)),
-			(uint16x4_t) vcvt_f16_f32(address));
+			(uint16x4_t) vcvt_f16_f32(vector));
 	}
 #endif
 
