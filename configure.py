@@ -232,10 +232,6 @@ def main(args):
 
         fft_objects = reference_fft_objects + arch_fft_stub_objects
 
-        reference_blockmac_objects = [
-            build.cc("ref/fft/block-mac.c"),
-        ]
-
         nnpack_objects = nnpack_objects + arch_nnpack_objects
 
         build.static_library("nnpack", nnpack_objects)

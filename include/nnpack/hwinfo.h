@@ -46,8 +46,6 @@ typedef void (*nnp_transform_2d)(const void*, void*, size_t, size_t, uint32_t, u
 typedef void (*nnp_transform_2d_with_bias)(const void*, void*, const void*, size_t, size_t, uint32_t, uint32_t);
 typedef void (*nnp_transform_2d_with_offset)(const void*, void*, size_t, size_t, uint32_t, uint32_t, uint32_t, uint32_t);
 
-typedef void (*nnp_blockmac)(float*, const float*, const float*);
-
 typedef void (*nnp_fast_sgemm_function)(size_t, size_t, const float*, const float*, float*, size_t);
 typedef void (*nnp_full_sgemm_function)(uint32_t, uint32_t, size_t, size_t, const float*, const float*, float*, size_t);
 
@@ -91,12 +89,6 @@ struct transforms {
 	nnp_transform_2d_with_bias owt_f6x6_3x3_fp16_with_bias;
 	nnp_transform_2d_with_bias owt_f6x6_3x3_fp16_with_bias_with_relu;
 #endif /* NNP_BACKEND_ARM */
-};
-
-struct blockmac {
-	nnp_blockmac fourier8x8_mac_with_conj;
-	nnp_blockmac fourier16x16_mac_with_conj;
-	nnp_blockmac winograd8x8_mac;
 };
 
 struct activations {
@@ -173,7 +165,6 @@ struct hardware_info {
 	struct cache_blocking_info blocking;
 
 	struct transforms transforms;
-	struct blockmac blockmac;
 	struct activations activations;
 	struct convolution conv1x1;
 	struct sgemm sgemm;

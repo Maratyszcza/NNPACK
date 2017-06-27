@@ -398,9 +398,6 @@ static void init_hwinfo(void) {
 				nnp_hwinfo.transforms.owt_f6x6_3x3 = (nnp_transform_2d_with_offset) nnp_owt8x8_3x3__avx2;
 				nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias = (nnp_transform_2d_with_bias) nnp_owt8x8_3x3_with_bias__avx2;
 				nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias_with_relu = (nnp_transform_2d_with_bias) nnp_owt8x8_3x3_with_bias_with_relu__avx2;
-				// nnp_hwinfo.blockmac.fourier8x8_mac_with_conj = nnp_ft8x8gemmc__fma3;
-				// nnp_hwinfo.blockmac.fourier16x16_mac_with_conj = nnp_ft16x16gemmc__fma3;
-				// nnp_hwinfo.blockmac.winograd8x8_mac = nnp_s8x8gemm__fma3;
 				nnp_hwinfo.activations.relu = nnp_relu__avx2;
 				nnp_hwinfo.activations.inplace_relu = nnp_inplace_relu__avx2;
 				nnp_hwinfo.activations.grad_relu = nnp_grad_relu__avx2;
@@ -469,9 +466,6 @@ static void init_hwinfo(void) {
 			nnp_hwinfo.transforms.owt_f6x6_3x3 = (nnp_transform_2d_with_offset) nnp_owt8x8_3x3__psimd;
 			nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias = (nnp_transform_2d_with_bias) nnp_owt8x8_3x3_with_bias__psimd;
 			nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias_with_relu = (nnp_transform_2d_with_bias) nnp_owt8x8_3x3_with_bias_with_relu__psimd;
-			// nnp_hwinfo.blockmac.fourier8x8_mac_with_conj = nnp_ft8x8gemmc__psimd;
-			// nnp_hwinfo.blockmac.fourier16x16_mac_with_conj = nnp_ft16x16gemmc__psimd;
-			// nnp_hwinfo.blockmac.winograd8x8_mac = nnp_s8x8gemm__psimd;
 			nnp_hwinfo.activations.relu = nnp_relu__psimd;
 			nnp_hwinfo.activations.inplace_relu = nnp_inplace_relu__psimd;
 			nnp_hwinfo.activations.grad_relu = nnp_grad_relu__psimd;
@@ -551,9 +545,6 @@ static void init_hwinfo(void) {
 				nnp_hwinfo.transforms.owt_f6x6_3x3_fp16_with_bias = (nnp_transform_2d_with_bias) nnp_owt8x8_3x3_fp16_with_bias__neonhp;
 				nnp_hwinfo.transforms.owt_f6x6_3x3_fp16_with_bias_with_relu = (nnp_transform_2d_with_bias) nnp_owt8x8_3x3_fp16_with_bias_with_relu__neonhp;
 			}
-			// nnp_hwinfo.blockmac.fourier8x8_mac_with_conj = nnp_ft8x8gemmc__psimd;
-			// nnp_hwinfo.blockmac.fourier16x16_mac_with_conj = nnp_ft16x16gemmc__psimd;
-			// nnp_hwinfo.blockmac.winograd8x8_mac = nnp_s8x8gemm__psimd;
 			nnp_hwinfo.activations.relu = nnp_relu__neon;
 			nnp_hwinfo.activations.inplace_relu = nnp_inplace_relu__neon;
 			nnp_hwinfo.activations.grad_relu = nnp_grad_relu__neon;
@@ -633,9 +624,6 @@ static void init_hwinfo(void) {
 			nnp_hwinfo.transforms.owt_f6x6_3x3 = (nnp_transform_2d_with_offset) nnp_owt8x8_3x3__scalar;
 			nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias = (nnp_transform_2d_with_bias) nnp_owt8x8_3x3_with_bias__scalar;
 			nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias_with_relu = (nnp_transform_2d_with_bias) nnp_owt8x8_3x3_with_bias_with_relu__scalar;
-			// nnp_hwinfo.blockmac.fourier8x8_mac_with_conj = nnp_ft8x8gemmc__psimd;
-			// nnp_hwinfo.blockmac.fourier16x16_mac_with_conj = nnp_ft16x16gemmc__psimd;
-			// nnp_hwinfo.blockmac.winograd8x8_mac = nnp_s8x8gemm__psimd;
 			nnp_hwinfo.activations.relu = nnp_relu__scalar;
 			nnp_hwinfo.activations.inplace_relu = nnp_inplace_relu__scalar;
 			nnp_hwinfo.activations.grad_relu = nnp_grad_relu__scalar;
