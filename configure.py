@@ -296,15 +296,6 @@ def main(args):
         build.unittest("convolution-output-overfeat-fast-test",
             reference_layer_objects + [build.cxx("convolution-output/overfeat-fast.cc")])
 
-        build.smoketest("convolution-output+relu-smoketest",
-            reference_layer_objects + [build.cxx("convolution-output/smoke+relu.cc")])
-        build.unittest("convolution-output+relu-alexnet-test",
-            reference_layer_objects + [build.cxx("convolution-output/alexnet+relu.cc")])
-        build.unittest("convolution-output+relu-vgg-a-test",
-            reference_layer_objects + [build.cxx("convolution-output/vgg-a+relu.cc")])
-        build.unittest("convolution-output+relu-overfeat-fast-test",
-            reference_layer_objects + [build.cxx("convolution-output/overfeat-fast+relu.cc")])
-
         build.smoketest("convolution-input-gradient-smoketest",
             reference_layer_objects + [build.cxx("convolution-input-gradient/smoke.cc")])
         build.unittest("convolution-input-gradient-alexnet-test",
@@ -331,15 +322,6 @@ def main(args):
             reference_layer_objects + [build.cxx("convolution-inference/vgg-a.cc")])
         build.unittest("convolution-inference-overfeat-fast-test",
             reference_layer_objects + [build.cxx("convolution-inference/overfeat-fast.cc")])
-
-        build.smoketest("convolution-inference+relu-smoketest",
-            reference_layer_objects + [build.cxx("convolution-inference/smoke+relu.cc")])
-        build.unittest("convolution-inference+relu-alexnet-test",
-            reference_layer_objects + [build.cxx("convolution-inference/alexnet+relu.cc")])
-        build.unittest("convolution-inference+relu-vgg-a-test",
-            reference_layer_objects + [build.cxx("convolution-inference/vgg-a+relu.cc")])
-        build.unittest("convolution-inference+relu-overfeat-fast-test",
-            reference_layer_objects + [build.cxx("convolution-inference/overfeat-fast+relu.cc")])
 
         build.smoketest("fully-connected-output-smoketest",
             reference_layer_objects + [build.cxx("fully-connected-output/smoke.cc")])
