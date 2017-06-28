@@ -123,6 +123,54 @@ void nnp_kwt8x8_3x3__neon(
 	}
 }
 
+void nnp_kwt8x8_3Rx3R__neon(
+	const float g[restrict static 9],
+	float transform[restrict static 1],
+	size_t stride_g,
+	size_t transform_stride,
+	uint32_t row_count,
+	uint32_t column_count,
+	uint32_t row_offset,
+	uint32_t column_offset)
+{
+	transform_stride /= sizeof(float);
+
+	const float32x4_t g5678 = vld1q_f32(g + 5);
+	const float32x4_t g2345 = vld1q_f32(g + 2);
+	const float32x4_t g0123 = vld1q_f32(g);
+
+	/* g0 = { g[8], g[7], g[6], g[6] }; */
+	const float32x4_t g0 = vcombine_f32(vrev64_f32(vld1_f32(&g[7])), vld1_dup_f32(&g[6]));
+	/* g1 = { g[5], g[4], g[3], g[3] }; */
+	const float32x4_t g1 = vcombine_f32(vrev64_f32(vld1_f32(&g[4])), vld1_dup_f32(&g[3]));
+	/* g2 = { g[2], g[1], g[0], g[0] }; */
+	const float32x4_t g2 = vcombine_f32(vrev64_f32(vld1_f32(&g[1])), vld1_dup_f32(&g[0]));
+
+	NNP_SIMD_ALIGN float32x4_t w[8];
+	winograd_f6k3_kernel_transform(g0, g1, g2,
+		&w[0], &w[1], &w[2], &w[3], &w[4], &w[5], &w[6], &w[7],
+		true /* rescale coefficients */);
+	neon_transpose4x4_inplace_f32(&w[0], &w[1], &w[2], &w[3]);
+	neon_transpose4x4_inplace_f32(&w[4], &w[5], &w[6], &w[7]);
+
+	NNP_SIMD_ALIGN float32x4_t wg[8][2];
+	winograd_f6k3_kernel_transform(w[0], w[1], w[2],
+		&wg[0][0], &wg[1][0], &wg[2][0], &wg[3][0],
+		&wg[4][0], &wg[5][0], &wg[6][0], &wg[7][0],
+		true /* rescale coefficients */);
+	winograd_f6k3_kernel_transform(w[4], w[5], w[6],
+		&wg[0][1], &wg[1][1], &wg[2][1], &wg[3][1],
+		&wg[4][1], &wg[5][1], &wg[6][1], &wg[7][1],
+		true /* rescale coefficients */);
+
+	for (size_t col = 0; col < 2; col++) {
+		for (size_t row = 0; row < 8; row++) {
+			vst1q_f32(transform, wg[row][col]);
+			transform += transform_stride;
+		}
+	}
+}
+
 void nnp_owt8x8_3x3__neon(
 	const float transform[restrict static 1],
 	float output[restrict static 1],
