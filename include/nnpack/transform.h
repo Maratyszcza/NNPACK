@@ -82,15 +82,6 @@ void nnp_owt8x8_3x3__scalar(const float m[], float s[], size_t stride_m, size_t 
 void nnp_owt8x8_3x3_with_bias__scalar(const float m[], float s[], const float bias[], size_t stride_m, size_t stride_s, uint32_t row_count, uint32_t column_count);
 void nnp_owt8x8_3x3_with_bias_with_relu__scalar(const float m[], float s[], const float bias[], size_t stride_m, size_t stride_s, uint32_t row_count, uint32_t column_count);
 
-
-void nnp_ft8x8gemmc__fma3(float acc[], const float x[], const float y[]);
-void nnp_ft16x16gemmc__fma3(float acc[], const float x[], const float y[]);
-void nnp_s8x8gemm__fma3(float acc[], const float x[], const float y[]);
-
-void nnp_ft8x8gemmc__psimd(float acc[], const float x[], const float y[]);
-void nnp_ft16x16gemmc__psimd(float acc[], const float x[], const float y[]);
-void nnp_s8x8gemm__psimd(float acc[], const float x[], const float y[]);
-
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

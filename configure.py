@@ -67,8 +67,6 @@ def main(args):
                 build.peachpy("x86_64-fma/relu.py"),
                 build.peachpy("x86_64-fma/softmax.py"),
                 build.cc("x86_64-fma/softmax.c"),
-                # FFT block accumulation
-                build.peachpy("x86_64-fma/fft-block-mac.py"),
                 # Tuple GEMM
                 build.peachpy("x86_64-fma/blas/s8gemm.py"),
                 build.peachpy("x86_64-fma/blas/c8gemm.py"),
@@ -89,8 +87,6 @@ def main(args):
                 # ReLU and Softmax
                 build.cc("scalar/relu.c"),
                 build.cc("scalar/softmax.c"),
-                # FFT block accumulation
-                # build.cc("scalar/fft-block-mac.c"),
                 # Tuple GEMM
                 build.cc("scalar/blas/s2gemm.c"),
                 build.cc("scalar/blas/s2gemm-transc.c"),
@@ -117,8 +113,6 @@ def main(args):
                     # ReLU and Softmax
                     build.cc("neon/relu.c"),
                     build.cc("psimd/softmax.c"),
-                    # FFT block accumulation
-                    build.cc("psimd/fft-block-mac.c"),
                     # Tuple GEMM
                     build.cc("neon/blas/h4gemm.c"),
                     build.cc("neon/blas/s4gemm.c"),
@@ -144,8 +138,6 @@ def main(args):
                 # ReLU and Softmax
                 build.cc("psimd/relu.c"),
                 build.cc("psimd/softmax.c"),
-                # FFT block accumulation
-                build.cc("psimd/fft-block-mac.c"),
                 # Tuple GEMM
                 build.cc("psimd/blas/s4gemm.c"),
                 build.cc("psimd/blas/c4gemm.c"),
