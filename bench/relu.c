@@ -203,12 +203,25 @@ int main(int argc, char** argv) {
 	printf("Batch size: %zu\n", options.batch_size);
 	printf("Channels: %zu\n", options.channels);
 
-	const size_t cache_size = 128 * 1024 * 1024;
+	#ifdef __ANDROID__
+		const size_t cache_size = 4 * 1024 * 1024;
+	#else
+		const size_t cache_size = 128 * 1024 * 1024;
+	#endif
 	void* memory = NULL;
-	if (posix_memalign(&memory, 64, cache_size) != 0) {
-		fprintf(stderr, "Error: failed to allocate memory for cache flushing buffer\n");
-		exit(EXIT_FAILURE);
-	}
+	#if defined(__ANDROID__)
+		memory = memalign(64, cache_size);
+		if (memory == NULL) {
+			fprintf(stderr, "Error: failed to allocate memory for cache flushing buffer\n");
+			exit(EXIT_FAILURE);
+		}
+	#else
+		int allocation_result = posix_memalign(&memory_block, 64, memory_size);
+		if (posix_memalign(&memory, 64, cache_size) != 0) {
+			fprintf(stderr, "Error: failed to allocate memory for cache flushing buffer\n");
+			exit(EXIT_FAILURE);
+		}
+	#endif
 
 	const size_t layer_bytes = options.batch_size * options.channels * sizeof(float);
 	void* gradient = NULL;

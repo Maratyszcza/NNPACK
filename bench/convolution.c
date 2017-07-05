@@ -94,11 +94,19 @@ struct nnp_profile benchmark_convolution(
 			exit(EXIT_FAILURE);
 	}
 	if (memory_size != 0) {
-		int allocation_result = posix_memalign(&memory_block, 64, memory_size);
-		if (allocation_result != 0) {
-			fprintf(stderr, "Error: failed to allocate %zu bytes for workspace\n", memory_size);
-			exit(EXIT_FAILURE);
-		}
+		#if defined(__ANDROID__)
+			memory_block = memalign(64, memory_size);
+			if (memory_block == NULL) {
+				fprintf(stderr, "Error: failed to allocate %zu bytes for workspace\n", memory_size);
+				exit(EXIT_FAILURE);
+			}
+		#else
+			int allocation_result = posix_memalign(&memory_block, 64, memory_size);
+			if (allocation_result != 0) {
+				fprintf(stderr, "Error: failed to allocate %zu bytes for workspace\n", memory_size);
+				exit(EXIT_FAILURE);
+			}
+		#endif
 	}
 
 	for (size_t iteration = 0; iteration < max_iterations; iteration++) {
@@ -474,6 +482,11 @@ int main(int argc, char** argv) {
 			flops_per_element = 2.0;
 			printf("Algorithm: WT8x8\n");
 			break;
+		case nnp_convolution_algorithm_wt8x8_fp16:
+			tile_size = (struct nnp_size) { 8, 8 };
+			flops_per_element = 2.0;
+			printf("Algorithm: WT8x8 (FP16)\n");
+			break;
 		case nnp_convolution_algorithm_implicit_gemm:
 			tile_size = (struct nnp_size) { 1, 1 };
 			flops_per_element = 2.0 * kernel_size.height * kernel_size.width;
@@ -493,13 +506,25 @@ int main(int argc, char** argv) {
 		(output_size.height / output_tile_size.height + !!(output_size.height % output_tile_size.height)) *
 		(output_size.width / output_tile_size.width + !!(output_size.width % output_tile_size.width));
 
-	const size_t cache_size = 128 * 1024 * 1024;
+	#ifdef __ANDROID__
+		const size_t cache_size = 4 * 1024 * 1024;
+	#else
+		const size_t cache_size = 128 * 1024 * 1024;
+	#endif
 	void* memory = NULL;
-	if (posix_memalign(&memory, 64, cache_size) != 0) {
-		fprintf(stderr, "Error: failed to allocate memory for cache flushing buffer\n");
-		exit(EXIT_FAILURE);
-	}
-
+	#if defined(__ANDROID__)
+		memory = memalign(64, cache_size);
+		if (memory == NULL) {
+			fprintf(stderr, "Error: failed to allocate memory for cache flushing buffer\n");
+			exit(EXIT_FAILURE);
+		}
+	#else
+		int allocation_result = posix_memalign(&memory_block, 64, memory_size);
+		if (posix_memalign(&memory, 64, cache_size) != 0) {
+			fprintf(stderr, "Error: failed to allocate memory for cache flushing buffer\n");
+			exit(EXIT_FAILURE);
+		}
+	#endif
 	void* input = malloc(batch_size * input_channels * input_size.width * input_size.height * sizeof(float));
 	void* kernel = malloc(input_channels * output_channels * kernel_size.width * kernel_size.height * sizeof(float));
 	void* output = malloc(batch_size * output_channels * output_size.width * output_size.height * sizeof(float));

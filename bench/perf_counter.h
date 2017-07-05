@@ -7,7 +7,9 @@
 	#include <time.h>
 	#include <unistd.h>
 	#include <sys/ioctl.h>
-	#include <linux/perf_event.h>
+	#if !defined(__ANDROID__)
+		#include <linux/perf_event.h>
+	#endif
 #elif defined(__native_client__)
 	#include <sys/time.h>
 #elif defined(EMSCRIPTEN)
@@ -28,7 +30,7 @@ struct performance_counter {
 };
 
 static inline bool enable_perf_counter(int file_descriptor) {
-#if defined(__linux__) && defined(__x86_64__)
+#if defined(__linux__) && defined(__x86_64__) && !defined(__ANDROID__)
 	return ioctl(file_descriptor, PERF_EVENT_IOC_ENABLE, 0) == 0;
 #else
 	return true;
@@ -36,7 +38,7 @@ static inline bool enable_perf_counter(int file_descriptor) {
 }
 
 static inline bool disable_perf_counter(int file_descriptor) {
-#if defined(__linux__) && defined(__x86_64__)
+#if defined(__linux__) && defined(__x86_64__) && !defined(__ANDROID__)
 	return ioctl(file_descriptor, PERF_EVENT_IOC_DISABLE, 0) == 0;
 #else
 	return true;
@@ -44,11 +46,11 @@ static inline bool disable_perf_counter(int file_descriptor) {
 }
 
 static inline bool read_perf_counter(int file_descriptor, unsigned long long output[restrict static 1]) {
-#if defined(__linux__) && defined(__x86_64__)
+#if defined(__linux__) && defined(__x86_64__) && !defined(__ANDROID__)
 	return read(file_descriptor, output, sizeof(*output)) == sizeof(*output);
 #elif defined(EMSCRIPTEN) || (defined(__native_client__) && !defined(__x86_64__))
 	return false;
-#elif defined(__native_client__)
+#elif (defined(__native_client__) || defined(__ANDROID__)) && (defined(__x86_64__) || defined(__i386__))
 	unsigned int lo, hi;
 	asm volatile(
 		"XORL %%eax, %%eax;"

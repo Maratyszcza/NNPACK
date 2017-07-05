@@ -278,12 +278,25 @@ int main(int argc, char** argv) {
 	printf("Pooling: %zux%zu with %zux%zu stride\n",
 		pooling_size.height, pooling_size.width, pooling_stride.height, pooling_stride.width);
 
-	const size_t cache_size = 128 * 1024 * 1024;
+	#ifdef __ANDROID__
+		const size_t cache_size = 4 * 1024 * 1024;
+	#else
+		const size_t cache_size = 128 * 1024 * 1024;
+	#endif
 	void* memory = NULL;
-	if (posix_memalign(&memory, 64, cache_size) != 0) {
-		fprintf(stderr, "Error: failed to allocate memory for cache flushing buffer\n");
-		exit(EXIT_FAILURE);
-	}
+	#if defined(__ANDROID__)
+		memory = memalign(64, cache_size);
+		if (memory == NULL) {
+			fprintf(stderr, "Error: failed to allocate memory for cache flushing buffer\n");
+			exit(EXIT_FAILURE);
+		}
+	#else
+		int allocation_result = posix_memalign(&memory_block, 64, memory_size);
+		if (posix_memalign(&memory, 64, cache_size) != 0) {
+			fprintf(stderr, "Error: failed to allocate memory for cache flushing buffer\n");
+			exit(EXIT_FAILURE);
+		}
+	#endif
 
 	const size_t input_bytes = batch_size * channels * input_size.width * input_size.height * sizeof(float);
 	const size_t output_bytes = batch_size * channels * output_size.width * output_size.height * sizeof(float);

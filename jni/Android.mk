@@ -165,7 +165,7 @@ include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := bench_utils
-LOCAL_SRC_FILES := $(LOCAL_PATH)/bench/median.c
+LOCAL_SRC_FILES := $(LOCAL_PATH)/bench/median.c $(LOCAL_PATH)/bench/memread.c
 LOCAL_STATIC_LIBRARIES := nnpack
 LOCAL_CFLAGS := -std=gnu99
 include $(BUILD_STATIC_LIBRARY)
@@ -505,6 +505,34 @@ LOCAL_MODULE := softmax-output-imagenet-test
 LOCAL_SRC_FILES := $(LOCAL_PATH)/test/softmax-output/imagenet.cc
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/test
 LOCAL_STATIC_LIBRARIES := nnpack nnpack_reference gtest
+include $(BUILD_EXECUTABLE)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := convolution-benchmark
+LOCAL_SRC_FILES := $(LOCAL_PATH)/bench/convolution.c
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/bench
+LOCAL_STATIC_LIBRARIES := nnpack bench_utils
+include $(BUILD_EXECUTABLE)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := fully-connected-benchmark
+LOCAL_SRC_FILES := $(LOCAL_PATH)/bench/fully-connected.c
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/bench
+LOCAL_STATIC_LIBRARIES := nnpack bench_utils
+include $(BUILD_EXECUTABLE)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := relu-benchmark
+LOCAL_SRC_FILES := $(LOCAL_PATH)/bench/relu.c
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/bench
+LOCAL_STATIC_LIBRARIES := nnpack bench_utils
+include $(BUILD_EXECUTABLE)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := pooling-benchmark
+LOCAL_SRC_FILES := $(LOCAL_PATH)/bench/pooling.c
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/bench
+LOCAL_STATIC_LIBRARIES := nnpack bench_utils
 include $(BUILD_EXECUTABLE)
 
 $(call import-module,android/cpufeatures)
