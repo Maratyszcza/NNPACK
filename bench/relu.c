@@ -216,7 +216,6 @@ int main(int argc, char** argv) {
 			exit(EXIT_FAILURE);
 		}
 	#else
-		int allocation_result = posix_memalign(&memory_block, 64, memory_size);
 		if (posix_memalign(&memory, 64, cache_size) != 0) {
 			fprintf(stderr, "Error: failed to allocate memory for cache flushing buffer\n");
 			exit(EXIT_FAILURE);
