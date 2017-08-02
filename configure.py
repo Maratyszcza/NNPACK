@@ -102,7 +102,7 @@ def main(args):
             ]
         elif backend == "arm":
             from confu import arm
-            with build.options(isa=arm.neon if options.target.is_arm else None):
+            with build.options(isa=arm.neon+arm.fp16 if options.target.is_arm else None):
                 arch_nnpack_objects = [
                     # Transformations
                     build.cc("psimd/2d-fourier-8x8.c"),
@@ -214,9 +214,11 @@ def main(args):
                     build.cc("psimd/winograd-f6k3.c"),
                 ]
             else:
-                arch_winograd_stub_objects = [
-                    build.cc("neon/winograd-f6k3.c"),
-                ]
+                # ARM NEON Winograd transform optionally uses FP16 storage
+                with build.options(isa=arm.neon+arm.fp16 if options.target.is_arm else None):
+                    arch_winograd_stub_objects = [
+                        build.cc("neon/winograd-f6k3.c"),
+                    ]
 
             arch_math_stub_objects = [
                 build.cc("psimd/exp.c"),
