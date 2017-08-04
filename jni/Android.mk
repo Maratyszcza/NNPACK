@@ -106,6 +106,7 @@ endif # TARGET_ARCH_ABI is x86, x86-64, armeabi-v7a, or arm64-v8a
 LOCAL_CFLAGS := -std=gnu99 -D__STDC_CONSTANT_MACROS=1
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 LOCAL_ARM_NEON := true
+LOCAL_CFLAGS += -mfpu=neon-fp16
 endif # TARGET_ARCH_ABI == armeabi-v7a
 include $(BUILD_STATIC_LIBRARY)
 
