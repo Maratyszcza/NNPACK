@@ -1,0 +1,31 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 3.2 FATAL_ERROR)
+
+FUNCTION(BUILD_PTHREADPOOL)
+  INCLUDE(ExternalProject)
+  SET(BUILD_GTEST ON CACHE BOOL "" FORCE)
+  SET(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+  ExternalProject_Add(pthreadpool_external
+    GIT_REPOSITORY https://github.com/Maratyszcza/pthreadpool.git
+    GIT_TAG master
+    INSTALL_COMMAND ""
+    BUILD_BYPRODUCTS <BINARY_DIR>/libpthreadpool.a
+  )
+
+  ADD_LIBRARY(pthreadpool UNKNOWN IMPORTED)
+  ADD_DEPENDENCIES(pthreadpool pthreadpool_external)
+
+  ExternalProject_Get_Property(pthreadpool_external source_dir)
+  SET(PTHREADPOOL_INCLUDE_DIRS ${source_dir}/include PARENT_SCOPE)
+
+  ExternalProject_Get_Property(pthreadpool_external binary_dir)
+  SET_TARGET_PROPERTIES(pthreadpool PROPERTIES IMPORTED_LOCATION ${binary_dir}/libpthreadpool.a)
+
+  SET(PTHREADPOOL_FOUND TRUE PARENT_SCOPE)
+  SET(PTHREADPOOL_LIBRARIES pthreadpool PARENT_SCOPE)
+
+  MARK_AS_ADVANCED(FORCE PTHREADPOOL_FOUND)
+  MARK_AS_ADVANCED(FORCE PTHREADPOOL_INCLUDE_DIRS)
+  MARK_AS_ADVANCED(FORCE PTHREADPOOL_LIBRARIES)
+ENDFUNCTION(BUILD_PTHREADPOOL)
+
+BUILD_PTHREADPOOL()
