@@ -151,7 +151,7 @@ Binary packages need to distribute two files: `include/nnpack.h` and `lib/libnnp
 ### Deep Learning Frameworks
 - [Caffe2](http://caffe2.ai) natively supports NNPACK
 - [MXNet](http://mxnet.io) - supports NNPACK for inference in convolutional layers, fully-connected, and max-pooling layers. See [MXNet wiki](https://mxnet.incubator.apache.org/how_to/nnpack.html) for configuration instructions and performance benchmarks).
-- [PyTorch](http://pytorch.org/) - integration with NNPACK is implemented in [PR #2826](https://github.com/pytorch/pytorch/pull/2826)
+- [PyTorch](http://pytorch.org/) - supports NNPACK as an optional dependency.
 - [tiny-dnn](https://github.com/tiny-dnn/tiny-dnn) - header-only deep learning framework in C++11, which natively supports NNPACK.
 - [darknet-nnpack](https://github.com/thomaspark-pkj/darknet-nnpack) - fork of [Darknet](https://pjreddie.com/darknet/) framework with NNPACK support.
 - [szagoruyko/nnpack.torch](https://github.com/szagoruyko/nnpack.torch) - integration of NNPACK into Lua Torch via ffi
