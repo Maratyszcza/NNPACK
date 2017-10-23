@@ -188,7 +188,7 @@ static void print_options_help(const char* program_name) {
 "  -a   --algorithm          The algorithm (auto, ft8x8, ft16x16, wt8x8, implicit-gemm, or direct) for computing convolution (default: auto)\n"
 "  -b   --batch              The size of a minibatch (default: 1)\n"
 "       --output-subsampling The size of a output subsampling region (default: 1x1)\n"
-"  -ip  --padding            Implicit input padding (default: 0)\n"
+"  -ip  --input-padding      Implicit input padding (default: 0)\n"
 "  -t   --threads            The number of threads (default: all; 0 to disable threadpool)\n"
 "  -i   --iterations         # iterations (default: 3)\n",
 		program_name);
@@ -321,11 +321,11 @@ static struct options parse_options(int argc, char** argv) {
 				exit(EXIT_FAILURE);
 			}
 			if (sscanf(argv[argi + 2], "%zu", &options.output_subsampling.width) != 1) {
-				fprintf(stderr, "Error: can not parse %s as an unsigned integer\n", argv[argi + 1]);
+				fprintf(stderr, "Error: can not parse %s as an unsigned integer\n", argv[argi + 2]);
 				exit(EXIT_FAILURE);
 			}
 			if (options.output_subsampling.width == 0) {
-				fprintf(stderr, "Error: invalid value %s for the output subsampling width: positive value expected\n", argv[argi + 1]);
+				fprintf(stderr, "Error: invalid value %s for the output subsampling width: positive value expected\n", argv[argi + 2]);
 				exit(EXIT_FAILURE);
 			}
 			argi += 2;
