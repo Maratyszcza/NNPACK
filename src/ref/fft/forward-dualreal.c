@@ -231,8 +231,8 @@ void nnp_fft32_dualreal__ref(const float t[restrict static 32], float f[restrict
 	f[30] = crealf(x15);
 	f[31] = crealf(h15);
 
-	f[32] = x8;
-	f[33] = h8;
+	f[32] = x16;
+	f[33] = h16;
 	f[34] = cimagf(x1);
 	f[35] = cimagf(h1);
 	f[36] = cimagf(x2);
