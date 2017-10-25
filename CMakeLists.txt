@@ -8,6 +8,7 @@ PROJECT(NNPACK LANGUAGES C CXX)
 # ---[ Options.
 SET(NNPACK_BACKEND "auto" CACHE STRING "Backend for micro-kernels implementation")
 SET_PROPERTY(CACHE NNPACK_BACKEND PROPERTY STRINGS auto psimd scalar)
+OPTION(NNPACK_CUSTOM_THREADPOOL "Build NNPACK for custom thread pool" OFF)
 OPTION(NNPACK_BUILD_TESTS "Build NNPACK unit tests" ON)
 
 # ---[ CMake options
@@ -310,7 +311,13 @@ IF(NOT TARGET pthreadpool)
     "${CONFU_DEPENDENCIES_SOURCE_DIR}/pthreadpool"
     "${CONFU_DEPENDENCIES_BINARY_DIR}/pthreadpool")
 ENDIF()
-TARGET_LINK_LIBRARIES(nnpack PUBLIC pthreadpool)
+IF(NNPACK_CUSTOM_THREADPOOL)
+  # Depend on pthreadpool interface, but not on implementation.
+  # This is used when NNPACK user (e.g. Caffe2) provides its own threadpool implementation.
+  TARGET_LINK_LIBRARIES(nnpack PUBLIC pthreadpool_interface)
+ELSE()
+  TARGET_LINK_LIBRARIES(nnpack PUBLIC pthreadpool)
+ENDIF()
 TARGET_LINK_LIBRARIES(nnpack_reference_layers PUBLIC pthreadpool)
 
 # ---[ Configure FXdiv
