@@ -125,7 +125,7 @@ IF(NOT TARGET gtest)
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/googletest-download")
 ENDIF()
 
-# ---[ cpuinfo library
+# ---[ NNPACK library
 SET(NNPACK_SRCS
   src/init.c
   src/convolution-inference.c
