@@ -11,7 +11,6 @@ SET_PROPERTY(CACHE NNPACK_BACKEND PROPERTY STRINGS auto psimd scalar)
 OPTION(NNPACK_BUILD_TESTS "Build NNPACK unit tests" ON)
 
 # ---[ CMake options
-LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 IF(NNPACK_BUILD_TESTS)
   ENABLE_TESTING()
 ENDIF()
@@ -46,8 +45,6 @@ IF(NNPACK_BACKEND STREQUAL "auto")
   ENDIF()
 ENDIF()
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
-
 # ---[ Download deps
 SET(CONFU_DEPENDENCIES_SOURCE_DIR ${CMAKE_SOURCE_DIR}/deps
   CACHE PATH "Confu-style dependencies source directory")
@@ -55,25 +52,25 @@ SET(CONFU_DEPENDENCIES_BINARY_DIR ${CMAKE_BINARY_DIR}/deps
   CACHE PATH "Confu-style dependencies binary directory")
 
 IF(NNPACK_BACKEND STREQUAL "x86-64")
-  CONFIGURE_FILE(cmake/DownloadSix.cmake six-download/CMakeLists.txt)
+  CONFIGURE_FILE(cmake/DownloadSix.cmake "${CMAKE_BINARY_DIR}/six-download/CMakeLists.txt")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/six-download")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/six-download")
 
-  CONFIGURE_FILE(cmake/DownloadEnum.cmake six-download/CMakeLists.txt)
+  CONFIGURE_FILE(cmake/DownloadEnum.cmake "${CMAKE_BINARY_DIR}/enum-download/CMakeLists.txt")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/enum-download")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/enum-download")
 
-  CONFIGURE_FILE(cmake/DownloadOpcodes.cmake opcodes-download/CMakeLists.txt)
+  CONFIGURE_FILE(cmake/DownloadOpcodes.cmake "${CMAKE_BINARY_DIR}/opcodes-download/CMakeLists.txt")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/opcodes-download")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/opcodes-download")
 
-  CONFIGURE_FILE(cmake/DownloadPeachPy.cmake peachpy-download/CMakeLists.txt)
+  CONFIGURE_FILE(cmake/DownloadPeachPy.cmake "${CMAKE_BINARY_DIR}/peachpy-download/CMakeLists.txt")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/peachpy-download")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
@@ -81,7 +78,7 @@ IF(NNPACK_BACKEND STREQUAL "x86-64")
 ENDIF()
 
 IF(NOT TARGET fp16)
-  CONFIGURE_FILE(cmake/DownloadFP16.cmake fp16-download/CMakeLists.txt)
+  CONFIGURE_FILE(cmake/DownloadFP16.cmake "${CMAKE_BINARY_DIR}/fp16-download/CMakeLists.txt")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/fp16-download")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
@@ -89,7 +86,7 @@ IF(NOT TARGET fp16)
 ENDIF()
 
 IF(NOT TARGET fxdiv)
-  CONFIGURE_FILE(cmake/DownloadFXdiv.cmake fxdiv-download/CMakeLists.txt)
+  CONFIGURE_FILE(cmake/DownloadFXdiv.cmake "${CMAKE_BINARY_DIR}/fxdiv-download/CMakeLists.txt")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/fxdiv-download")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
@@ -97,7 +94,7 @@ IF(NOT TARGET fxdiv)
 ENDIF()
 
 IF(NOT TARGET psimd)
-  CONFIGURE_FILE(cmake/DownloadPSimd.cmake psimd-download/CMakeLists.txt)
+  CONFIGURE_FILE(cmake/DownloadPSimd.cmake "${CMAKE_BINARY_DIR}/psimd-download/CMakeLists.txt")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/psimd-download")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
@@ -105,7 +102,7 @@ IF(NOT TARGET psimd)
 ENDIF()
 
 IF(NOT TARGET pthreadpool)
-  CONFIGURE_FILE(cmake/DownloadPThreadPool.cmake pthreadpool-download/CMakeLists.txt)
+  CONFIGURE_FILE(cmake/DownloadPThreadPool.cmake "${CMAKE_BINARY_DIR}/pthreadpool-download/CMakeLists.txt")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/pthreadpool-download")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
@@ -113,7 +110,7 @@ IF(NOT TARGET pthreadpool)
 ENDIF()
 
 IF(NOT TARGET gtest)
-  CONFIGURE_FILE(cmake/DownloadGoogleTest.cmake googletest-download/CMakeLists.txt)
+  CONFIGURE_FILE(cmake/DownloadGoogleTest.cmake "${CMAKE_BINARY_DIR}/googletest-download/CMakeLists.txt")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/googletest-download")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
@@ -296,7 +293,7 @@ ENDIF()
 SET_TARGET_PROPERTIES(nnpack PROPERTIES PUBLIC_HEADER include/nnpack.h)
 
 ADD_LIBRARY(nnpack_reference_layers ${NNPACK_REFERENCE_LAYERS_SRCS})
-TARGET_INCLUDE_DIRECTORIES(nnpack PUBLIC include)
+TARGET_INCLUDE_DIRECTORIES(nnpack_reference_layers PUBLIC include)
 
 # ---[ Configure pthreadpool
 IF(NOT TARGET pthreadpool)
