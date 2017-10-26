@@ -53,6 +53,15 @@ IF(NNPACK_BACKEND STREQUAL "auto")
   ENDIF()
 ENDIF()
 
+IF(NNPACK_BACKEND STREQUAL "x86-64")
+  # ---[ We need a Python interpreter to build PeachPy sources for x86-64
+  FIND_PACKAGE(PythonInterp)
+  IF(NOT PYTHONINTERP_FOUND)
+    MESSAGE(STATUS "Python interpreter not found; and PeachPy sources for x86-64 backend can't be built without it. Fall back to PSIMD backend")
+    SET(NNPACK_BACKEND "psimd")
+  ENDIF()
+ENDIF()
+
 # ---[ Download deps
 SET(CONFU_DEPENDENCIES_SOURCE_DIR ${CMAKE_SOURCE_DIR}/deps
   CACHE PATH "Confu-style dependencies source directory")
@@ -66,11 +75,14 @@ IF(NNPACK_BACKEND STREQUAL "x86-64")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/six-download")
 
-  CONFIGURE_FILE(cmake/DownloadEnum.cmake "${CMAKE_BINARY_DIR}/enum-download/CMakeLists.txt")
-  EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/enum-download")
-  EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/enum-download")
+  IF(${PYTHON_VERSION_STRING} VERSION_LESS 3.4)
+    # ---[ Python < 3.4 does not natively support enums, and needs a polyfill
+    CONFIGURE_FILE(cmake/DownloadEnum.cmake "${CMAKE_BINARY_DIR}/enum-download/CMakeLists.txt")
+    EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
+      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/enum-download")
+    EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
+      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/enum-download")
+  ENDIF()
 
   CONFIGURE_FILE(cmake/DownloadOpcodes.cmake "${CMAKE_BINARY_DIR}/opcodes-download/CMakeLists.txt")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
@@ -273,7 +285,7 @@ IF(NNPACK_BACKEND STREQUAL "x86-64")
       ADD_CUSTOM_COMMAND(
         OUTPUT ${obj}
         COMMAND PYTHONPATH=${CONFU_DEPENDENCIES_SOURCE_DIR}/six:${CONFU_DEPENDENCIES_SOURCE_DIR}/enum:${CONFU_DEPENDENCIES_SOURCE_DIR}/peachpy
-          python -m peachpy.x86_64
+          ${PYTHON_EXECUTABLE} -m peachpy.x86_64
             -mabi=sysv -g4 -mimage-format=${PEACHPY_IMAGE_FORMAT}
             "-I${PROJECT_SOURCE_DIR}/src" "-I${PROJECT_SOURCE_DIR}/src/x86_64-fma" "-I${CONFU_DEPENDENCIES_SOURCE_DIR}/fp16/include"
             -o ${obj} "${PROJECT_SOURCE_DIR}/${src}"
