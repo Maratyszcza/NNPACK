@@ -21,7 +21,7 @@ static inline void vst1q_f32_aligned(float* address, float32x4_t vector) {
 	vst1q_f32((float*) __builtin_assume_aligned(address, sizeof(float32x4_t)), vector);
 }
 
-#if defined(__aarch64__) || (defined(__ARM_FP) && (__ARM_FP & 2))
+#if defined(__aarch64__) || (defined(__ARM_NEON_FP) && (__ARM_NEON_FP & 2))
 	#ifdef __clang__
 		static inline float32x4_t vld1q_f32_f16(const void* address) {
 			return vcvt_f32_f16(vld1_f16((const __fp16*) address));
