@@ -125,7 +125,7 @@ public:
 		for (size_t iteration = 0; iteration < iterations(); iteration++) {
 			std::generate(input.begin(), input.end(), std::ref(rng));
 			std::generate(kernel.begin(), kernel.end(), std::ref(rng));
-			std::fill(output.begin(), output.end(), std::nanf(""));
+			std::fill(output.begin(), output.end(), nanf(""));
 
 			nnp_fully_connected_output_f32__reference(
 				batchSize(), inputChannels(), outputChannels(),
@@ -159,7 +159,7 @@ public:
 		for (size_t iteration = 0; iteration < iterations(); iteration++) {
 			std::generate(input.begin(), input.end(), std::ref(rng));
 			std::generate(kernel.begin(), kernel.end(), std::ref(rng));
-			std::fill(output.begin(), output.end(), std::nanf(""));
+			std::fill(output.begin(), output.end(), nanf(""));
 
 			nnp_fully_connected_output_f32__reference(
 				1, inputChannels(), outputChannels(),
@@ -194,7 +194,7 @@ public:
 			std::generate(input.begin(), input.end(), std::ref(rng));
 			std::generate(kernel.begin(), kernel.end(),
 				[&rng]{ return fp16_alt_from_fp32_value(rng()); });
-			std::fill(output.begin(), output.end(), std::nanf(""));
+			std::fill(output.begin(), output.end(), nanf(""));
 
 			nnp_fully_connected_output_f16f32__reference(
 				1, inputChannels(), outputChannels(),

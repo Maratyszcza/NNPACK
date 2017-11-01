@@ -211,7 +211,7 @@ public:
 			std::generate(input.begin(), input.end(), std::ref(rng));
 			std::generate(kernel.begin(), kernel.end(), std::ref(rng));
 			std::generate(bias.begin(), bias.end(), std::ref(rng));
-			std::fill(output.begin(), output.end(), std::nanf(""));
+			std::fill(output.begin(), output.end(), nanf(""));
 
 			nnp_convolution_output__reference(
 				batchSize(), inputChannels(), outputChannels(),
@@ -263,7 +263,7 @@ public:
 		for (size_t iteration = 0; iteration < iterations(); iteration++) {
 			std::generate(outputGradient.begin(), outputGradient.end(), std::ref(rng));
 			std::generate(kernel.begin(), kernel.end(), std::ref(rng));
-			std::fill(inputGradient.begin(), inputGradient.end(), std::nanf(""));
+			std::fill(inputGradient.begin(), inputGradient.end(), nanf(""));
 
 			nnp_convolution_input_gradient__reference(
 				batchSize(), inputChannels(), outputChannels(),
@@ -301,7 +301,7 @@ public:
 		for (size_t iteration = 0; iteration < iterations(); iteration++) {
 			std::generate(input.begin(), input.end(), std::ref(rng));
 			std::generate(outputGradient.begin(), outputGradient.end(), std::ref(rng));
-			std::fill(kernelGradient.begin(), kernelGradient.end(), std::nanf(""));
+			std::fill(kernelGradient.begin(), kernelGradient.end(), nanf(""));
 
 			nnp_convolution_kernel_gradient__reference(
 				batchSize(), inputChannels(), outputChannels(),
@@ -345,7 +345,7 @@ public:
 			std::generate(input.begin(), input.end(), std::ref(rng));
 			std::generate(kernel.begin(), kernel.end(), std::ref(rng));
 			std::generate(bias.begin(), bias.end(), std::ref(rng));
-			std::fill(output.begin(), output.end(), std::nanf(""));
+			std::fill(output.begin(), output.end(), nanf(""));
 
 			nnp_convolution_output__reference(
 				1, inputChannels(), outputChannels(),
