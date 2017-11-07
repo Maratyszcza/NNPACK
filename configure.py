@@ -5,6 +5,12 @@ import confu
 parser = confu.standard_parser()
 parser.add_argument("--backend", dest="backend", default="auto",
                     choices=["auto", "psimd", "scalar"])
+parser.add_argument("--inference-only", dest="inference_only", default=False,
+                    action="store_true",
+                    help="Build only inference/forward pass functions to reduce library size")
+parser.add_argument("--convolution-only", dest="convolution_only", default=False,
+                    action="store_true",
+                    help="Build only convolution functions to reduce library size")
 
 
 def main(args):
@@ -23,15 +29,19 @@ def main(args):
 
     build = confu.Build.from_options(options)
 
-    macro = None
+    macros = dict()
     if backend == "psimd":
-        macro = "NNP_BACKEND_PSIMD"
+        macros["NNP_BACKEND_PSIMD"] = 1
     if backend == "scalar":
-        macro = "NNP_BACKEND_SCALAR"
+        macros["NNP_BACKEND_SCALAR"] = 1
+    export_macros = dict()
+    export_macros["NNP_CONVOLUTION_ONLY"] = int(options.convolution_only)
+    export_macros["NNP_INFERENCE_ONLY"] = int(options.inference_only)
+    macros.update(export_macros)
 
     build.export_cpath("include", ["nnpack.h"])
 
-    with build.options(source_dir="src", macros=macro,
+    with build.options(source_dir="src", macros=macros,
             deps={
                 (build.deps.pthreadpool, build.deps.fxdiv, build.deps.fp16): any,
                 build.deps.psimd: backend == "psimd" or backend == "arm",
@@ -43,17 +53,30 @@ def main(args):
 
         nnpack_objects = [
             build.cc("init.c"),
-            build.cc("convolution-output.c"),
-            build.cc("convolution-input-gradient.c"),
-            build.cc("convolution-kernel-gradient.c"),
             build.cc("convolution-inference.c"),
-            build.cc("fully-connected-output.c"),
-            build.cc("fully-connected-inference.c"),
-            build.cc("pooling-output.c"),
-            build.cc("softmax-output.c"),
-            build.cc("relu-output.c"),
-            build.cc("relu-input-gradient.c"),
         ]
+        if not options.convolution_only:
+            # Fully-connected, pooling, Softmax, ReLU layers
+            nnpack_objects += [
+                build.cc("fully-connected-inference.c"),
+                build.cc("pooling-output.c"),
+                build.cc("softmax-output.c"),
+                build.cc("relu-output.c"),
+            ]
+            if not options.inference_only:
+                # Training functions for fully-connected and ReLU layers
+                nnpack_objects += [
+                    build.cc("fully-connected-output.c"),
+                    build.cc("relu-input-gradient.c"),
+                ]
+
+        if not options.inference_only:
+            # Training functions for convolutional layer
+            nnpack_objects += [
+                build.cc("convolution-output.c"),
+                build.cc("convolution-input-gradient.c"),
+                build.cc("convolution-kernel-gradient.c"),
+            ]
 
         if backend == "x86_64":
             arch_nnpack_objects = [
@@ -61,12 +84,6 @@ def main(args):
                 build.peachpy("x86_64-fma/2d-fourier-8x8.py"),
                 build.peachpy("x86_64-fma/2d-fourier-16x16.py"),
                 build.peachpy("x86_64-fma/2d-winograd-8x8-3x3.py"),
-                # Pooling
-                build.peachpy("x86_64-fma/max-pooling.py"),
-                # ReLU and Softmax
-                build.peachpy("x86_64-fma/relu.py"),
-                build.peachpy("x86_64-fma/softmax.py"),
-                build.cc("x86_64-fma/softmax.c"),
                 # Tuple GEMM
                 build.peachpy("x86_64-fma/blas/s8gemm.py"),
                 build.peachpy("x86_64-fma/blas/c8gemm.py"),
@@ -75,31 +92,49 @@ def main(args):
                 build.peachpy("x86_64-fma/blas/conv1x1.py"),
                 # BLAS microkernels
                 build.peachpy("x86_64-fma/blas/sgemm.py"),
-                build.peachpy("x86_64-fma/blas/sdotxf.py"),
-                build.peachpy("x86_64-fma/blas/shdotxf.py"),
             ]
+            if not options.convolution_only:
+                arch_nnpack_objects += [
+                    # Activations
+                    build.peachpy("x86_64-fma/softmax.py"),
+                    build.cc("x86_64-fma/softmax.c"),
+                    build.peachpy("x86_64-fma/relu.py"),
+                    # Pooling
+                    build.peachpy("x86_64-fma/max-pooling.py"),
+                    # BLAS microkernels
+                    build.peachpy("x86_64-fma/blas/sdotxf.py"),
+                    build.peachpy("x86_64-fma/blas/shdotxf.py"),
+                ]
         elif backend == "scalar":
             arch_nnpack_objects = [
                 # Transformations
                 build.cc("scalar/2d-fourier-8x8.c"),
                 build.cc("scalar/2d-fourier-16x16.c"),
                 build.cc("scalar/2d-winograd-8x8-3x3.c"),
-                # ReLU and Softmax
-                build.cc("scalar/relu.c"),
-                build.cc("scalar/softmax.c"),
                 # Tuple GEMM
                 build.cc("scalar/blas/s2gemm.c"),
-                build.cc("scalar/blas/s2gemm-transc.c"),
-                build.cc("scalar/blas/cgemm.c"),
                 build.cc("scalar/blas/cgemm-conjb.c"),
-                build.cc("scalar/blas/cgemm-conjb-transc.c"),
                 # Direct convolution
                 build.cc("scalar/blas/conv1x1.c"),
                 # BLAS microkernels
                 build.cc("scalar/blas/sgemm.c"),
-                build.cc("scalar/blas/sdotxf.c"),
-                build.cc("scalar/blas/shdotxf.c"),
             ]
+            if not options.inference_only:
+                arch_nnpack_objects += [
+                    # Tuple GEMM
+                    build.cc("scalar/blas/s2gemm-transc.c"),
+                    build.cc("scalar/blas/cgemm.c"),
+                    build.cc("scalar/blas/cgemm-conjb-transc.c"),
+                ]
+            if not options.convolution_only:
+                arch_nnpack_objects += [
+                    # Activations
+                    build.cc("scalar/relu.c"),
+                    build.cc("scalar/softmax.c"),
+                    # BLAS microkernels
+                    build.cc("scalar/blas/sdotxf.c"),
+                    build.cc("scalar/blas/shdotxf.c"),
+                ]
         elif backend == "arm":
             from confu import arm
             with build.options(isa=arm.neon+arm.fp16 if options.target.is_arm else None):
@@ -107,52 +142,69 @@ def main(args):
                     # Transformations
                     build.cc("psimd/2d-fourier-8x8.c"),
                     build.cc("psimd/2d-fourier-16x16.c"),
-                    build.cc("psimd/2d-winograd-8x8-3x3.c"),
                     build.cc("neon/2d-winograd-8x8-3x3.c"),
                     build.cc("neon/2d-winograd-8x8-3x3-fp16.c"),
-                    # ReLU and Softmax
-                    build.cc("neon/relu.c"),
-                    build.cc("psimd/softmax.c"),
                     # Tuple GEMM
                     build.cc("neon/blas/h4gemm.c"),
                     build.cc("neon/blas/s4gemm.c"),
-                    build.cc("neon/blas/c4gemm.c"),
-                    build.cc("neon/blas/s4c2gemm.c"),
                     build.cc("neon/blas/c4gemm-conjb.c"),
                     build.cc("neon/blas/s4c2gemm-conjb.c"),
-                    build.cc("neon/blas/c4gemm-conjb-transc.c"),
-                    build.cc("neon/blas/s4c2gemm-conjb-transc.c"),
                     # Direct convolution
                     build.cc("neon/blas/conv1x1.c"),
                     # BLAS microkernels
                     build.cc("neon/blas/sgemm.c"),
-                    build.cc("neon/blas/sdotxf.c"),
-                    build.cc("psimd/blas/shdotxf.c"),
                 ]
+                if not options.inference_only:
+                    arch_nnpack_objects += [
+                        # Transformations
+                        build.cc("psimd/2d-winograd-8x8-3x3.c"),
+                        # Tuple GEMM
+                        build.cc("neon/blas/c4gemm.c"),
+                        build.cc("neon/blas/s4c2gemm.c"),
+                        build.cc("neon/blas/c4gemm-conjb-transc.c"),
+                        build.cc("neon/blas/s4c2gemm-conjb-transc.c"),
+                    ]
+                if not options.convolution_only:
+                    arch_nnpack_objects += [
+                        # ReLU and Softmax
+                        build.cc("neon/relu.c"),
+                        build.cc("psimd/softmax.c"),
+                        # BLAS microkernels
+                        build.cc("neon/blas/sdotxf.c"),
+                        build.cc("psimd/blas/shdotxf.c"),
+                    ]
         elif backend == "psimd":
             arch_nnpack_objects = [
                 # Transformations
                 build.cc("psimd/2d-fourier-8x8.c"),
                 build.cc("psimd/2d-fourier-16x16.c"),
                 build.cc("psimd/2d-winograd-8x8-3x3.c"),
-                # ReLU and Softmax
-                build.cc("psimd/relu.c"),
-                build.cc("psimd/softmax.c"),
                 # Tuple GEMM
                 build.cc("psimd/blas/s4gemm.c"),
-                build.cc("psimd/blas/c4gemm.c"),
-                build.cc("psimd/blas/s4c2gemm.c"),
                 build.cc("psimd/blas/c4gemm-conjb.c"),
                 build.cc("psimd/blas/s4c2gemm-conjb.c"),
-                build.cc("psimd/blas/c4gemm-conjb-transc.c"),
-                build.cc("psimd/blas/s4c2gemm-conjb-transc.c"),
                 # Direct convolution
                 build.cc("psimd/blas/conv1x1.c"),
                 # BLAS microkernels
                 build.cc("psimd/blas/sgemm.c"),
-                build.cc("psimd/blas/sdotxf.c"),
-                build.cc("psimd/blas/shdotxf.c"),
             ]
+            if not options.inference_only:
+                arch_nnpack_objects += [
+                    # Tuple GEMM
+                    build.cc("psimd/blas/c4gemm.c"),
+                    build.cc("psimd/blas/s4c2gemm.c"),
+                    build.cc("psimd/blas/c4gemm-conjb-transc.c"),
+                    build.cc("psimd/blas/s4c2gemm-conjb-transc.c"),
+                ]
+            if not options.convolution_only:
+                arch_nnpack_objects += [
+                    # Activations
+                    build.cc("psimd/relu.c"),
+                    build.cc("psimd/softmax.c"),
+                    # BLAS microkernels
+                    build.cc("psimd/blas/sdotxf.c"),
+                    build.cc("psimd/blas/shdotxf.c"),
+                ]
 
         reference_layer_objects = [
             build.cc("ref/convolution-output.c"),
@@ -277,32 +329,33 @@ def main(args):
                 "rt": build.target.is_linux
             }):
 
-        build.smoketest("convolution-output-smoketest",
-            reference_layer_objects + [build.cxx("convolution-output/smoke.cc")])
-        build.unittest("convolution-output-alexnet-test",
-            reference_layer_objects + [build.cxx("convolution-output/alexnet.cc")])
-        build.unittest("convolution-output-vgg-a-test",
-            reference_layer_objects + [build.cxx("convolution-output/vgg-a.cc")])
-        build.unittest("convolution-output-overfeat-fast-test",
-            reference_layer_objects + [build.cxx("convolution-output/overfeat-fast.cc")])
+        if not options.inference_only:
+            build.smoketest("convolution-output-smoketest",
+                reference_layer_objects + [build.cxx("convolution-output/smoke.cc")])
+            build.unittest("convolution-output-alexnet-test",
+                reference_layer_objects + [build.cxx("convolution-output/alexnet.cc")])
+            build.unittest("convolution-output-vgg-a-test",
+                reference_layer_objects + [build.cxx("convolution-output/vgg-a.cc")])
+            build.unittest("convolution-output-overfeat-fast-test",
+                reference_layer_objects + [build.cxx("convolution-output/overfeat-fast.cc")])
 
-        build.smoketest("convolution-input-gradient-smoketest",
-            reference_layer_objects + [build.cxx("convolution-input-gradient/smoke.cc")])
-        build.unittest("convolution-input-gradient-alexnet-test",
-            reference_layer_objects + [build.cxx("convolution-input-gradient/alexnet.cc")])
-        build.unittest("convolution-input-gradient-vgg-a-test",
-            reference_layer_objects + [build.cxx("convolution-input-gradient/vgg-a.cc")])
-        build.unittest("convolution-input-gradient-overfeat-fast-test",
-            reference_layer_objects + [build.cxx("convolution-input-gradient/overfeat-fast.cc")])
+            build.smoketest("convolution-input-gradient-smoketest",
+                reference_layer_objects + [build.cxx("convolution-input-gradient/smoke.cc")])
+            build.unittest("convolution-input-gradient-alexnet-test",
+                reference_layer_objects + [build.cxx("convolution-input-gradient/alexnet.cc")])
+            build.unittest("convolution-input-gradient-vgg-a-test",
+                reference_layer_objects + [build.cxx("convolution-input-gradient/vgg-a.cc")])
+            build.unittest("convolution-input-gradient-overfeat-fast-test",
+                reference_layer_objects + [build.cxx("convolution-input-gradient/overfeat-fast.cc")])
 
-        build.smoketest("convolution-kernel-gradient-smoketest",
-            reference_layer_objects + [build.cxx("convolution-kernel-gradient/smoke.cc")])
-        build.unittest("convolution-kernel-gradient-alexnet-test",
-            reference_layer_objects + [build.cxx("convolution-kernel-gradient/alexnet.cc")])
-        build.unittest("convolution-kernel-gradient-vgg-a-test",
-            reference_layer_objects + [build.cxx("convolution-kernel-gradient/vgg-a.cc")])
-        build.unittest("convolution-kernel-gradient-overfeat-fast-test",
-            reference_layer_objects + [build.cxx("convolution-kernel-gradient/overfeat-fast.cc")])
+            build.smoketest("convolution-kernel-gradient-smoketest",
+                reference_layer_objects + [build.cxx("convolution-kernel-gradient/smoke.cc")])
+            build.unittest("convolution-kernel-gradient-alexnet-test",
+                reference_layer_objects + [build.cxx("convolution-kernel-gradient/alexnet.cc")])
+            build.unittest("convolution-kernel-gradient-vgg-a-test",
+                reference_layer_objects + [build.cxx("convolution-kernel-gradient/vgg-a.cc")])
+            build.unittest("convolution-kernel-gradient-overfeat-fast-test",
+                reference_layer_objects + [build.cxx("convolution-kernel-gradient/overfeat-fast.cc")])
 
         build.smoketest("convolution-inference-smoketest",
             reference_layer_objects + [build.cxx("convolution-inference/smoke.cc")])
@@ -313,75 +366,80 @@ def main(args):
         build.unittest("convolution-inference-overfeat-fast-test",
             reference_layer_objects + [build.cxx("convolution-inference/overfeat-fast.cc")])
 
-        build.smoketest("fully-connected-output-smoketest",
-            reference_layer_objects + [build.cxx("fully-connected-output/smoke.cc")])
-        build.unittest("fully-connected-output-alexnet-test",
-            reference_layer_objects + [build.cxx("fully-connected-output/alexnet.cc")])
-        build.unittest("fully-connected-output-vgg-a-test",
-            reference_layer_objects + [build.cxx("fully-connected-output/vgg-a.cc")])
-        build.unittest("fully-connected-output-overfeat-fast-test",
-            reference_layer_objects + [build.cxx("fully-connected-output/overfeat-fast.cc")])
+        if not options.convolution_only:
+            build.unittest("fully-connected-inference-alexnet-test",
+                reference_layer_objects + [build.cxx("fully-connected-inference/alexnet.cc")])
+            build.unittest("fully-connected-inference-vgg-a-test",
+                reference_layer_objects + [build.cxx("fully-connected-inference/vgg-a.cc")])
+            build.unittest("fully-connected-inference-overfeat-fast-test",
+                reference_layer_objects + [build.cxx("fully-connected-inference/overfeat-fast.cc")])
 
-        build.unittest("fully-connected-inference-alexnet-test",
-            reference_layer_objects + [build.cxx("fully-connected-inference/alexnet.cc")])
-        build.unittest("fully-connected-inference-vgg-a-test",
-            reference_layer_objects + [build.cxx("fully-connected-inference/vgg-a.cc")])
-        build.unittest("fully-connected-inference-overfeat-fast-test",
-            reference_layer_objects + [build.cxx("fully-connected-inference/overfeat-fast.cc")])
+            if not options.inference_only:
+                build.smoketest("fully-connected-output-smoketest",
+                    reference_layer_objects + [build.cxx("fully-connected-output/smoke.cc")])
+                build.unittest("fully-connected-output-alexnet-test",
+                    reference_layer_objects + [build.cxx("fully-connected-output/alexnet.cc")])
+                build.unittest("fully-connected-output-vgg-a-test",
+                    reference_layer_objects + [build.cxx("fully-connected-output/vgg-a.cc")])
+                build.unittest("fully-connected-output-overfeat-fast-test",
+                    reference_layer_objects + [build.cxx("fully-connected-output/overfeat-fast.cc")])
 
-        build.smoketest("max-pooling-output-smoketest",
-            reference_layer_objects + [build.cxx("max-pooling-output/smoke.cc")])
-        build.unittest("max-pooling-output-vgg-a-test",
-            reference_layer_objects + [build.cxx("max-pooling-output/vgg-a.cc")])
-        build.unittest("max-pooling-output-overfeat-fast",
-            reference_layer_objects + [build.cxx("max-pooling-output/overfeat-fast.cc")])
+            build.smoketest("max-pooling-output-smoketest",
+                reference_layer_objects + [build.cxx("max-pooling-output/smoke.cc")])
+            build.unittest("max-pooling-output-vgg-a-test",
+                reference_layer_objects + [build.cxx("max-pooling-output/vgg-a.cc")])
+            build.unittest("max-pooling-output-overfeat-fast",
+                reference_layer_objects + [build.cxx("max-pooling-output/overfeat-fast.cc")])
 
-        build.unittest("relu-output-alexnet-test",
-            reference_layer_objects + [build.cxx("relu-output/alexnet.cc")])
-        build.unittest("relu-output-vgg-a-test",
-            reference_layer_objects + [build.cxx("relu-output/vgg-a.cc")])
-        build.unittest("relu-output-overfeat-fast-test",
-            reference_layer_objects + [build.cxx("relu-output/overfeat-fast.cc")])
+            build.unittest("relu-output-alexnet-test",
+                reference_layer_objects + [build.cxx("relu-output/alexnet.cc")])
+            build.unittest("relu-output-vgg-a-test",
+                reference_layer_objects + [build.cxx("relu-output/vgg-a.cc")])
+            build.unittest("relu-output-overfeat-fast-test",
+                reference_layer_objects + [build.cxx("relu-output/overfeat-fast.cc")])
 
-        build.unittest("relu-input-gradient-alexnet-test",
-            reference_layer_objects + [build.cxx("relu-input-gradient/alexnet.cc")])
-        build.unittest("relu-input-gradient-vgg-a-test",
-            reference_layer_objects + [build.cxx("relu-input-gradient/vgg-a.cc")])
-        build.unittest("relu-input-gradient-overfeat-fast-test",
-            reference_layer_objects + [build.cxx("relu-input-gradient/overfeat-fast.cc")])
+            if not options.inference_only:
+                build.unittest("relu-input-gradient-alexnet-test",
+                    reference_layer_objects + [build.cxx("relu-input-gradient/alexnet.cc")])
+                build.unittest("relu-input-gradient-vgg-a-test",
+                    reference_layer_objects + [build.cxx("relu-input-gradient/vgg-a.cc")])
+                build.unittest("relu-input-gradient-overfeat-fast-test",
+                    reference_layer_objects + [build.cxx("relu-input-gradient/overfeat-fast.cc")])
 
-        build.smoketest("softmax-output-smoketest",
-            reference_layer_objects + [build.cxx("softmax-output/smoke.cc")])
-        build.unittest("softmax-output-imagenet-test",
-            reference_layer_objects + [build.cxx("softmax-output/imagenet.cc")])
+            build.smoketest("softmax-output-smoketest",
+                reference_layer_objects + [build.cxx("softmax-output/smoke.cc")])
+            build.unittest("softmax-output-imagenet-test",
+                reference_layer_objects + [build.cxx("softmax-output/imagenet.cc")])
 
     # Build benchmarking utilities
-    with build.options(source_dir="bench", extra_include_dirs="bench", deps={
-            (build, build.deps.pthreadpool): all,
-            "rt": build.target.is_linux}):
+    if not options.inference_only:
+        with build.options(source_dir="bench", extra_include_dirs="bench", macros=export_macros, deps={
+                (build, build.deps.pthreadpool): all,
+                "rt": build.target.is_linux}):
 
-        support_objects = [build.cc("median.c")]
-        if build.target.is_x86_64:
-            support_objects += [build.peachpy("memread.py")]
-        else:
-            support_objects += [build.cc("memread.c")]
-        if build.target.is_linux and build.target.is_x86_64:
-            support_objects += [build.cc("perf_counter.c")]
+            support_objects = [build.cc("median.c")]
+            if build.target.is_x86_64:
+                support_objects += [build.peachpy("memread.py")]
+            else:
+                support_objects += [build.cc("memread.c")]
+            if build.target.is_linux and build.target.is_x86_64:
+                support_objects += [build.cc("perf_counter.c")]
 
-        build.executable("transform-benchmark",
-            [build.cc("transform.c")] + support_objects)
+            build.executable("transform-benchmark",
+                [build.cc("transform.c")] + support_objects)
 
-        build.executable("convolution-benchmark",
-            [build.cc("convolution.c")] + support_objects)
+            build.executable("convolution-benchmark",
+                [build.cc("convolution.c")] + support_objects)
 
-        build.executable("fully-connected-benchmark",
-            [build.cc("fully-connected.c")] + support_objects)
+            if not options.convolution_only:
+                build.executable("fully-connected-benchmark",
+                    [build.cc("fully-connected.c")] + support_objects)
 
-        build.executable("pooling-benchmark",
-            [build.cc("pooling.c")] + support_objects)
+                build.executable("pooling-benchmark",
+                    [build.cc("pooling.c")] + support_objects)
 
-        build.executable("relu-benchmark",
-            [build.cc("relu.c")] + support_objects)
+                build.executable("relu-benchmark",
+                    [build.cc("relu.c")] + support_objects)
 
     return build
 

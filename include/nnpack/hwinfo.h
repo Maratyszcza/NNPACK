@@ -68,19 +68,25 @@ typedef void (*nnp_inplace_softmax_function)(size_t, float*);
 struct transforms {
 	nnp_transform_2d_with_offset fft8x8_with_offset_and_store;
 	nnp_transform_2d_with_offset fft8x8_with_offset_and_stream;
+#if !NNP_INFERENCE_ONLY
 	nnp_transform_2d_with_offset ifft8x8_with_offset;
+#endif
 	nnp_transform_2d_with_bias ifft8x8_with_bias;
 	nnp_transform_2d_with_bias ifft8x8_with_bias_with_relu;
 	nnp_transform_2d_with_offset fft16x16_with_offset_and_store;
 	nnp_transform_2d_with_offset fft16x16_with_offset_and_stream;
+#if !NNP_INFERENCE_ONLY
 	nnp_transform_2d_with_offset ifft16x16_with_offset;
+#endif
 	nnp_transform_2d_with_bias ifft16x16_with_bias;
 	nnp_transform_2d_with_bias ifft16x16_with_bias_with_relu;
 	nnp_transform_2d_with_offset iwt_f6x6_3x3_with_offset_and_store;
 	nnp_transform_2d_with_offset iwt_f6x6_3x3_with_offset_and_stream;
 	nnp_transform_2d_with_offset kwt_f6x6_3x3;
+#if !NNP_INFERENCE_ONLY
 	nnp_transform_2d_with_offset kwt_f6x6_3Rx3R;
 	nnp_transform_2d_with_offset owt_f6x6_3x3;
+#endif
 	nnp_transform_2d_with_bias owt_f6x6_3x3_with_bias;
 	nnp_transform_2d_with_bias owt_f6x6_3x3_with_bias_with_relu;
 #if NNP_BACKEND_ARM
@@ -91,6 +97,7 @@ struct transforms {
 #endif /* NNP_BACKEND_ARM */
 };
 
+#if !NNP_CONVOLUTION_ONLY
 struct activations {
 	nnp_relu_function relu;
 	nnp_inplace_relu_function inplace_relu;
@@ -98,6 +105,7 @@ struct activations {
 	nnp_softmax_function softmax;
 	nnp_inplace_softmax_function inplace_softmax;
 };
+#endif
 
 struct convolution {
 	nnp_fast_conv_function only_mr_x_nr;
@@ -130,18 +138,22 @@ struct hxgemm {
 #endif /* NNP_BACKEND_ARM */
 
 struct cxgemm {
+#if !NNP_INFERENCE_ONLY
 	nnp_fast_tuple_gemm_function s4cX_only_mr_x_nr;
 	nnp_full_tuple_gemm_function s4cX_upto_mr_x_nr;
 	nnp_fast_tuple_gemm_function cX_only_mr_x_nr;
 	nnp_full_tuple_gemm_function cX_upto_mr_x_nr;
+#endif
 	nnp_fast_tuple_gemm_function s4cX_conjb_only_mr_x_nr;
 	nnp_full_tuple_gemm_function s4cX_conjb_upto_mr_x_nr;
 	nnp_fast_tuple_gemm_function cX_conjb_only_mr_x_nr;
 	nnp_full_tuple_gemm_function cX_conjb_upto_mr_x_nr;
+#if !NNP_INFERENCE_ONLY
 	nnp_fast_tuple_gemm_function s4cX_conjb_transc_only_mr_x_nr;
 	nnp_full_tuple_gemm_function s4cX_conjb_transc_upto_mr_x_nr;
 	nnp_fast_tuple_gemm_function cX_conjb_transc_only_mr_x_nr;
 	nnp_full_tuple_gemm_function cX_conjb_transc_upto_mr_x_nr;
+#endif
 	uint32_t mr;
 	uint32_t nr;
 };
@@ -165,7 +177,9 @@ struct hardware_info {
 	struct cache_blocking_info blocking;
 
 	struct transforms transforms;
+#if !NNP_CONVOLUTION_ONLY
 	struct activations activations;
+#endif
 	struct convolution conv1x1;
 	struct sgemm sgemm;
 	struct sxgemm sxgemm;
@@ -173,8 +187,10 @@ struct hardware_info {
 	struct hxgemm hxgemm;
 #endif /* NNP_BACKEND_ARM */
 	struct cxgemm cxgemm;
+#if !NNP_CONVOLUTION_ONLY
 	struct sdotxf sdotxf;
 	struct shdotxf shdotxf;
+#endif
 
 	struct isa_info isa;
 };
