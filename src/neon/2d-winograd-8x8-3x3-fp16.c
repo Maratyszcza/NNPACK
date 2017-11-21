@@ -119,6 +119,7 @@ void nnp_kwt8x8_3x3_fp16__neonhp(
 	}
 }
 
+#if !NNP_INFERENCE_ONLY
 void nnp_owt8x8_3x3_fp16__neonhp(
 	const void *restrict transform,
 	float output[restrict static 1],
@@ -193,6 +194,7 @@ void nnp_owt8x8_3x3_fp16__neonhp(
 		}
 	}
 }
+#endif /* !NNP_INFERENCE_ONLY */
 
 void nnp_owt8x8_3x3_fp16_with_bias__neonhp(
 	const void *restrict transform,

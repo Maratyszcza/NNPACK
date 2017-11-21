@@ -110,6 +110,7 @@ void nnp_kwt8x8_3x3__psimd(
 	}
 }
 
+#if !NNP_INFERENCE_ONLY
 void nnp_kwt8x8_3Rx3R__psimd(
 	const float g[restrict static 9],
 	float transform[restrict static 1],
@@ -231,6 +232,7 @@ void nnp_owt8x8_3x3__psimd(
 		}
 	}
 }
+#endif /* !NNP_INFERENCE_ONLY */
 
 void nnp_owt8x8_3x3_with_bias__psimd(
 	const float transform[restrict static 1],

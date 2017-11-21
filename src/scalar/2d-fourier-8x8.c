@@ -119,6 +119,7 @@ void nnp_fft8x8_with_offset__scalar(
 	}
 }
 
+#if !NNP_INFERENCE_ONLY
 void nnp_ifft8x8_with_offset__scalar(
 	const float transform[restrict static 1],
 	float data[restrict static 1],
@@ -211,6 +212,7 @@ void nnp_ifft8x8_with_offset__scalar(
 		}
 	}
 }
+#endif /* !NNP_INFERENCE_ONLY */
 
 void nnp_ifft8x8_with_bias__scalar(
 	const float transform[restrict static 1],
