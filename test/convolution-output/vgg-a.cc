@@ -19,7 +19,7 @@ TEST(FT8x8, conv1) {
 TEST(FT8x8, conv1_with_relu) {
 	VGG_A::conv1()
 		.batchSize(64)
-		.errorLimit(1.0e-5)
+		.errorLimit(3.0e-5)
 		.testOutput(nnp_convolution_algorithm_ft8x8, nnp_activation_relu);
 }
 
