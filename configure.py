@@ -43,7 +43,7 @@ def main(args):
 
     with build.options(source_dir="src", macros=macros,
             deps={
-                (build.deps.pthreadpool, build.deps.fxdiv, build.deps.fp16): any,
+                (build.deps.pthreadpool, build.deps.cpuinfo, build.deps.fxdiv, build.deps.fp16): any,
                 build.deps.psimd: backend == "psimd" or backend == "arm",
             },
             extra_include_dirs={
@@ -325,7 +325,7 @@ def main(args):
 
     # Build test for layers. Link to the library.
     with build.options(source_dir="test", include_dirs="test", deps={
-                (build, build.deps.pthreadpool, build.deps.googletest.core, build.deps.fp16): any,
+                (build, build.deps.pthreadpool, build.deps.cpuinfo, build.deps.googletest.core, build.deps.fp16): any,
                 "rt": build.target.is_linux
             }):
 
@@ -414,7 +414,7 @@ def main(args):
     # Build benchmarking utilities
     if not options.inference_only:
         with build.options(source_dir="bench", extra_include_dirs="bench", macros=export_macros, deps={
-                (build, build.deps.pthreadpool): all,
+                (build, build.deps.pthreadpool, build.deps.cpuinfo): all,
                 "rt": build.target.is_linux}):
 
             support_objects = [build.cc("median.c")]
