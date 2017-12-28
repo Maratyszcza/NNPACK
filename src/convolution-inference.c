@@ -724,6 +724,7 @@ static enum nnp_status compute_fast_convolution_inference(
 }
 
 static enum nnp_status compute_gemm_convolution_inference(
+	const enum nnp_convolution_transform_strategy transform_strategy,
 	const size_t input_channels,
 	const size_t output_channels,
 	const struct nnp_size input_size,
@@ -743,6 +744,7 @@ static enum nnp_status compute_gemm_convolution_inference(
 {
 	enum nnp_status status = nnp_status_success;
 	void* memory_block = NULL;
+	size_t memory_size = 0;
 	const size_t simd_width = nnp_hwinfo.simd_width;
 
 	/* Calculate cache blocking parameters */
@@ -762,125 +764,171 @@ static enum nnp_status compute_gemm_convolution_inference(
 	const size_t output_image_block_max =
 		round_down(cache_elements_l3 / reduction_block_max, output_image_subblock_max);
 
-	const size_t packed_kernel_size = output_channels *
-		min(reduction_block_max, reduction_size) * sizeof(float);
-	const size_t packed_input_size = min(output_image_block_max, round_up(output_image_size, simd_width)) *
-		min(reduction_block_max, reduction_size) * sizeof(float);
-	const size_t memory_size = packed_kernel_size + packed_input_size;
-
-	if (workspace_buffer == NULL) {
-		if (workspace_size == NULL) {
-			memory_block = allocate_memory(memory_size);
-			if (memory_block == NULL) {
-				return nnp_status_out_of_memory;
+	switch (transform_strategy) {
+		case nnp_convolution_transform_strategy_compute:
+		case nnp_convolution_transform_strategy_reuse:
+		{
+			const size_t packed_kernel_size = output_channels *
+				min(reduction_block_max, reduction_size) * sizeof(float);
+			const size_t packed_input_size = min(output_image_block_max, round_up(output_image_size, simd_width)) *
+				min(reduction_block_max, reduction_size) * sizeof(float);
+			memory_size = packed_kernel_size + packed_input_size;
+			if (workspace_buffer == NULL) {
+				if (workspace_size == NULL) {
+					memory_block = allocate_memory(memory_size);
+					if (memory_block == NULL) {
+						return nnp_status_out_of_memory;
+					}
+				} else {
+					*workspace_size = memory_size;
+					return nnp_status_success;
+				}
+			} else {
+				if (*workspace_size < memory_size) {
+					return nnp_status_insufficient_buffer;
+				}
+				memory_block = workspace_buffer;
 			}
-		} else {
-			*workspace_size = memory_size;
-			return nnp_status_success;
-		}
-	} else {
-		if (*workspace_size < memory_size) {
-			return nnp_status_insufficient_buffer;
-		}
-		memory_block = workspace_buffer;
-	}
 
-	float* packed_input = memory_block;
-	float* packed_kernel = memory_block + packed_input_size;
+			float* packed_input = memory_block;
+			float* packed_kernel = memory_block + packed_input_size;
 
-	for (size_t reduction_block_start = 0; reduction_block_start < reduction_size; reduction_block_start += reduction_block_max) {
-		const size_t reduction_block_size = min(reduction_size - reduction_block_start, reduction_block_max);
+			for (size_t reduction_block_start = 0; reduction_block_start < reduction_size; reduction_block_start += reduction_block_max) {
+				const size_t reduction_block_size = min(reduction_size - reduction_block_start, reduction_block_max);
 
-		/* Pack kernel into memory block */
-		NNP_KERNEL_TRANSFORM_START(profile)
-		struct kernel_packing_context kernel_packing_context = {
-			.kernel = kernel + reduction_block_start,
-			.packed_kernel = packed_kernel,
-			.reduction_size = reduction_size,
-			.reduction_block_start = reduction_block_start,
-			.reduction_block_size = reduction_block_size,
-		};
-		pthreadpool_compute_2d_tiled(threadpool,
-			(pthreadpool_function_2d_tiled_t) compute_kernel_packing,
-			&kernel_packing_context,
-			output_channels,              reduction_block_size,
-			output_channels_subblock_max, 1);
-		NNP_KERNEL_TRANSFORM_END(profile)
+				if (transform_strategy == nnp_convolution_transform_strategy_compute) {
+					/* Pack kernel into memory block */
+					NNP_KERNEL_TRANSFORM_START(profile)
+					struct kernel_packing_context kernel_packing_context = {
+						.kernel = kernel + reduction_block_start,
+						.packed_kernel = packed_kernel,
+						.reduction_size = reduction_size,
+						.reduction_block_start = reduction_block_start,
+						.reduction_block_size = reduction_block_size,
+					};
+					pthreadpool_compute_2d_tiled(threadpool,
+						(pthreadpool_function_2d_tiled_t) compute_kernel_packing,
+						&kernel_packing_context,
+						output_channels,              reduction_block_size,
+						output_channels_subblock_max, 1);
+					NNP_KERNEL_TRANSFORM_END(profile)
+				} else {
+					packed_kernel = (void*) kernel + output_channels * reduction_block_start * sizeof(float);
+				}
 
-		const struct fxdiv_divisor_size_t kernel_elements_divisor = fxdiv_init_size_t(kernel_size.height * kernel_size.width);
-		const struct fxdiv_divisor_size_t kernel_width_divisor = fxdiv_init_size_t(kernel_size.width);
-		const struct fxdiv_divisor_size_t output_width_divisor = fxdiv_init_size_t(output_size.width);
-		for (size_t output_image_block_start = 0; output_image_block_start < output_image_size; output_image_block_start += output_image_block_max) {
-			const size_t output_image_block_size = min(output_image_size - output_image_block_start, output_image_block_max);
+				const struct fxdiv_divisor_size_t kernel_elements_divisor = fxdiv_init_size_t(kernel_size.height * kernel_size.width);
+				const struct fxdiv_divisor_size_t kernel_width_divisor = fxdiv_init_size_t(kernel_size.width);
+				const struct fxdiv_divisor_size_t output_width_divisor = fxdiv_init_size_t(output_size.width);
+				for (size_t output_image_block_start = 0; output_image_block_start < output_image_size; output_image_block_start += output_image_block_max) {
+					const size_t output_image_block_size = min(output_image_size - output_image_block_start, output_image_block_max);
 
-			/* Pack image into L3 block */
-			NNP_INPUT_TRANSFORM_START(profile)
-			struct input_packing_context input_packing_context = {
-				.input = input,
-				.packed_input = packed_input,
-				.simd_width = simd_width,
-				.reduction_block_start = reduction_block_start,
-				.reduction_block_size = reduction_block_size,
-				.output_image_block_start = output_image_block_start,
-				.input_size = input_size,
-				.input_padding_top = input_padding.top,
-				.input_padding_left = input_padding.left,
-				.kernel_elements = kernel_elements_divisor,
-				.kernel_width = kernel_width_divisor,
-				.output_width = output_width_divisor,
-				.output_subsampling = output_subsampling,
-			};
-			pthreadpool_compute_2d_tiled(threadpool,
-				(pthreadpool_function_2d_tiled_t) compute_input_packing,
-				&input_packing_context,
-				reduction_block_size, output_image_block_size,
-				1,                    output_image_subblock_max);
-			NNP_INPUT_TRANSFORM_END(profile)
+					/* Pack image into L3 block */
+					NNP_INPUT_TRANSFORM_START(profile)
+					struct input_packing_context input_packing_context = {
+						.input = input,
+						.packed_input = packed_input,
+						.simd_width = simd_width,
+						.reduction_block_start = reduction_block_start,
+						.reduction_block_size = reduction_block_size,
+						.output_image_block_start = output_image_block_start,
+						.input_size = input_size,
+						.input_padding_top = input_padding.top,
+						.input_padding_left = input_padding.left,
+						.kernel_elements = kernel_elements_divisor,
+						.kernel_width = kernel_width_divisor,
+						.output_width = output_width_divisor,
+						.output_subsampling = output_subsampling,
+					};
+					pthreadpool_compute_2d_tiled(threadpool,
+						(pthreadpool_function_2d_tiled_t) compute_input_packing,
+						&input_packing_context,
+						reduction_block_size, output_image_block_size,
+						1,                    output_image_subblock_max);
+					NNP_INPUT_TRANSFORM_END(profile)
 
-			NNP_BLOCK_MULTIPLICATION_START(profile)
-			struct matrix_multiplication_context matrix_multiplication_context = {
-				.packed_kernel = packed_kernel,
-				.packed_input = packed_input,
-				.output = output,
-				.reduction_block_start = reduction_block_start,
-				.reduction_block_size = reduction_block_size,
-				.output_image_size = output_image_size,
-				.output_image_block_start = output_image_block_start,
-				.output_image_subblock_max = output_image_subblock_max,
-				.output_channels_subblock_max = output_channels_subblock_max,
-			};
-			pthreadpool_compute_2d_tiled(threadpool,
-				(pthreadpool_function_2d_tiled_t) compute_matrix_multiplication,
-				&matrix_multiplication_context,
-				output_channels,           output_image_block_size,
-				output_channels_block_max, output_image_subblock_max);
-			NNP_BLOCK_MULTIPLICATION_END(profile)
-		}
-	}
-	/* Add bias */
-	NNP_OUTPUT_TRANSFORM_START(profile)
-	switch (activation) {
-		case nnp_activation_identity:
-			for (size_t output_channel = 0; output_channel < output_channels; output_channel += 1) {
-				const float bias_value = bias[output_channel];
-				for (size_t index = 0; index < output_image_size; index += 1) {
-					output[output_channel * output_image_size + index] += bias_value;
+					NNP_BLOCK_MULTIPLICATION_START(profile)
+					struct matrix_multiplication_context matrix_multiplication_context = {
+						.packed_kernel = packed_kernel,
+						.packed_input = packed_input,
+						.output = output,
+						.reduction_block_start = reduction_block_start,
+						.reduction_block_size = reduction_block_size,
+						.output_image_size = output_image_size,
+						.output_image_block_start = output_image_block_start,
+						.output_image_subblock_max = output_image_subblock_max,
+						.output_channels_subblock_max = output_channels_subblock_max,
+					};
+					pthreadpool_compute_2d_tiled(threadpool,
+						(pthreadpool_function_2d_tiled_t) compute_matrix_multiplication,
+						&matrix_multiplication_context,
+						output_channels,           output_image_block_size,
+						output_channels_block_max, output_image_subblock_max);
+					NNP_BLOCK_MULTIPLICATION_END(profile)
 				}
 			}
+			/* Add bias */
+			NNP_OUTPUT_TRANSFORM_START(profile)
+			switch (activation) {
+				case nnp_activation_identity:
+					for (size_t output_channel = 0; output_channel < output_channels; output_channel += 1) {
+						const float bias_value = bias[output_channel];
+						for (size_t index = 0; index < output_image_size; index += 1) {
+							output[output_channel * output_image_size + index] += bias_value;
+						}
+					}
+					break;
+				case nnp_activation_relu:
+					for (size_t output_channel = 0; output_channel < output_channels; output_channel += 1) {
+						const float bias_value = bias[output_channel];
+						for (size_t index = 0; index < output_image_size; index += 1) {
+							output[output_channel * output_image_size + index] =
+								relu(output[output_channel * output_image_size + index] + bias_value, 0.0f);
+						}
+					}
+					break;
+				default:
+					NNP_UNREACHABLE;
+			}
+			NNP_OUTPUT_TRANSFORM_END(profile)
 			break;
-		case nnp_activation_relu:
-			for (size_t output_channel = 0; output_channel < output_channels; output_channel += 1) {
-				const float bias_value = bias[output_channel];
-				for (size_t index = 0; index < output_image_size; index += 1) {
-					output[output_channel * output_image_size + index] =
-						relu(output[output_channel * output_image_size + index] + bias_value, 0.0f);
+		}
+		case nnp_convolution_transform_strategy_precompute:
+		{
+			const size_t packed_kernel_size = output_channels * reduction_size * sizeof(float);
+			if (workspace_buffer == NULL) {
+				*workspace_size = packed_kernel_size;
+				return nnp_status_success;
+			} else {
+				if (*workspace_size < packed_kernel_size) {
+					return nnp_status_insufficient_buffer;
 				}
+				memory_block = workspace_buffer;
+			}
+
+			for (size_t reduction_block_start = 0; reduction_block_start < reduction_size; reduction_block_start += reduction_block_max) {
+				const size_t reduction_block_size = min(reduction_size - reduction_block_start, reduction_block_max);
+
+				/* Pack kernel into memory block */
+				NNP_KERNEL_TRANSFORM_START(profile)
+				struct kernel_packing_context kernel_packing_context = {
+					.kernel = kernel + reduction_block_start,
+					.packed_kernel = (void*) workspace_buffer + output_channels * reduction_block_start * sizeof(float),
+					.reduction_size = reduction_size,
+					.reduction_block_start = reduction_block_start,
+					.reduction_block_size = reduction_block_size,
+				};
+				pthreadpool_compute_2d_tiled(threadpool,
+					(pthreadpool_function_2d_tiled_t) compute_kernel_packing,
+					&kernel_packing_context,
+					output_channels,              reduction_block_size,
+					output_channels_subblock_max, 1);
+				NNP_KERNEL_TRANSFORM_END(profile)
 			}
 			break;
+		}
 		default:
-			NNP_UNREACHABLE;
+			return nnp_status_invalid_transform_strategy;
 	}
-	NNP_OUTPUT_TRANSFORM_END(profile)
 
 	if (memory_block != workspace_buffer) {
 		release_memory(memory_block, memory_size);
@@ -1155,11 +1203,8 @@ enum nnp_status nnp_convolution_inference(
 				threadpool, profile);
 			break;
 		case nnp_convolution_algorithm_implicit_gemm:
-			if (transform_strategy != nnp_convolution_transform_strategy_compute) {
-				status = nnp_status_unsupported_transform_strategy;
-				goto cleanup;
-			}
 			status = compute_gemm_convolution_inference(
+				transform_strategy,
 				input_channels, output_channels,
 				input_size, input_padding, kernel_size, output_size, output_subsampling,
 				input, kernel, bias, output, workspace_buffer, workspace_size,
