@@ -313,6 +313,9 @@ def main(args):
 
             build.smoketest("winograd-neon-test",
                 arch_winograd_stub_objects + arch_nnpack_objects + [build.cxx("winograd/neon.cc")])
+
+            build.smoketest("sgemm-neon-test",
+                arch_nnpack_objects + [build.cxx("sgemm/neon.cc")])
         elif backend == "scalar":
             build.smoketest("fourier-scalar-test",
                 reference_fft_objects + arch_fft_stub_objects + [build.cxx("fourier/scalar.cc")])
@@ -412,7 +415,7 @@ def main(args):
                 reference_layer_objects + [build.cxx("softmax-output/imagenet.cc")])
 
     # Build benchmarking utilities
-    if not options.inference_only:
+    if not options.inference_only and not build.target.is_android:
         with build.options(source_dir="bench", extra_include_dirs="bench", macros=export_macros, deps={
                 (build, build.deps.pthreadpool, build.deps.cpuinfo): all,
                 "rt": build.target.is_linux}):
