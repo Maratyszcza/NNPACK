@@ -173,6 +173,11 @@ def main(args):
                         build.cc("neon/blas/sdotxf.c"),
                         build.cc("psimd/blas/shdotxf.c"),
                     ]
+            if options.target.is_arm:
+                # Functions implemented in assembly
+                arch_nnpack_objects += [
+                    build.cc("neon/blas/sgemm-aarch32.S"),
+                ]
         elif backend == "psimd":
             arch_nnpack_objects = [
                 # Transformations

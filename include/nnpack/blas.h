@@ -16,6 +16,8 @@ void nnp_sgemm_upto_4x8__psimd(uint32_t mr, uint32_t nr, size_t k, size_t update
 void nnp_sgemm_only_6x8__neon(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 void nnp_sgemm_upto_6x8__neon(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 
+void nnp_sgemm_only_6x8__aarch32_neon(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+
 void nnp_sgemm_only_4x3__scalar(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 void nnp_sgemm_upto_4x3__scalar(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 

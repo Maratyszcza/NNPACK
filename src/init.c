@@ -441,7 +441,11 @@ static void init_hwinfo(void) {
 			nnp_hwinfo.sgemm = (struct sgemm) {
 				.mr = 6,
 				.nr = 8,
-				.only_mr_x_nr = nnp_sgemm_only_6x8__neon,
+				#if CPUINFO_ARCH_ARM
+					.only_mr_x_nr = nnp_sgemm_only_6x8__aarch32_neon,
+				#else
+					.only_mr_x_nr = nnp_sgemm_only_6x8__neon,
+				#endif
 				.upto_mr_x_nr = nnp_sgemm_upto_6x8__neon,
 			};
 			nnp_hwinfo.sxgemm = (struct sxgemm) {
