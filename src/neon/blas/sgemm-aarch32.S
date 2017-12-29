@@ -9,8 +9,10 @@
 #        size_t row_stride_c)
 BEGIN_FUNCTION nnp_sgemm_only_6x8__aarch32_neon
 	.arm
+#ifndef __APPLE__
 	.arch armv7-a
 	.fpu neon
+#endif
 
 	VPUSH {d8-d15}
 
