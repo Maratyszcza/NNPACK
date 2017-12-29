@@ -10,12 +10,12 @@
 	.macro END_FUNCTION name
 		.size \name, .-\name
 	.endm
-#else
+#elif defined(__MACH__)
 	.macro BEGIN_FUNCTION name
 		.text
 		.align 2
-		.global \name
-		\name:
+		.global _\name
+		_\name:
 	.endm
 
 	.macro END_FUNCTION name
