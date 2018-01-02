@@ -13,3 +13,4 @@ deps:
   - name: psimd
     url:  https://github.com/Maratyszcza/psimd.git
   - name: googletest
+  - name: googlebenchmark

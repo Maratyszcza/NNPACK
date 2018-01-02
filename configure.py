@@ -419,6 +419,13 @@ def main(args):
             build.unittest("softmax-output-imagenet-test",
                 reference_layer_objects + [build.cxx("softmax-output/imagenet.cc")])
 
+    # Build automatic benchmarks
+    with build.options(source_dir="bench", extra_include_dirs=["bench", "test"], macros=export_macros, deps={
+            (build, build.deps.pthreadpool, build.deps.cpuinfo, build.deps.googlebenchmark): all,
+            "rt": build.target.is_linux}):
+
+        build.benchmark("sgemm-bench", build.cxx("sgemm.cc"))
+
     # Build benchmarking utilities
     if not options.inference_only and not build.target.is_android:
         with build.options(source_dir="bench", extra_include_dirs="bench", macros=export_macros, deps={
