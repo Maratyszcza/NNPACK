@@ -288,7 +288,7 @@ def main(args):
         build.static_library("nnpack", nnpack_objects)
 
     # Build tests for micro-kernels. Link to the micro-kernels implementations
-    with build.options(source_dir="test", extra_include_dirs="test", deps=build.deps.googletest.core):
+    with build.options(source_dir="test", extra_include_dirs="test", deps=build.deps.googletest):
 
         build.unittest("fourier-reference-test",
             reference_fft_objects + [build.cxx("fourier/reference.cc")])

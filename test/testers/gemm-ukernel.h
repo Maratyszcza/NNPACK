@@ -64,8 +64,8 @@ public:
 	}
 
 	/* NR stride is NR rounded up to SIMD width */
-	inline size_t nrStride() const {
-		return (nr() + simdWidth() - 1) / simdWidth() * simdWidth();
+	inline size_t nrStride(size_t nr) const {
+		return (nr + simdWidth() - 1) / simdWidth() * simdWidth();
 	}
 
 	inline GemmMicroKernelTester& iterations(size_t iterations) {
@@ -91,7 +91,7 @@ public:
 		auto rng = std::bind(std::uniform_real_distribution<float>(), std::mt19937(seed));
 
 		std::vector<float, AlignedAllocator<float, 32>> a(mr() * kc());
-		std::vector<float, AlignedAllocator<float, 32>> b(nrStride() * kc());
+		std::vector<float, AlignedAllocator<float, 32>> b(nr() * kc());
 		std::vector<float> c(mr() * nr());
 		std::vector<float> cReference(mr() * nr());
 
@@ -107,7 +107,7 @@ public:
 			for (size_t k = 0; k < kc(); k++) {
 				for (size_t m = 0; m < mr(); m++) {
 					for (size_t n = 0; n < nr(); n++) {
-						cReference[m * nr() + n] += a[k * mr() + m] * b[k * nrStride() + n];
+						cReference[m * nr() + n] += a[k * mr() + m] * b[k * nr() + n];
 					}
 				}
 			}
@@ -119,43 +119,49 @@ public:
 
 		const std::vector<float> medianErrors = median(errors);
 		const float maxMedianError = *std::max_element(medianErrors.cbegin(), medianErrors.cend());
-		ASSERT_LT(maxMedianError, errorLimit());
+		ASSERT_LT(maxMedianError, errorLimit()) <<
+			"Mr x Nr = " << mr() << " x " << nr() << ", Kc = " << kc();
 	}
 
 	void testSGEMM(nnp_full_sgemm_function full_sgemm) const {
 		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
 		auto rng = std::bind(std::uniform_real_distribution<float>(), std::mt19937(seed));
 
-		std::vector<float, AlignedAllocator<float, 32>> a(mr() * kc());
-		std::vector<float, AlignedAllocator<float, 32>> b(nrStride() * kc());
-		std::vector<float> c(mr() * nr());
-		std::vector<float> cReference(mr() * nr());
+		for (uint32_t mr = 1; mr < this->mr(); mr++) {
+			for (uint32_t nr = 1; nr < this->nr(); nr++) {
+				std::vector<float, AlignedAllocator<float, 32>> a(mr * kc());
+				std::vector<float, AlignedAllocator<float, 32>> b(nrStride(nr) * kc());
+				std::vector<float> c(mr * nr);
+				std::vector<float> cReference(mr * nr);
 
-		std::vector<std::vector<float>> errors(mr() * nr());
-		for (size_t iteration = 0; iteration < iterations(); iteration++) {
-			std::generate(a.begin(), a.end(), std::ref(rng));
-			std::generate(b.begin(), b.end(), std::ref(rng));
-			std::fill(c.begin(), c.end(), std::nanf(""));
-			std::fill(cReference.begin(), cReference.end(), 0.0f);
+				std::vector<std::vector<float>> errors(mr * nr);
+				for (size_t iteration = 0; iteration < iterations(); iteration++) {
+					std::generate(a.begin(), a.end(), std::ref(rng));
+					std::generate(b.begin(), b.end(), std::ref(rng));
+					std::fill(c.begin(), c.end(), std::nanf(""));
+					std::fill(cReference.begin(), cReference.end(), 0.0f);
 
-			full_sgemm(mr(), nr(), kc(), 0, a.data(), b.data(), c.data(), nr());
+					full_sgemm(mr, nr, kc(), 0, a.data(), b.data(), c.data(), nr);
 
-			for (size_t k = 0; k < kc(); k++) {
-				for (size_t m = 0; m < mr(); m++) {
-					for (size_t n = 0; n < nr(); n++) {
-						cReference[m * nr() + n] += a[k * mr() + m] * b[k * nrStride() + n];
+					for (size_t k = 0; k < kc(); k++) {
+						for (size_t m = 0; m < mr; m++) {
+							for (size_t n = 0; n < nr; n++) {
+								cReference[m * nr + n] += a[k * mr + m] * b[k * nrStride(nr) + n];
+							}
+						}
+					}
+
+					for (size_t i = 0; i < errors.size(); i++) {
+						errors[i].push_back(relativeError(cReference[i], c[i]));
 					}
 				}
-			}
 
-			for (size_t i = 0; i < errors.size(); i++) {
-				errors[i].push_back(relativeError(cReference[i], c[i]));
+				const std::vector<float> medianErrors = median(errors);
+				const float maxMedianError = *std::max_element(medianErrors.cbegin(), medianErrors.cend());
+				ASSERT_LT(maxMedianError, errorLimit()) <<
+					"Mr x Nr = " << mr << " x " << nr << ", Kc = " << kc();
 			}
 		}
-
-		const std::vector<float> medianErrors = median(errors);
-		const float maxMedianError = *std::max_element(medianErrors.cbegin(), medianErrors.cend());
-		ASSERT_LT(maxMedianError, errorLimit());
 	}
 
 private:
