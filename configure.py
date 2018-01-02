@@ -288,47 +288,47 @@ def main(args):
         build.static_library("nnpack", nnpack_objects)
 
     # Build tests for micro-kernels. Link to the micro-kernels implementations
-    with build.options(source_dir="test", extra_include_dirs="test", deps=build.deps.googletest):
+    with build.options(source_dir="test", extra_include_dirs="test", deps=[build.deps.googletest, build.deps.cpuinfo]):
 
         build.unittest("fourier-reference-test",
             reference_fft_objects + [build.cxx("fourier/reference.cc")])
 
         if backend == "x86_64":
-            build.smoketest("fourier-x86_64-avx2-test",
+            build.smoketest("fourier-test",
                 reference_fft_objects + arch_fft_stub_objects + [build.cxx("fourier/x86_64-avx2.cc")])
 
-            build.smoketest("winograd-x86_64-fma3-test",
+            build.smoketest("winograd-test",
                 arch_winograd_stub_objects + arch_nnpack_objects + [build.cxx("winograd/x86_64-fma3.cc")])
 
-            build.smoketest("sgemm-x86_64-fma3-test",
+            build.smoketest("sgemm-test",
                 arch_nnpack_objects + [build.cxx("sgemm/x86_64-fma3.cc")])
         elif backend == "psimd":
-            build.smoketest("fourier-psimd-test",
+            build.smoketest("fourier-test",
                 reference_fft_objects + arch_fft_stub_objects + [build.cxx("fourier/psimd.cc")])
 
-            build.smoketest("winograd-psimd-test",
+            build.smoketest("winograd-test",
                 arch_winograd_stub_objects + arch_nnpack_objects + [build.cxx("winograd/psimd.cc")])
 
-            build.smoketest("sgemm-psimd-test",
+            build.smoketest("sgemm-test",
                 arch_nnpack_objects + [build.cxx("sgemm/psimd.cc")])
         elif backend == "arm":
             # No ARM-specific Fourier implementation; use PSIMD
-            build.smoketest("fourier-psimd-test",
+            build.smoketest("fourier-test",
                 reference_fft_objects + arch_fft_stub_objects + [build.cxx("fourier/psimd.cc")])
 
-            build.smoketest("winograd-neon-test",
+            build.smoketest("winograd-test",
                 arch_winograd_stub_objects + arch_nnpack_objects + [build.cxx("winograd/neon.cc")])
 
-            build.smoketest("sgemm-neon-test",
+            build.smoketest("sgemm-test",
                 arch_nnpack_objects + [build.cxx("sgemm/neon.cc")])
         elif backend == "scalar":
-            build.smoketest("fourier-scalar-test",
+            build.smoketest("fourier-test",
                 reference_fft_objects + arch_fft_stub_objects + [build.cxx("fourier/scalar.cc")])
 
-            build.smoketest("winograd-scalar-test",
+            build.smoketest("winograd-test",
                 arch_winograd_stub_objects + arch_nnpack_objects + [build.cxx("winograd/scalar.cc")])
 
-            build.smoketest("sgemm-scalar-test",
+            build.smoketest("sgemm-test",
                 arch_nnpack_objects + [build.cxx("sgemm/scalar.cc")])
 
     # Build test for layers. Link to the library.
