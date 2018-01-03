@@ -105,7 +105,7 @@ private:
 	}
 #endif
 
-#if NNP_BACKEND_PSIMD
+#if NNP_BACKEND_SCALAR
 	BENCHMARK_TEMPLATE_F(SGEMM, scalar, 4, 3)(benchmark::State& state) {
 		for (auto _ : state) {
 			nnp_sgemm_only_4x3__scalar(kc(), 0, a(), b(), c(), nr());
