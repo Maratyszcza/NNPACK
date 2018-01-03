@@ -47,7 +47,7 @@ BEGIN_FUNCTION nnp_sgemm_only_6x8__aarch32_neon
 	# - d5 = b[2:4]
 	# - d6 = b[4:6]
 	# - d7 = b[6:8]
-	VLD1.32 {d4-d7}, [r3:256]!
+	VLD1.32 {d4-d7}, [r3:128]!
 
 	# Load a[0:6]
 	# - d0 = a[0:2]
