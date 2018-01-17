@@ -12,8 +12,6 @@ NNPACK is not intended to be directly used by machine learning researchers; inst
 
 ## Platforms and requirements
 
-NNPACK supports many compilation targets
-
 | Environment  | Architecture  | CPU requirements                 |
 | ------------ | ------------- | -------------------------------- |
 | Linux        | x86-64        | AVX2 and 3-level cache hierarchy |
@@ -87,7 +85,7 @@ To cross-compile for Android, add extra configuration options for `cmake`: `-DCM
 Notes:
 - On **armeabi** and **armeabi-v7a** `nnp_initialize` will fail with `nnp_status_unsupported_hardware` if the mobile CPU does not support ARM NEON. Don't set `-DANDROID_ARM_NEON=1` for NNPACK compilation as it can make `nnp_initialize` crash on CPUs without ARM NEON.
 - NNPACK builds for **armeabi** and **armeabi-v7a** are up to 2x slower if you use **clang** toolchain.
-- **mips** and **mips64** are not supported, and we have no plans to add it (pull request would be welcome, through)
+- **mips** and **mips64** are not supported, and we have no plans to add it (pull request would be welcome, though)
 - **x86_64** build will use generic 128-bit (SSE2) micro-kernels rather than AVX2 micro-kernels in native build
 
 ### Development builds
