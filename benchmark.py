@@ -34,7 +34,7 @@ def convolution(mode, batch_size, input_channels, output_channels, image_size, k
 		"-a", algorithm
 	]
 	if mode == "inference" and transform_strategy is not None:
-		benchmark_args += ["-s", transform_strategy]
+		benchmark_args += ["-ts", transform_strategy]
 	if threads is not None:
 		benchmark_args += ["-t", str(threads)]
 	benchmark = subprocess.Popen(benchmark_args, stdout=subprocess.PIPE)
@@ -132,8 +132,8 @@ if __name__ == "__main__":
 	parser.add_argument("--enable-selldr", dest="use_selldr", action="store_true")
 	parser.add_argument("-l", "--layer", dest="layer", required=True, choices=["convolution", "fully-connected", "pooling"])
 	parser.add_argument("-n", "--network", dest="network", required=True, choices=["vgg-a", "alexnet", "overfeat-fast"])
-	parser.add_argument("-m", "--mode", dest="mode", required=True, choices=["output", "input-gradient", "kernel-gradient", "inference"])
-	parser.add_argument("-s", "--transform-strategy", dest="transform_strategy", choices=["block", "tuple"])
+	parser.add_argument("-m", "--mode", dest="mode", required=True, choices=["inference", "output", "input-gradient", "kernel-gradient"])
+	parser.add_argument("--transform-strategy", dest="transform_strategy", default="compute", choices=["compute", "precompute"])
 	parser.add_argument("-b", "--batch", dest="batch", type=int)
 	parser.add_argument("-t", "--threads", dest="threads")
 	parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", default=False)
