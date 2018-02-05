@@ -319,11 +319,11 @@ static struct options parse_options(int argc, char** argv) {
 				exit(EXIT_FAILURE);
 			}
 			if (sscanf(argv[argi + 2], "%zu", &options.input_size.width) != 1) {
-				fprintf(stderr, "Error: can not parse %s as an unsigned integer\n", argv[argi + 1]);
+				fprintf(stderr, "Error: can not parse %s as an unsigned integer\n", argv[argi + 2]);
 				exit(EXIT_FAILURE);
 			}
 			if (options.input_size.width == 0) {
-				fprintf(stderr, "Error: invalid value %s for the input width: positive value expected\n", argv[argi + 1]);
+				fprintf(stderr, "Error: invalid value %s for the input width: positive value expected\n", argv[argi + 2]);
 				exit(EXIT_FAILURE);
 			}
 			argi += 2;
@@ -341,11 +341,11 @@ static struct options parse_options(int argc, char** argv) {
 				exit(EXIT_FAILURE);
 			}
 			if (sscanf(argv[argi + 2], "%zu", &options.kernel_size.width) != 1) {
-				fprintf(stderr, "Error: can not parse %s as an unsigned integer\n", argv[argi + 1]);
+				fprintf(stderr, "Error: can not parse %s as an unsigned integer\n", argv[argi + 2]);
 				exit(EXIT_FAILURE);
 			}
 			if (options.kernel_size.width == 0) {
-				fprintf(stderr, "Error: invalid value %s for the kernel width: positive value expected\n", argv[argi + 1]);
+				fprintf(stderr, "Error: invalid value %s for the kernel width: positive value expected\n", argv[argi + 2]);
 				exit(EXIT_FAILURE);
 			}
 			argi += 2;
