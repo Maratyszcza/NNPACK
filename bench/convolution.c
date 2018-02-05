@@ -168,7 +168,8 @@ struct nnp_profile benchmark_convolution(
 					algorithm,
 					batch_size, input_channels, output_channels,
 					input_size, input_padding, kernel_size,
-					input, kernel, bias, output, memory_block, &memory_size,
+					input, kernel, bias, output,
+					memory_block, memory_size == 0 ? NULL : &memory_size,
 					nnp_activation_identity, NULL,
 					threadpool,
 					&computation_profile[iteration]);
@@ -178,7 +179,8 @@ struct nnp_profile benchmark_convolution(
 					algorithm,
 					batch_size, input_channels, output_channels,
 					input_size, input_padding, kernel_size,
-					output, kernel, input, memory_block, &memory_size,
+					output, kernel, input,
+					memory_block, memory_size == 0 ? NULL : &memory_size,
 					nnp_activation_identity, NULL,
 					threadpool,
 					&computation_profile[iteration]);
@@ -188,7 +190,8 @@ struct nnp_profile benchmark_convolution(
 					algorithm,
 					batch_size, input_channels, output_channels,
 					input_size, input_padding, kernel_size,
-					input, output, kernel, memory_block, &memory_size,
+					input, output, kernel,
+					memory_block, memory_size == 0 ? NULL : &memory_size,
 					nnp_activation_identity, NULL,
 					threadpool,
 					&computation_profile[iteration]);
@@ -198,7 +201,8 @@ struct nnp_profile benchmark_convolution(
 					algorithm, transform_strategy,
 					input_channels, output_channels,
 					input_size, input_padding, kernel_size, output_subsampling,
-					input, transformed_kernel == NULL ? kernel : transformed_kernel, bias, output, memory_block, &memory_size,
+					input, transformed_kernel == NULL ? kernel : transformed_kernel, bias, output,
+					memory_block, memory_size == 0 ? NULL : &memory_size,
 					nnp_activation_identity, NULL,
 					threadpool,
 					&computation_profile[iteration]);
