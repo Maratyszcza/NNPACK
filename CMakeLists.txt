@@ -98,17 +98,18 @@ IF(NNPACK_BACKEND STREQUAL "x86-64")
     ENDIF()
   ENDIF()
 
-  IF(NOT DEFINED PYTHON_OPCODES_SOURCE_DIR)
-    MESSAGE(STATUS "Downloading opcodes (Python package) to ${CONFU_DEPENDENCIES_SOURCE_DIR}/opcodes (define PYTHON_OPCODES_SOURCE_DIR to avoid it)")
-    CONFIGURE_FILE(cmake/DownloadOpcodes.cmake "${CMAKE_BINARY_DIR}/opcodes-download/CMakeLists.txt")
-    EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/opcodes-download")
-    EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
-      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/opcodes-download")
-    SET(PYTHON_OPCODES_SOURCE_DIR "${CONFU_DEPENDENCIES_SOURCE_DIR}/opcodes" CACHE STRING "opcodes (Python package) source directory")
-  ENDIF()
-
   IF(NOT DEFINED PYTHON_PEACHPY_SOURCE_DIR)
+    # ---[ PeachPy requires Opcodes for installation
+    IF(NOT DEFINED PYTHON_OPCODES_SOURCE_DIR)
+      MESSAGE(STATUS "Downloading opcodes (Python package) to ${CONFU_DEPENDENCIES_SOURCE_DIR}/opcodes (define PYTHON_OPCODES_SOURCE_DIR to avoid it)")
+      CONFIGURE_FILE(cmake/DownloadOpcodes.cmake "${CMAKE_BINARY_DIR}/opcodes-download/CMakeLists.txt")
+      EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
+        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/opcodes-download")
+      EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
+        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/opcodes-download")
+      SET(PYTHON_OPCODES_SOURCE_DIR "${CONFU_DEPENDENCIES_SOURCE_DIR}/opcodes" CACHE STRING "opcodes (Python package) source directory")
+    ENDIF()
+
     MESSAGE(STATUS "Downloading PeachPy (Python package) to ${CONFU_DEPENDENCIES_SOURCE_DIR}/peachpy (define PYTHON_PEACHPY_SOURCE_DIR to avoid it)")
     CONFIGURE_FILE(cmake/DownloadPeachPy.cmake "${CMAKE_BINARY_DIR}/peachpy-download/CMakeLists.txt")
     EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
