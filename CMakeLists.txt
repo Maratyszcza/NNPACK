@@ -486,14 +486,6 @@ ENDIF()
 TARGET_LINK_LIBRARIES(nnpack PRIVATE fp16)
 TARGET_LINK_LIBRARIES(nnpack_reference_layers PUBLIC fp16)
 
-IF(CMAKE_SYSTEM_NAME STREQUAL "Android")
-  ADD_LIBRARY(cpufeatures ${ANDROID_NDK}/sources/android/cpufeatures/cpu-features.c)
-  TARGET_INCLUDE_DIRECTORIES(cpufeatures PUBLIC ${ANDROID_NDK}/sources/android/cpufeatures)
-  TARGET_INCLUDE_DIRECTORIES(nnpack PRIVATE ${ANDROID_NDK}/sources/android/cpufeatures)
-  TARGET_LINK_LIBRARIES(cpufeatures PUBLIC dl)
-  TARGET_LINK_LIBRARIES(nnpack PRIVATE cpufeatures)
-ENDIF()
-
 INSTALL(TARGETS nnpack
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
