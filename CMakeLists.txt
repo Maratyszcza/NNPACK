@@ -75,11 +75,11 @@ SET(CONFU_DEPENDENCIES_BINARY_DIR ${CMAKE_BINARY_DIR}/deps
 IF(NNPACK_BACKEND STREQUAL "x86-64")
   IF(NOT DEFINED PYTHON_SIX_SOURCE_DIR)
     MESSAGE(STATUS "Downloading six (Python package) to ${CONFU_DEPENDENCIES_SOURCE_DIR}/six (define PYTHON_SIX_SOURCE_DIR to avoid it)")
-    CONFIGURE_FILE(cmake/DownloadSix.cmake "${CMAKE_BINARY_DIR}/six-download/CMakeLists.txt")
+    CONFIGURE_FILE(cmake/DownloadSix.cmake "${CONFU_DEPENDENCIES_BINARY_DIR}/six-download/CMakeLists.txt")
     EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/six-download")
+      WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/six-download")
     EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
-      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/six-download")
+      WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/six-download")
     SET(PYTHON_SIX_SOURCE_DIR "${CONFU_DEPENDENCIES_SOURCE_DIR}/six" CACHE STRING "six (Python package) source directory")
   ENDIF()
 
@@ -87,11 +87,11 @@ IF(NNPACK_BACKEND STREQUAL "x86-64")
     IF(${PYTHON_VERSION_STRING} VERSION_LESS 3.4)
       # ---[ Python < 3.4 does not natively support enums, and needs a polyfill
       MESSAGE(STATUS "Downloading enum (Python package) to ${CONFU_DEPENDENCIES_SOURCE_DIR}/enum (define PYTHON_ENUM_SOURCE_DIR to avoid it)")
-      CONFIGURE_FILE(cmake/DownloadEnum.cmake "${CMAKE_BINARY_DIR}/enum-download/CMakeLists.txt")
+      CONFIGURE_FILE(cmake/DownloadEnum.cmake "${CONFU_DEPENDENCIES_BINARY_DIR}/enum-download/CMakeLists.txt")
       EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/enum-download")
+        WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/enum-download")
       EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
-        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/enum-download")
+        WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/enum-download")
       SET(PYTHON_ENUM_SOURCE_DIR "${CONFU_DEPENDENCIES_SOURCE_DIR}/enum" CACHE STRING "enum (Python package) source directory")
     ELSE()
       SET(PYTHON_ENUM_SOURCE_DIR "" CACHE STRING "enum (Python package) source directory")
@@ -102,20 +102,20 @@ IF(NNPACK_BACKEND STREQUAL "x86-64")
     # ---[ PeachPy requires Opcodes for installation
     IF(NOT DEFINED PYTHON_OPCODES_SOURCE_DIR)
       MESSAGE(STATUS "Downloading opcodes (Python package) to ${CONFU_DEPENDENCIES_SOURCE_DIR}/opcodes (define PYTHON_OPCODES_SOURCE_DIR to avoid it)")
-      CONFIGURE_FILE(cmake/DownloadOpcodes.cmake "${CMAKE_BINARY_DIR}/opcodes-download/CMakeLists.txt")
+      CONFIGURE_FILE(cmake/DownloadOpcodes.cmake "${CONFU_DEPENDENCIES_BINARY_DIR}/opcodes-download/CMakeLists.txt")
       EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/opcodes-download")
+        WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/opcodes-download")
       EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
-        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/opcodes-download")
+        WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/opcodes-download")
       SET(PYTHON_OPCODES_SOURCE_DIR "${CONFU_DEPENDENCIES_SOURCE_DIR}/opcodes" CACHE STRING "opcodes (Python package) source directory")
     ENDIF()
 
     MESSAGE(STATUS "Downloading PeachPy (Python package) to ${CONFU_DEPENDENCIES_SOURCE_DIR}/peachpy (define PYTHON_PEACHPY_SOURCE_DIR to avoid it)")
-    CONFIGURE_FILE(cmake/DownloadPeachPy.cmake "${CMAKE_BINARY_DIR}/peachpy-download/CMakeLists.txt")
+    CONFIGURE_FILE(cmake/DownloadPeachPy.cmake "${CONFU_DEPENDENCIES_BINARY_DIR}/peachpy-download/CMakeLists.txt")
     EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/peachpy-download")
+      WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/peachpy-download")
     EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
-      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/peachpy-download")
+      WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/peachpy-download")
     SET(PYTHON_PEACHPY_SOURCE_DIR "${CONFU_DEPENDENCIES_SOURCE_DIR}/peachpy" CACHE STRING "PeachPy (Python package) source directory")
   ENDIF()
 
@@ -129,61 +129,61 @@ ENDIF()
 
 IF(NOT DEFINED CPUINFO_SOURCE_DIR)
   MESSAGE(STATUS "Downloading cpuinfo to ${CONFU_DEPENDENCIES_SOURCE_DIR}/cpuinfo (define CPUINFO_SOURCE_DIR to avoid it)")
-  CONFIGURE_FILE(cmake/DownloadCpuinfo.cmake "${CMAKE_BINARY_DIR}/cpuinfo-download/CMakeLists.txt")
+  CONFIGURE_FILE(cmake/DownloadCpuinfo.cmake "${CONFU_DEPENDENCIES_BINARY_DIR}/cpuinfo-download/CMakeLists.txt")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/cpuinfo-download")
+    WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/cpuinfo-download")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/cpuinfo-download")
+    WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/cpuinfo-download")
   SET(CPUINFO_SOURCE_DIR "${CONFU_DEPENDENCIES_SOURCE_DIR}/cpuinfo" CACHE STRING "cpuinfo source directory")
 ENDIF()
 
 IF(NOT DEFINED FP16_SOURCE_DIR)
   MESSAGE(STATUS "Downloading FP16 to ${CONFU_DEPENDENCIES_SOURCE_DIR}/fp16 (define FP16_SOURCE_DIR to avoid it)")
-  CONFIGURE_FILE(cmake/DownloadFP16.cmake "${CMAKE_BINARY_DIR}/fp16-download/CMakeLists.txt")
+  CONFIGURE_FILE(cmake/DownloadFP16.cmake "${CONFU_DEPENDENCIES_BINARY_DIR}/fp16-download/CMakeLists.txt")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/fp16-download")
+    WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/fp16-download")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/fp16-download")
+    WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/fp16-download")
   SET(FP16_SOURCE_DIR "${CONFU_DEPENDENCIES_SOURCE_DIR}/fp16" CACHE STRING "FP16 source directory")
 ENDIF()
 
 IF(NOT DEFINED FXDIV_SOURCE_DIR)
   MESSAGE(STATUS "Downloading FXdiv to ${CONFU_DEPENDENCIES_SOURCE_DIR}/fxdiv (define FXDIV_SOURCE_DIR to avoid it)")
-  CONFIGURE_FILE(cmake/DownloadFXdiv.cmake "${CMAKE_BINARY_DIR}/fxdiv-download/CMakeLists.txt")
+  CONFIGURE_FILE(cmake/DownloadFXdiv.cmake "${CONFU_DEPENDENCIES_BINARY_DIR}/fxdiv-download/CMakeLists.txt")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/fxdiv-download")
+    WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/fxdiv-download")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/fxdiv-download")
+    WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/fxdiv-download")
   SET(FXDIV_SOURCE_DIR "${CONFU_DEPENDENCIES_SOURCE_DIR}/fxdiv" CACHE STRING "FXdiv source directory")
 ENDIF()
 
 IF(NOT DEFINED PSIMD_SOURCE_DIR)
   MESSAGE(STATUS "Downloading PSimd to ${CONFU_DEPENDENCIES_SOURCE_DIR}/psimd (define PSIMD_SOURCE_DIR to avoid it)")
-  CONFIGURE_FILE(cmake/DownloadPSimd.cmake "${CMAKE_BINARY_DIR}/psimd-download/CMakeLists.txt")
+  CONFIGURE_FILE(cmake/DownloadPSimd.cmake "${CONFU_DEPENDENCIES_BINARY_DIR}/psimd-download/CMakeLists.txt")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/psimd-download")
+    WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/psimd-download")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/psimd-download")
+    WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/psimd-download")
   SET(PSIMD_SOURCE_DIR "${CONFU_DEPENDENCIES_SOURCE_DIR}/psimd" CACHE STRING "PSimd source directory")
 ENDIF()
 
 IF(NOT DEFINED PTHREADPOOL_SOURCE_DIR)
   MESSAGE(STATUS "Downloading pthreadpool to ${CONFU_DEPENDENCIES_SOURCE_DIR}/pthreadpool (define PTHREADPOOL_SOURCE_DIR to avoid it)")
-  CONFIGURE_FILE(cmake/DownloadPThreadPool.cmake "${CMAKE_BINARY_DIR}/pthreadpool-download/CMakeLists.txt")
+  CONFIGURE_FILE(cmake/DownloadPThreadPool.cmake "${CONFU_DEPENDENCIES_BINARY_DIR}/pthreadpool-download/CMakeLists.txt")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/pthreadpool-download")
+    WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/pthreadpool-download")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/pthreadpool-download")
+    WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/pthreadpool-download")
   SET(PTHREADPOOL_SOURCE_DIR "${CONFU_DEPENDENCIES_SOURCE_DIR}/pthreadpool" CACHE STRING "pthreadpool source directory")
 ENDIF()
 
 IF(NNPACK_BUILD_TESTS AND NOT DEFINED GOOGLETEST_SOURCE_DIR)
   MESSAGE(STATUS "Downloading Google Test to ${CONFU_DEPENDENCIES_SOURCE_DIR}/googletest (define GOOGLETEST_SOURCE_DIR to avoid it)")
-  CONFIGURE_FILE(cmake/DownloadGoogleTest.cmake "${CMAKE_BINARY_DIR}/googletest-download/CMakeLists.txt")
+  CONFIGURE_FILE(cmake/DownloadGoogleTest.cmake "${CONFU_DEPENDENCIES_BINARY_DIR}/googletest-download/CMakeLists.txt")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/googletest-download")
+    WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/googletest-download")
   EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/googletest-download")
+    WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/googletest-download")
   SET(GOOGLETEST_SOURCE_DIR "${CONFU_DEPENDENCIES_SOURCE_DIR}/googletest" CACHE STRING "Google Test source directory")
 ENDIF()
 
