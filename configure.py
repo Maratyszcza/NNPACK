@@ -424,6 +424,7 @@ def main(args):
             (build, build.deps.pthreadpool, build.deps.cpuinfo, build.deps.googlebenchmark): all,
             "rt": build.target.is_linux}):
 
+        build.benchmark("convolution-inference-bench", build.cxx("convolution-inference.cc"))
         build.benchmark("sgemm-bench", build.cxx("sgemm.cc"))
 
     # Build benchmarking utilities
