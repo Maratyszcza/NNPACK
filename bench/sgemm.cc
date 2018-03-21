@@ -36,7 +36,7 @@ public:
 	}
 
 	virtual void TearDown(benchmark::State& state) override {
-		state.SetItemsProcessed(state.iterations() * 2 * mr() * nr() * kc());
+		state.SetItemsProcessed(uint64_t(state.iterations()) * 2 * mr() * nr() * kc());
 		a_.clear();
 		b_.clear();
 		c_.clear();
@@ -98,7 +98,7 @@ private:
 #endif
 
 #if NNP_BACKEND_PSIMD
-	BENCHMARK_TEMPLATE_F(SGEMM, neon, 4, 8)(benchmark::State& state) {
+	BENCHMARK_TEMPLATE_F(SGEMM, psimd, 4, 8)(benchmark::State& state) {
 		for (auto _ : state) {
 			nnp_sgemm_only_4x8__psimd(kc(), 0, a(), b(), c(), nr());
 		}
