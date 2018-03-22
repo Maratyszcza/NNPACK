@@ -14,6 +14,8 @@
 #include <nnpack.h>
 #include <nnpack/reference.h>
 
+#include <AlignedAllocator.h>
+
 #include <testers/relu.h>
 
 class ConvolutionTester {
@@ -206,12 +208,24 @@ public:
 		std::vector<float> output(batchSize() * outputChannels() * outputHeight() * outputWidth());
 		std::vector<float> referenceOutput(batchSize() * outputChannels() * outputHeight() * outputWidth());
 
+		size_t scratchSize = 0;
+		enum nnp_status status = nnp_convolution_output(
+			algorithm,
+			batchSize(), inputChannels(), outputChannels(),
+			inputSize(), inputPadding(), kernelSize(),
+			nullptr, nullptr, nullptr, nullptr, nullptr, &scratchSize,
+			activation, nullptr,
+			this->threadpool, nullptr);
+		ASSERT_EQ(nnp_status_success, status);
+
+		std::vector<uint8_t, AlignedAllocator<uint8_t, 64>> scratchBuffer(scratchSize);
 		std::vector<float> maxErrors;
 		for (size_t iteration = 0; iteration < iterations(); iteration++) {
 			std::generate(input.begin(), input.end(), std::ref(rng));
 			std::generate(kernel.begin(), kernel.end(), std::ref(rng));
 			std::generate(bias.begin(), bias.end(), std::ref(rng));
 			std::fill(output.begin(), output.end(), nanf(""));
+			std::fill(scratchBuffer.begin(), scratchBuffer.end(), 0xA5);
 
 			nnp_convolution_output__reference(
 				batchSize(), inputChannels(), outputChannels(),
@@ -236,8 +250,10 @@ public:
 				algorithm,
 				batchSize(), inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(),
-				input.data(), kernel.data(), bias.data(), output.data(), NULL, NULL,
-				activation, NULL,
+				input.data(), kernel.data(), bias.data(), output.data(),
+				scratchSize == 0 ? nullptr : scratchBuffer.data(),
+				scratchSize == 0 ? nullptr : &scratchSize,
+				activation, nullptr,
 				this->threadpool, nullptr);
 			ASSERT_EQ(nnp_status_success, status);
 
@@ -259,11 +275,23 @@ public:
 
 		std::vector<float> referenceInputGradient(batchSize() * inputChannels() * inputHeight() * inputWidth());
 
+		size_t scratchSize = 0;
+		enum nnp_status status = nnp_convolution_input_gradient(
+			algorithm,
+			batchSize(), inputChannels(), outputChannels(),
+			inputSize(), inputPadding(), kernelSize(),
+			nullptr, nullptr, nullptr, nullptr, &scratchSize,
+			nnp_activation_identity, nullptr,
+			this->threadpool, nullptr);
+		ASSERT_EQ(nnp_status_success, status);
+
+		std::vector<uint8_t, AlignedAllocator<uint8_t, 64>> scratchBuffer(scratchSize);
 		std::vector<float> maxErrors;
 		for (size_t iteration = 0; iteration < iterations(); iteration++) {
 			std::generate(outputGradient.begin(), outputGradient.end(), std::ref(rng));
 			std::generate(kernel.begin(), kernel.end(), std::ref(rng));
 			std::fill(inputGradient.begin(), inputGradient.end(), nanf(""));
+			std::fill(scratchBuffer.begin(), scratchBuffer.end(), 0xA5);
 
 			nnp_convolution_input_gradient__reference(
 				batchSize(), inputChannels(), outputChannels(),
@@ -275,7 +303,9 @@ public:
 				algorithm,
 				batchSize(), inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(),
-				outputGradient.data(), kernel.data(), inputGradient.data(), NULL, NULL,
+				outputGradient.data(), kernel.data(), inputGradient.data(),
+				scratchSize == 0 ? nullptr : scratchBuffer.data(),
+				scratchSize == 0 ? nullptr : &scratchSize,
 				nnp_activation_identity, NULL,
 				this->threadpool, nullptr);
 			ASSERT_EQ(nnp_status_success, status);
@@ -297,11 +327,23 @@ public:
 
 		std::vector<float> referenceKernelGradient(outputChannels() * inputChannels() * kernelHeight() * kernelWidth());
 
+		size_t scratchSize = 0;
+		enum nnp_status status = nnp_convolution_kernel_gradient(
+			algorithm,
+			batchSize(), inputChannels(), outputChannels(),
+			inputSize(), inputPadding(), kernelSize(),
+			nullptr, nullptr, nullptr, nullptr, &scratchSize,
+			nnp_activation_identity, nullptr,
+			this->threadpool, nullptr);
+		ASSERT_EQ(nnp_status_success, status);
+
+		std::vector<uint8_t, AlignedAllocator<uint8_t, 64>> scratchBuffer(scratchSize);
 		std::vector<float> maxErrors;
 		for (size_t iteration = 0; iteration < iterations(); iteration++) {
 			std::generate(input.begin(), input.end(), std::ref(rng));
 			std::generate(outputGradient.begin(), outputGradient.end(), std::ref(rng));
 			std::fill(kernelGradient.begin(), kernelGradient.end(), nanf(""));
+			std::fill(scratchBuffer.begin(), scratchBuffer.end(), 0xA5);
 
 			nnp_convolution_kernel_gradient__reference(
 				batchSize(), inputChannels(), outputChannels(),
@@ -313,7 +355,9 @@ public:
 				algorithm,
 				batchSize(), inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(),
-				input.data(), outputGradient.data(), kernelGradient.data(), NULL, NULL,
+				input.data(), outputGradient.data(), kernelGradient.data(),
+				scratchSize == 0 ? nullptr : scratchBuffer.data(),
+				scratchSize == 0 ? nullptr : &scratchSize,
 				nnp_activation_identity, NULL,
 				this->threadpool,
 				NULL);
@@ -326,7 +370,7 @@ public:
 		EXPECT_LT(median(maxErrors), errorLimit());
 	}
 
-	void testInference(enum nnp_convolution_algorithm algorithm, enum nnp_activation activation = nnp_activation_identity) const {
+	void testInference(enum nnp_convolution_algorithm algorithm, enum nnp_activation activation = nnp_activation_identity, bool precompute = false) const {
 		ASSERT_EQ(1, batchSize());
 
 		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -340,12 +384,26 @@ public:
 		std::vector<float> output(outputChannels() * outputHeight() * outputWidth());
 		std::vector<float> referenceOutput(outputChannels() * outputHeight() * outputWidth());
 
+		size_t scratchSize = 0;
+		enum nnp_status status = nnp_convolution_inference(
+			algorithm,
+			precompute ? nnp_convolution_transform_strategy_reuse : nnp_convolution_transform_strategy_compute,
+			inputChannels(), outputChannels(),
+			inputSize(), inputPadding(), kernelSize(), outputSubsampling(),
+			nullptr, nullptr, nullptr, nullptr, nullptr, &scratchSize,
+			activation, nullptr,
+			this->threadpool, nullptr);
+		ASSERT_EQ(nnp_status_success, status);
+
+		std::vector<uint8_t, AlignedAllocator<uint8_t, 64>> scratchBuffer(scratchSize);
+
 		std::vector<float> maxErrors;
 		for (size_t iteration = 0; iteration < iterations(); iteration++) {
 			std::generate(input.begin(), input.end(), std::ref(rng));
 			std::generate(kernel.begin(), kernel.end(), std::ref(rng));
 			std::generate(bias.begin(), bias.end(), std::ref(rng));
 			std::fill(output.begin(), output.end(), nanf(""));
+			std::fill(scratchBuffer.begin(), scratchBuffer.end(), 0xA5);
 
 			nnp_convolution_output__reference(
 				1, inputChannels(), outputChannels(),
@@ -366,12 +424,44 @@ public:
 					FAIL() << "Unexpected activation value: " << activation;
 			}
 
+			std::vector<uint8_t, AlignedAllocator<uint8_t, 64>> transformedKernel;
+
+			if (precompute) {
+				size_t transformedKernelSize = 0;
+				enum nnp_status status = nnp_convolution_inference(
+					algorithm, nnp_convolution_transform_strategy_precompute,
+					inputChannels(), outputChannels(),
+					inputSize(), inputPadding(), kernelSize(), outputSubsampling(),
+					nullptr, nullptr, nullptr, nullptr, nullptr, &transformedKernelSize,
+					activation, nullptr,
+					threadpool, nullptr);
+				ASSERT_EQ(nnp_status_success, status);
+
+				transformedKernel.resize(transformedKernelSize);
+
+				status = nnp_convolution_inference(
+					algorithm, nnp_convolution_transform_strategy_precompute,
+					inputChannels(), outputChannels(),
+					inputSize(), inputPadding(), kernelSize(), outputSubsampling(),
+					nullptr, kernel.data(), nullptr, nullptr, transformedKernel.data(), &transformedKernelSize,
+					activation, nullptr,
+					threadpool, nullptr);
+				ASSERT_EQ(nnp_status_success, status);
+			}
+
+			const void* kernelData = kernel.data();
+			if (precompute) {
+				kernelData = transformedKernel.data();
+			}
 			enum nnp_status status = nnp_convolution_inference(
-				algorithm, nnp_convolution_transform_strategy_compute,
+				algorithm,
+				precompute ? nnp_convolution_transform_strategy_reuse : nnp_convolution_transform_strategy_compute,
 				inputChannels(), outputChannels(),
 				inputSize(), inputPadding(), kernelSize(), outputSubsampling(),
-				input.data(), kernel.data(), bias.data(), output.data(), NULL, NULL,
-				activation, NULL,
+				input.data(), static_cast<const float*>(kernelData), bias.data(), output.data(),
+				scratchSize == 0 ? nullptr : scratchBuffer.data(),
+				scratchSize == 0 ? nullptr : &scratchSize,
+				activation, nullptr,
 				this->threadpool, nullptr);
 			ASSERT_EQ(nnp_status_success, status);
 
