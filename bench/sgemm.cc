@@ -19,8 +19,9 @@ class SGEMM : public benchmark::Fixture {
 public:
 	inline SGEMM() {
 		cpuinfo_initialize();
-		const size_t l1d_size = cpuinfo_get_l1d_cache(0)->size - 512;
-		kc_ = (l1d_size / sizeof(float) - mr() * nr()) / (mr() + nr());
+		const size_t l1d_size = cpuinfo_get_l1d_cache(0)->size;
+		const size_t l1d_reserve = 512;
+		kc_ = ((l1d_size - l1d_reserve) / sizeof(float) - mr() * nr()) / (mr() + nr());
 	}
 
 	virtual void SetUp(const benchmark::State&) override {
