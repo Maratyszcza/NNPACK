@@ -450,16 +450,16 @@ static void init_hwinfo(void) {
 			};
 			nnp_hwinfo.sxgemm = (struct sxgemm) {
 				.mr = 3,
-				.nr = 4,
-				.only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_s4gemm_only_3x4__neon,
-				.upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_s4gemm_upto_3x4__neon,
+				.nr = 3,
+				.only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_s4gemm_only_3x3__neon,
+				.upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_s4gemm_upto_3x3__neon,
 			};
 			if (cpuinfo_has_arm_neon_fp16()) {
 				nnp_hwinfo.hxgemm = (struct hxgemm) {
 					.mr = 3,
-					.nr = 4,
-					.only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_h4gemm_only_3x4__neonhp,
-					.upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_h4gemm_upto_3x4__neonhp,
+					.nr = 3,
+					.only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_h4gemm_only_3x3__neonhp,
+					.upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_h4gemm_upto_3x3__neonhp,
 				};
 			}
 			nnp_hwinfo.cxgemm = (struct cxgemm) {

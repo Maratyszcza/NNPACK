@@ -75,8 +75,8 @@ void nnp_s4c2gemm_conjb_upto_2x2__psimd(uint32_t mr, uint32_t nr, size_t k, size
 void nnp_s4c2gemm_conjb_transc_only_2x2__psimd(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 void nnp_s4c2gemm_conjb_transc_upto_2x2__psimd(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 
-void nnp_s4gemm_only_3x4__neon(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
-void nnp_s4gemm_upto_3x4__neon(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+void nnp_s4gemm_only_3x3__neon(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+void nnp_s4gemm_upto_3x3__neon(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 
 void nnp_c4gemm_only_2x2__neon(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 void nnp_c4gemm_upto_2x2__neon(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
@@ -96,8 +96,8 @@ void nnp_s4c2gemm_conjb_upto_2x2__neon(uint32_t mr, uint32_t nr, size_t k, size_
 void nnp_s4c2gemm_conjb_transc_only_2x2__neon(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 void nnp_s4c2gemm_conjb_transc_upto_2x2__neon(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 
-void nnp_h4gemm_only_3x4__neonhp(size_t k, size_t update, const void* a, const void* b, void* c, size_t row_stride_c);
-void nnp_h4gemm_upto_3x4__neonhp(uint32_t mr, uint32_t nr, size_t k, size_t update, const void* a, const void* b, void* c, size_t row_stride_c);
+void nnp_h4gemm_only_3x3__neonhp(size_t k, size_t update, const void* a, const void* b, void* c, size_t row_stride_c);
+void nnp_h4gemm_upto_3x3__neonhp(uint32_t mr, uint32_t nr, size_t k, size_t update, const void* a, const void* b, void* c, size_t row_stride_c);
 
 void nnp_s2gemm_only_2x2__scalar(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 void nnp_s2gemm_upto_2x2__scalar(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);

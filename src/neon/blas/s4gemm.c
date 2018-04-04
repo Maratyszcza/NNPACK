@@ -4,16 +4,16 @@
 #include <nnpack/arm_neon.h>
 
 
-void nnp_s4gemm_only_3x4__neon(
+void nnp_s4gemm_only_3x3__neon(
 	size_t k, size_t update,
 	const float a[restrict static 1],
 	const float b[restrict static 1],
 	float c[restrict static 1],
 	size_t row_stride, size_t column_stride)
 {
-	float32x4_t acc00 = vdupq_n_f32(0.0f), acc01 = vdupq_n_f32(0.0f), acc02 = vdupq_n_f32(0.0f), acc03 = vdupq_n_f32(0.0f);
-	float32x4_t acc10 = vdupq_n_f32(0.0f), acc11 = vdupq_n_f32(0.0f), acc12 = vdupq_n_f32(0.0f), acc13 = vdupq_n_f32(0.0f);
-	float32x4_t acc20 = vdupq_n_f32(0.0f), acc21 = vdupq_n_f32(0.0f), acc22 = vdupq_n_f32(0.0f), acc23 = vdupq_n_f32(0.0f);
+	float32x4_t acc00 = vdupq_n_f32(0.0f), acc01 = vdupq_n_f32(0.0f), acc02 = vdupq_n_f32(0.0f);
+	float32x4_t acc10 = vdupq_n_f32(0.0f), acc11 = vdupq_n_f32(0.0f), acc12 = vdupq_n_f32(0.0f);
+	float32x4_t acc20 = vdupq_n_f32(0.0f), acc21 = vdupq_n_f32(0.0f), acc22 = vdupq_n_f32(0.0f);
 	do {
 		const float32x4_t a0 = vld1q_f32_aligned(a + 0);
 		const float32x4_t a1 = vld1q_f32_aligned(a + 4);
@@ -31,49 +31,39 @@ void nnp_s4gemm_only_3x4__neon(
 		acc02 = vmuladdq_f32(acc02, a0, b2);
 		acc12 = vmuladdq_f32(acc12, a1, b2);
 		acc22 = vmuladdq_f32(acc22, a2, b2);
-		const float32x4_t b3 = vld1q_f32_aligned(b + 12);
-		acc03 = vmuladdq_f32(acc03, a0, b3);
-		acc13 = vmuladdq_f32(acc13, a1, b3);
-		acc23 = vmuladdq_f32(acc23, a2, b3);
 
 		a += 12;
-		b += 16;
+		b += 12;
 	} while (--k);
 
 	if (update != 0) {
 		vst1q_f32_aligned(c +  0, vaddq_f32(vld1q_f32_aligned(c +  0), acc00));
 		vst1q_f32_aligned(c +  4, vaddq_f32(vld1q_f32_aligned(c +  4), acc01));
 		vst1q_f32_aligned(c +  8, vaddq_f32(vld1q_f32_aligned(c +  8), acc02));
-		vst1q_f32_aligned(c + 12, vaddq_f32(vld1q_f32_aligned(c + 12), acc03));
 		c += row_stride;
 		vst1q_f32_aligned(c +  0, vaddq_f32(vld1q_f32_aligned(c +  0), acc10));
 		vst1q_f32_aligned(c +  4, vaddq_f32(vld1q_f32_aligned(c +  4), acc11));
 		vst1q_f32_aligned(c +  8, vaddq_f32(vld1q_f32_aligned(c +  8), acc12));
-		vst1q_f32_aligned(c + 12, vaddq_f32(vld1q_f32_aligned(c + 12), acc13));
 		c += row_stride;
 		vst1q_f32_aligned(c +  0, vaddq_f32(vld1q_f32_aligned(c +  0), acc20));
 		vst1q_f32_aligned(c +  4, vaddq_f32(vld1q_f32_aligned(c +  4), acc21));
 		vst1q_f32_aligned(c +  8, vaddq_f32(vld1q_f32_aligned(c +  8), acc22));
-		vst1q_f32_aligned(c + 12, vaddq_f32(vld1q_f32_aligned(c + 12), acc23));
 	} else {
 		vst1q_f32_aligned(c +  0, acc00);
 		vst1q_f32_aligned(c +  4, acc01);
 		vst1q_f32_aligned(c +  8, acc02);
-		vst1q_f32_aligned(c + 12, acc03);
 		c += row_stride;
 		vst1q_f32_aligned(c +  0, acc10);
 		vst1q_f32_aligned(c +  4, acc11);
 		vst1q_f32_aligned(c +  8, acc12);
-		vst1q_f32_aligned(c + 12, acc13);
 		c += row_stride;
 		vst1q_f32_aligned(c +  0, acc20);
 		vst1q_f32_aligned(c +  4, acc21);
 		vst1q_f32_aligned(c +  8, acc22);
-		vst1q_f32_aligned(c + 12, acc23);
 	}
 }
 
-void nnp_s4gemm_upto_3x4__neon(
+void nnp_s4gemm_upto_3x3__neon(
 	uint32_t mr, uint32_t nr,
 	size_t k, size_t update,
 	const float a[restrict static 1],
@@ -81,9 +71,9 @@ void nnp_s4gemm_upto_3x4__neon(
 	float c[restrict static 1],
 	size_t row_stride, size_t column_stride)
 {
-	float32x4_t acc00 = vdupq_n_f32(0.0f), acc01 = vdupq_n_f32(0.0f), acc02 = vdupq_n_f32(0.0f), acc03 = vdupq_n_f32(0.0f);
-	float32x4_t acc10 = vdupq_n_f32(0.0f), acc11 = vdupq_n_f32(0.0f), acc12 = vdupq_n_f32(0.0f), acc13 = vdupq_n_f32(0.0f);
-	float32x4_t acc20 = vdupq_n_f32(0.0f), acc21 = vdupq_n_f32(0.0f), acc22 = vdupq_n_f32(0.0f), acc23 = vdupq_n_f32(0.0f);
+	float32x4_t acc00 = vdupq_n_f32(0.0f), acc01 = vdupq_n_f32(0.0f), acc02 = vdupq_n_f32(0.0f);
+	float32x4_t acc10 = vdupq_n_f32(0.0f), acc11 = vdupq_n_f32(0.0f), acc12 = vdupq_n_f32(0.0f);
+	float32x4_t acc20 = vdupq_n_f32(0.0f), acc21 = vdupq_n_f32(0.0f), acc22 = vdupq_n_f32(0.0f);
 	do {
 		float32x4_t a0, a1, a2;
 
@@ -115,13 +105,6 @@ void nnp_s4gemm_upto_3x4__neon(
 				acc02 = vmuladdq_f32(acc02, a0, b2);
 				acc12 = vmuladdq_f32(acc12, a1, b2);
 				acc22 = vmuladdq_f32(acc22, a2, b2);
-				if (nr > 3) {
-					const float32x4_t b3 = vld1q_f32_aligned(b);
-					b += 4;
-					acc03 = vmuladdq_f32(acc03, a0, b3);
-					acc13 = vmuladdq_f32(acc13, a1, b3);
-					acc23 = vmuladdq_f32(acc23, a2, b3);
-				}
 			}
 		}
 	} while (--k);
@@ -132,9 +115,6 @@ void nnp_s4gemm_upto_3x4__neon(
 			vst1q_f32_aligned(c + 4, vaddq_f32(vld1q_f32_aligned(c + 4), acc01));
 			if (nr > 2) {
 				vst1q_f32_aligned(c + 8, vaddq_f32(vld1q_f32_aligned(c + 8), acc02));
-				if (nr > 3) {
-					vst1q_f32_aligned(c + 12, vaddq_f32(vld1q_f32_aligned(c + 12), acc03));
-				}
 			}
 		}
 		if (mr > 1) {
@@ -144,9 +124,6 @@ void nnp_s4gemm_upto_3x4__neon(
 				vst1q_f32_aligned(c + 4, vaddq_f32(vld1q_f32_aligned(c + 4), acc11));
 				if (nr > 2) {
 					vst1q_f32_aligned(c + 8, vaddq_f32(vld1q_f32_aligned(c + 8), acc12));
-					if (nr > 3) {
-						vst1q_f32_aligned(c + 12, vaddq_f32(vld1q_f32_aligned(c + 12), acc13));
-					}
 				}
 			}
 			if (mr > 2) {
@@ -156,9 +133,6 @@ void nnp_s4gemm_upto_3x4__neon(
 					vst1q_f32_aligned(c + 4, vaddq_f32(vld1q_f32_aligned(c + 4), acc21));
 					if (nr > 2) {
 						vst1q_f32_aligned(c + 8, vaddq_f32(vld1q_f32_aligned(c + 8), acc22));
-						if (nr > 3) {
-							vst1q_f32_aligned(c + 12, vaddq_f32(vld1q_f32_aligned(c + 12), acc23));
-						}
 					}
 				}
 			}
@@ -169,9 +143,6 @@ void nnp_s4gemm_upto_3x4__neon(
 			vst1q_f32_aligned(c + 4, acc01);
 			if (nr > 2) {
 				vst1q_f32_aligned(c + 8, acc02);
-				if (nr > 3) {
-					vst1q_f32_aligned(c + 12, acc03);
-				}
 			}
 		}
 		if (mr > 1) {
@@ -181,9 +152,6 @@ void nnp_s4gemm_upto_3x4__neon(
 				vst1q_f32_aligned(c + 4, acc11);
 				if (nr > 2) {
 					vst1q_f32_aligned(c + 8, acc12);
-					if (nr > 3) {
-						vst1q_f32_aligned(c + 12, acc13);
-					}
 				}
 			}
 			if (mr > 2) {
@@ -193,9 +161,6 @@ void nnp_s4gemm_upto_3x4__neon(
 					vst1q_f32_aligned(c + 4, acc21);
 					if (nr > 2) {
 						vst1q_f32_aligned(c + 8, acc22);
-						if (nr > 3) {
-							vst1q_f32_aligned(c + 12, acc23);
-						}
 					}
 				}
 			}
