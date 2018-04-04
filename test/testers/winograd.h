@@ -14,8 +14,7 @@
 #include <nnpack/winograd.h>
 #include <nnpack/transform.h>
 #include <nnpack/hwinfo.h>
-
-#include <AlignedAllocator.h>
+#include <nnpack/AlignedAllocator.h>
 
 class WinogradTransformTester {
 public:

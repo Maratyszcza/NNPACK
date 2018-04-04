@@ -12,8 +12,7 @@
 #include <algorithm>
 
 #include <nnpack/hwinfo.h>
-
-#include <AlignedAllocator.h>
+#include <nnpack/AlignedAllocator.h>
 
 class GemmMicroKernelTester {
 public:

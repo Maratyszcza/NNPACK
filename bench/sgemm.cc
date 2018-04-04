@@ -9,7 +9,7 @@
 #include <cpuinfo.h>
 #include <nnpack/macros.h>
 #include <nnpack/blas.h>
-#include <AlignedAllocator.h>
+#include <nnpack/AlignedAllocator.h>
 
 #include <benchmark/benchmark.h>
 

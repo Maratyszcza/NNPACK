@@ -13,8 +13,7 @@
 
 #include <nnpack.h>
 #include <nnpack/reference.h>
-
-#include <AlignedAllocator.h>
+#include <nnpack/AlignedAllocator.h>
 
 #include <testers/relu.h>
 
