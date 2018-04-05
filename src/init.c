@@ -451,9 +451,19 @@ static void init_hwinfo(void) {
 			nnp_hwinfo.sxgemm = (struct sxgemm) {
 				.mr = 3,
 				.nr = 3,
-				.only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_s4gemm_only_3x3__neon,
+				#if CPUINFO_ARCH_ARM
+					.only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_s4gemm_only_3x3__aarch32_neon,
+				#else
+					.only_mr_x_nr = (nnp_fast_tuple_gemm_function) nnp_s4gemm_only_3x3__neon,
+				#endif
 				.upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_s4gemm_upto_3x3__neon,
 			};
+			#if CPUINFO_ARCH_ARM
+				if (cpuinfo_has_arm_neon_fma()) {
+					nnp_hwinfo.sxgemm.only_mr_x_nr =
+						(nnp_fast_tuple_gemm_function) nnp_s4gemm_only_3x3__aarch32_neon2;
+				}
+			#endif
 			if (cpuinfo_has_arm_neon_fp16()) {
 				nnp_hwinfo.hxgemm = (struct hxgemm) {
 					.mr = 3,
