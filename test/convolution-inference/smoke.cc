@@ -57,6 +57,24 @@ TEST(WT8x8, single_tile_with_relu) {
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
 }
 
+TEST(WT8x8, single_tile_with_subsample2x2) {
+	ConvolutionTester()
+		.inputSize(8, 8)
+		.outputSubsampling(2, 2)
+		.iterations(100)
+		.errorLimit(1.0e-3)
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_identity);
+}
+
+TEST(WT8x8, single_tile_with_subsample2x2_relu) {
+	ConvolutionTester()
+		.inputSize(8, 8)
+		.outputSubsampling(2, 2)
+		.iterations(100)
+		.errorLimit(1.0e-3)
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
+}
+
 TEST(WT8x8_FP16, single_tile) {
 	ConvolutionTester()
 		.inputSize(8, 8)
@@ -116,6 +134,24 @@ TEST(WT8x8_PRECOMPUTE, single_tile) {
 TEST(WT8x8_PRECOMPUTE, single_tile_with_relu) {
 	ConvolutionTester()
 		.inputSize(8, 8)
+		.iterations(100)
+		.errorLimit(1.0e-3)
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu, true);
+}
+
+TEST(WT8x8_PRECOMPUTE, single_tile_with_subsample2x2) {
+	ConvolutionTester()
+		.inputSize(8, 8)
+		.outputSubsampling(2, 2)
+		.iterations(100)
+		.errorLimit(1.0e-3)
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_identity, true);
+}
+
+TEST(WT8x8_PRECOMPUTE, single_tile_with_subsample2x2_relu) {
+	ConvolutionTester()
+		.inputSize(8, 8)
+		.outputSubsampling(2, 2)
 		.iterations(100)
 		.errorLimit(1.0e-3)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu, true);
@@ -189,6 +225,24 @@ TEST(WT8x8, input_subtile_with_relu) {
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
 }
 
+TEST(WT8x8, input_subtile_with_subsample2x2) {
+	ConvolutionTester()
+		.inputSize(4, 4)
+		.outputSubsampling(2, 2)
+		.iterations(100)
+		.errorLimit(1.0e-4)
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_identity);
+}
+
+TEST(WT8x8, input_subtile_with_subsample2x2_relu) {
+	ConvolutionTester()
+		.inputSize(4, 4)
+		.outputSubsampling(2, 2)
+		.iterations(100)
+		.errorLimit(1.0e-4)
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
+}
+
 TEST(WT8x8_FP16, input_subtile) {
 	ConvolutionTester()
 		.inputSize(4, 4)
@@ -248,6 +302,24 @@ TEST(WT8x8_PRECOMPUTE, input_subtile) {
 TEST(WT8x8_PRECOMPUTE, input_subtile_with_relu) {
 	ConvolutionTester()
 		.inputSize(4, 4)
+		.iterations(100)
+		.errorLimit(1.0e-4)
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu, true);
+}
+
+TEST(WT8x8_PRECOMPUTE, input_subtile_with_subsample2x2) {
+	ConvolutionTester()
+		.inputSize(4, 4)
+		.outputSubsampling(2, 2)
+		.iterations(100)
+		.errorLimit(1.0e-4)
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_identity, true);
+}
+
+TEST(WT8x8_PRECOMPUTE, input_subtile_with_subsample2x2_relu) {
+	ConvolutionTester()
+		.inputSize(4, 4)
+		.outputSubsampling(2, 2)
 		.iterations(100)
 		.errorLimit(1.0e-4)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu, true);
@@ -321,6 +393,24 @@ TEST(WT8x8, multi_tile_with_relu) {
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
 }
 
+TEST(WT8x8, multi_tile_with_subsample2x2) {
+	ConvolutionTester()
+		.inputSize(13, 13)
+		.outputSubsampling(2, 2)
+		.iterations(100)
+		.errorLimit(1.0e-3)
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_identity);
+}
+
+TEST(WT8x8, multi_tile_with_subsample2x2_relu) {
+	ConvolutionTester()
+		.inputSize(13, 13)
+		.outputSubsampling(2, 2)
+		.iterations(100)
+		.errorLimit(1.0e-3)
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
+}
+
 TEST(WT8x8_FP16, multi_tile) {
 	ConvolutionTester()
 		.inputSize(13, 13)
@@ -380,6 +470,24 @@ TEST(WT8x8_PRECOMPUTE, multi_tile) {
 TEST(WT8x8_PRECOMPUTE, multi_tile_with_relu) {
 	ConvolutionTester()
 		.inputSize(13, 13)
+		.iterations(100)
+		.errorLimit(1.0e-3)
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu, true);
+}
+
+TEST(WT8x8_PRECOMPUTE, multi_tile_with_subsample2x2) {
+	ConvolutionTester()
+		.inputSize(13, 13)
+		.outputSubsampling(2, 2)
+		.iterations(100)
+		.errorLimit(1.0e-3)
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_identity, true);
+}
+
+TEST(WT8x8_PRECOMPUTE, multi_tile_with_subsample2x2_relu) {
+	ConvolutionTester()
+		.inputSize(13, 13)
+		.outputSubsampling(2, 2)
 		.iterations(100)
 		.errorLimit(1.0e-3)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu, true);
@@ -499,6 +607,44 @@ TEST(WT8x8, implicit_padding_with_relu) {
 	ConvolutionTester tester;
 	tester.inputSize(8, 8)
 		.kernelSize(3, 3)
+		.iterations(15)
+		.errorLimit(1.0e-1);
+	for (size_t paddingTop = 0; paddingTop < tester.kernelHeight(); paddingTop++) {
+		for (size_t paddingRight = 0; paddingRight < tester.kernelWidth(); paddingRight++) {
+			for (size_t paddingLeft = 0; paddingLeft < tester.kernelWidth(); paddingLeft++) {
+				for (size_t paddingBottom = 0; paddingBottom < tester.kernelHeight(); paddingBottom++) {
+					tester.inputPadding(paddingTop, paddingRight, paddingBottom, paddingLeft)
+						.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
+				}
+			}
+		}
+	}
+}
+
+TEST(WT8x8, implicit_padding_with_subsample2x2) {
+	ConvolutionTester tester;
+	tester.inputSize(8, 8)
+		.kernelSize(3, 3)
+		.outputSubsampling(2, 2)
+		.iterations(15)
+		.errorLimit(1.0e-1);
+	for (size_t paddingTop = 0; paddingTop < tester.kernelHeight(); paddingTop++) {
+		for (size_t paddingRight = 0; paddingRight < tester.kernelWidth(); paddingRight++) {
+			for (size_t paddingLeft = 0; paddingLeft < tester.kernelWidth(); paddingLeft++) {
+				for (size_t paddingBottom = 0; paddingBottom < tester.kernelHeight(); paddingBottom++) {
+					tester.inputPadding(paddingTop, paddingRight, paddingBottom, paddingLeft)
+						.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_identity);
+				}
+			}
+		}
+	}
+}
+
+TEST(WT8x8, implicit_padding_with_subsample2x2_relu) {
+	ConvolutionTester tester;
+	tester.inputSize(8, 8)
+		.kernelSize(3, 3)
+		.outputSubsampling(2, 2)
 		.iterations(15)
 		.errorLimit(1.0e-1);
 	for (size_t paddingTop = 0; paddingTop < tester.kernelHeight(); paddingTop++) {
@@ -657,6 +803,44 @@ TEST(WT8x8_PRECOMPUTE, implicit_padding_with_relu) {
 	}
 }
 
+TEST(WT8x8_PRECOMPUTE, implicit_padding_with_subsample2x2) {
+	ConvolutionTester tester;
+	tester.inputSize(8, 8)
+		.kernelSize(3, 3)
+		.outputSubsampling(2, 2)
+		.iterations(15)
+		.errorLimit(1.0e-1);
+	for (size_t paddingTop = 0; paddingTop < tester.kernelHeight(); paddingTop++) {
+		for (size_t paddingRight = 0; paddingRight < tester.kernelWidth(); paddingRight++) {
+			for (size_t paddingLeft = 0; paddingLeft < tester.kernelWidth(); paddingLeft++) {
+				for (size_t paddingBottom = 0; paddingBottom < tester.kernelHeight(); paddingBottom++) {
+					tester.inputPadding(paddingTop, paddingRight, paddingBottom, paddingLeft)
+						.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_identity, true);
+				}
+			}
+		}
+	}
+}
+
+TEST(WT8x8_PRECOMPUTE, implicit_padding_with_subsample2x2_relu) {
+	ConvolutionTester tester;
+	tester.inputSize(8, 8)
+		.kernelSize(3, 3)
+		.outputSubsampling(2, 2)
+		.iterations(15)
+		.errorLimit(1.0e-1);
+	for (size_t paddingTop = 0; paddingTop < tester.kernelHeight(); paddingTop++) {
+		for (size_t paddingRight = 0; paddingRight < tester.kernelWidth(); paddingRight++) {
+			for (size_t paddingLeft = 0; paddingLeft < tester.kernelWidth(); paddingLeft++) {
+				for (size_t paddingBottom = 0; paddingBottom < tester.kernelHeight(); paddingBottom++) {
+					tester.inputPadding(paddingTop, paddingRight, paddingBottom, paddingLeft)
+						.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu, true);
+				}
+			}
+		}
+	}
+}
+
 TEST(WT8x8_FP16_PRECOMPUTE, implicit_padding) {
 	ConvolutionTester tester;
 	tester.inputSize(8, 8)
@@ -763,6 +947,30 @@ TEST(WT8x8, few_input_channels_with_relu) {
 	}
 }
 
+TEST(WT8x8, few_input_channels_with_subsample2x2) {
+	ConvolutionTester tester;
+	tester.inputSize(8, 8)
+		.outputSubsampling(2, 2)
+		.iterations(100)
+		.errorLimit(1.0e-3);
+	for (size_t inputChannels = 2; inputChannels <= 5; inputChannels++) {
+		tester.inputChannels(inputChannels)
+			.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_identity);
+	}
+}
+
+TEST(WT8x8, few_input_channels_with_subsample2x2_relu) {
+	ConvolutionTester tester;
+	tester.inputSize(8, 8)
+		.outputSubsampling(2, 2)
+		.iterations(100)
+		.errorLimit(1.0e-3);
+	for (size_t inputChannels = 2; inputChannels <= 5; inputChannels++) {
+		tester.inputChannels(inputChannels)
+			.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
+	}
+}
+
 TEST(WT8x8_FP16, few_input_channels) {
 	ConvolutionTester tester;
 	tester.inputSize(8, 8)
@@ -843,6 +1051,30 @@ TEST(WT8x8_PRECOMPUTE, few_input_channels) {
 TEST(WT8x8_PRECOMPUTE, few_input_channels_with_relu) {
 	ConvolutionTester tester;
 	tester.inputSize(8, 8)
+		.iterations(100)
+		.errorLimit(1.0e-3);
+	for (size_t inputChannels = 2; inputChannels <= 5; inputChannels++) {
+		tester.inputChannels(inputChannels)
+			.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu, true);
+	}
+}
+
+TEST(WT8x8_PRECOMPUTE, few_input_channels_with_subsample2x2) {
+	ConvolutionTester tester;
+	tester.inputSize(8, 8)
+		.outputSubsampling(2, 2)
+		.iterations(100)
+		.errorLimit(1.0e-3);
+	for (size_t inputChannels = 2; inputChannels <= 5; inputChannels++) {
+		tester.inputChannels(inputChannels)
+			.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_identity, true);
+	}
+}
+
+TEST(WT8x8_PRECOMPUTE, few_input_channels_with_subsample2x2_relu) {
+	ConvolutionTester tester;
+	tester.inputSize(8, 8)
+		.outputSubsampling(2, 2)
 		.iterations(100)
 		.errorLimit(1.0e-3);
 	for (size_t inputChannels = 2; inputChannels <= 5; inputChannels++) {
@@ -943,6 +1175,30 @@ TEST(WT8x8, few_output_channels_with_relu) {
 	}
 }
 
+TEST(WT8x8, few_output_channels_with_subsample2x2) {
+	ConvolutionTester tester;
+	tester.inputSize(8, 8)
+		.outputSubsampling(2, 2)
+		.iterations(100)
+		.errorLimit(1.0e-3);
+	for (size_t outputChannels = 2; outputChannels <= 5; outputChannels++) {
+		tester.outputChannels(outputChannels)
+			.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_identity);
+	}
+}
+
+TEST(WT8x8, few_output_channels_with_subsample2x2_relu) {
+	ConvolutionTester tester;
+	tester.inputSize(8, 8)
+		.outputSubsampling(2, 2)
+		.iterations(100)
+		.errorLimit(1.0e-3);
+	for (size_t outputChannels = 2; outputChannels <= 5; outputChannels++) {
+		tester.outputChannels(outputChannels)
+			.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
+	}
+}
+
 TEST(WT8x8_FP16, few_output_channels) {
 	ConvolutionTester tester;
 	tester.inputSize(8, 8)
@@ -1023,6 +1279,30 @@ TEST(WT8x8_PRECOMPUTE, few_output_channels) {
 TEST(WT8x8_PRECOMPUTE, few_output_channels_with_relu) {
 	ConvolutionTester tester;
 	tester.inputSize(8, 8)
+		.iterations(100)
+		.errorLimit(1.0e-3);
+	for (size_t outputChannels = 2; outputChannels <= 5; outputChannels++) {
+		tester.outputChannels(outputChannels)
+			.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu, true);
+	}
+}
+
+TEST(WT8x8_PRECOMPUTE, few_output_channels_with_subsample2x2) {
+	ConvolutionTester tester;
+	tester.inputSize(8, 8)
+		.outputSubsampling(2, 2)
+		.iterations(100)
+		.errorLimit(1.0e-3);
+	for (size_t outputChannels = 2; outputChannels <= 5; outputChannels++) {
+		tester.outputChannels(outputChannels)
+			.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_identity, true);
+	}
+}
+
+TEST(WT8x8_PRECOMPUTE, few_output_channels_with_subsample2x2_relu) {
+	ConvolutionTester tester;
+	tester.inputSize(8, 8)
+		.outputSubsampling(2, 2)
 		.iterations(100)
 		.errorLimit(1.0e-3);
 	for (size_t outputChannels = 2; outputChannels <= 5; outputChannels++) {
@@ -1181,6 +1461,24 @@ TEST(WT8x8, non_square_image_with_relu) {
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
 }
 
+TEST(WT8x8, non_square_image_with_subsample2x2) {
+	ConvolutionTester tester;
+	tester.inputSize(9, 10)
+		.outputSubsampling(2, 2)
+		.iterations(100)
+		.errorLimit(1.0e-3)
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_identity);
+}
+
+TEST(WT8x8, non_square_image_with_subsample2x2_relu) {
+	ConvolutionTester tester;
+	tester.inputSize(9, 10)
+		.outputSubsampling(2, 2)
+		.iterations(100)
+		.errorLimit(1.0e-3)
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu);
+}
+
 TEST(WT8x8_FP16, non_square_image) {
 	ConvolutionTester tester;
 	tester.inputSize(9, 10)
@@ -1240,6 +1538,24 @@ TEST(WT8x8_PRECOMPUTE, non_square_image) {
 TEST(WT8x8_PRECOMPUTE, non_square_image_with_relu) {
 	ConvolutionTester tester;
 	tester.inputSize(9, 10)
+		.iterations(100)
+		.errorLimit(1.0e-3)
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu, true);
+}
+
+TEST(WT8x8_PRECOMPUTE, non_square_image_with_subsample2x2) {
+	ConvolutionTester tester;
+	tester.inputSize(9, 10)
+		.outputSubsampling(2, 2)
+		.iterations(100)
+		.errorLimit(1.0e-3)
+		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_identity, true);
+}
+
+TEST(WT8x8_PRECOMPUTE, non_square_image_with_subsample2x2_relu) {
+	ConvolutionTester tester;
+	tester.inputSize(9, 10)
+		.outputSubsampling(2, 2)
 		.iterations(100)
 		.errorLimit(1.0e-3)
 		.testInference(nnp_convolution_algorithm_wt8x8, nnp_activation_relu, true);

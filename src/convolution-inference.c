@@ -69,7 +69,7 @@ struct NNP_CACHE_ALIGN input_transform_context {
 	const size_t input_padding_left;
 	const size_t input_padding_top;
 	const struct nnp_size input_tile;
-	const struct nnp_size output_tile;
+	const struct nnp_size input_tile_step;
 };
 
 static void compute_input_transform(
@@ -86,7 +86,7 @@ static void compute_input_transform(
 	const size_t input_padding_left                 = context->input_padding_left;
 	const size_t input_padding_top                  = context->input_padding_top;
 	const struct nnp_size input_tile                = context->input_tile;
-	const struct nnp_size output_tile               = context->output_tile;
+	const struct nnp_size input_tile_step           = context->input_tile_step;
 
 	const float (*input)[input_size.height][input_size.width] =
 		(const float(*)[input_size.height][input_size.width]) context->input;
@@ -100,8 +100,8 @@ static void compute_input_transform(
 		const size_t tile_x = tile_xy.remainder;
 		const size_t tile_y = tile_xy.quotient;
 
-		const size_t output_x = tile_x * output_tile.width;
-		const size_t output_y = tile_y * output_tile.height;
+		const size_t output_x = tile_x * input_tile_step.width;
+		const size_t output_y = tile_y * input_tile_step.height;
 
 		const size_t input_x = min(doz(output_x, input_padding_left), input_size.width);
 		const size_t input_y = min(doz(output_y, input_padding_top), input_size.height);
@@ -478,6 +478,7 @@ static enum nnp_status compute_fast_convolution_inference(
 	const struct nnp_padding input_padding,
 	const struct nnp_size kernel_size,
 	const struct nnp_size output_size,
+	const struct nnp_size output_subsampling,
 	const float* input,
 	const float* kernel,
 	const float* bias,
@@ -499,6 +500,10 @@ static enum nnp_status compute_fast_convolution_inference(
 	const size_t tuple_count = tile_elements / tuple_elements;
 
 	const struct nnp_size output_tile_size = {
+		.width = (tile_size.width - kernel_size.width) / output_subsampling.width + 1,
+		.height = (tile_size.height - kernel_size.height) / output_subsampling.height + 1
+	};
+	const struct nnp_size tile_step = {
 		.width = tile_size.width - kernel_size.width + 1,
 		.height = tile_size.height - kernel_size.height + 1
 	};
@@ -594,7 +599,7 @@ static enum nnp_status compute_fast_convolution_inference(
 					.input_padding_left = input_padding.left,
 					.input_padding_top = input_padding.top,
 					.input_tile = tile_size,
-					.output_tile = output_tile_size,
+					.input_tile_step = tile_step,
 				};
 				pthreadpool_compute_2d_tiled(threadpool,
 					(pthreadpool_function_2d_tiled_t) compute_input_transform,
@@ -1004,6 +1009,50 @@ static enum nnp_status compute_direct_convolution_inference(
 	return nnp_status_success;
 }
 
+static inline enum nnp_convolution_algorithm select_algorithm(
+	struct nnp_size kernel_size,
+	struct nnp_size output_subsampling,
+	struct nnp_size output_size)
+{
+	if (max(output_subsampling.height, output_subsampling.width) == 1) {
+		/* Stride-1 convolution: consider fast convolution algorithm and direct 1x1 */
+		if (max(kernel_size.height, kernel_size.width) == 1) {
+			return nnp_convolution_algorithm_direct;
+		} else if (kernel_size.height == 3 && kernel_size.width == 3) {
+			return nnp_convolution_algorithm_wt8x8;
+		} else if (min(kernel_size.height, kernel_size.width) >= 2) {
+			/* Consider FFT-based fast convolution */
+			if (max(kernel_size.height, kernel_size.width) <= 8) {
+				/* Decide between FFT 8x8 and FFT 16x16 */
+				const size_t tile_count_8x8 =
+					divide_round_up(output_size.height, 8 - kernel_size.height + 1) *
+					divide_round_up(output_size.width, 8 - kernel_size.width + 1);
+				const size_t tile_count_16x16 =
+					divide_round_up(output_size.height, 16 - kernel_size.height + 1) *
+					divide_round_up(output_size.width, 16 - kernel_size.width + 1);
+				if (tile_count_8x8 <= 4 * tile_count_16x16) {
+					/* 8x8 tiles are more efficient */
+					return nnp_convolution_algorithm_ft8x8;
+				} else {
+					return nnp_convolution_algorithm_ft16x16;
+				}
+			} else if (max(kernel_size.height, kernel_size.width) <= 16) {
+				return nnp_convolution_algorithm_ft16x16;
+			}
+		}
+	} else if (output_subsampling.height == 2 && output_subsampling.width == 2) {
+		if (kernel_size.height == 3 && kernel_size.width == 3) {
+			/* Special case: Winograd transform for 3x3 stride 2 */
+			if (nnp_hwinfo.transforms.owt_f6x6_3x3s2_with_bias != NULL) {
+				return nnp_convolution_algorithm_wt8x8;
+			}
+		}
+	}
+
+	/* Fall-back algorithm */
+	return nnp_convolution_algorithm_implicit_gemm;
+}
+
 enum nnp_status nnp_convolution_inference(
 	enum nnp_convolution_algorithm algorithm,
 	enum nnp_convolution_transform_strategy transform_strategy,
@@ -1046,32 +1095,7 @@ enum nnp_status nnp_convolution_inference(
 	};
 
 	if (algorithm == nnp_convolution_algorithm_auto) {
-		if ((max(kernel_size.width, kernel_size.height) > 16) ||
-			(max(output_subsampling.width, output_subsampling.height) > 1))
-		{
-			algorithm = nnp_convolution_algorithm_implicit_gemm;
-		} else if (max(kernel_size.width, kernel_size.height) > 8) {
-			algorithm = nnp_convolution_algorithm_ft16x16;
-		} else if (max(kernel_size.width, kernel_size.height) == 1) {
-			algorithm = nnp_convolution_algorithm_direct;
-		} else {
-			const size_t tile_count_8x8 =
-				divide_round_up(output_size.height, 8 - kernel_size.height + 1) *
-				divide_round_up(output_size.width, 8 - kernel_size.width + 1);
-			const size_t tile_count_16x16 =
-				divide_round_up(output_size.height, 16 - kernel_size.height + 1) *
-				divide_round_up(output_size.width, 16 - kernel_size.width + 1);
-			if (tile_count_8x8 <= 4 * tile_count_16x16) {
-				/* 8x8 tiles are more efficient */
-				if ((kernel_size.height == 3) && (kernel_size.width == 3)) {
-					algorithm = nnp_convolution_algorithm_wt8x8;
-				} else {
-					algorithm = nnp_convolution_algorithm_ft8x8;
-				}
-			} else {
-				algorithm = nnp_convolution_algorithm_ft16x16;
-			}
-		}
+		algorithm = select_algorithm(kernel_size, output_subsampling, output_size);
 	}
 
 	struct nnp_size tile_size;
@@ -1084,6 +1108,10 @@ enum nnp_status nnp_convolution_inference(
 		case nnp_convolution_algorithm_wt8x8_fp16:
 			#if NNP_BACKEND_ARM
 				if (kernel_size.height != 3 || kernel_size.width != 3) {
+					status = nnp_status_unsupported_algorithm;
+					goto cleanup;
+				}
+				if (max(output_subsampling.height, output_subsampling.width) > 1) {
 					status = nnp_status_unsupported_algorithm;
 					goto cleanup;
 				}
@@ -1125,16 +1153,32 @@ enum nnp_status nnp_convolution_inference(
 			kernel_transform_function = nnp_hwinfo.transforms.kwt_f6x6_3x3;
 			switch (activation) {
 				case nnp_activation_identity:
-					output_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias;
+					if (output_subsampling.height == 1 && output_subsampling.width == 1) {
+						output_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias;
+					} else if (output_subsampling.height == 2 && output_subsampling.width == 2) {
+						output_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3s2_with_bias;
+					}
 					break;
 				case nnp_activation_relu:
-					output_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias_with_relu;
+					if (output_subsampling.height == 1 && output_subsampling.width == 1) {
+						output_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3_with_bias_with_relu;
+					} else if (output_subsampling.height == 2 && output_subsampling.width == 2) {
+						output_transform_function = nnp_hwinfo.transforms.owt_f6x6_3x3s2_with_bias_with_relu;
+					}
 					break;
 				default:
 					NNP_UNREACHABLE;
 			}
 			break;
 		case nnp_convolution_algorithm_ft8x8:
+			if (max(kernel_size.height, kernel_size.width) > 8) {
+				status = nnp_status_unsupported_algorithm;
+				goto cleanup;
+			}
+			if (max(output_subsampling.height, output_subsampling.width) > 1) {
+				status = nnp_status_unsupported_algorithm;
+				goto cleanup;
+			}
 			tile_size = (struct nnp_size) { .height = 8, .width = 8 };
 			transform_element_size = sizeof(float);
 			fourier_transform = true;
@@ -1153,6 +1197,14 @@ enum nnp_status nnp_convolution_inference(
 			}
 			break;
 		case nnp_convolution_algorithm_ft16x16:
+			if (max(kernel_size.height, kernel_size.width) > 16) {
+				status = nnp_status_unsupported_algorithm;
+				goto cleanup;
+			}
+			if (max(output_subsampling.height, output_subsampling.width) > 1) {
+				status = nnp_status_unsupported_algorithm;
+				goto cleanup;
+			}
 			tile_size = (struct nnp_size) { .height = 16, .width = 16 };
 			transform_element_size = sizeof(float);
 			fourier_transform = true;
@@ -1173,6 +1225,14 @@ enum nnp_status nnp_convolution_inference(
 		case nnp_convolution_algorithm_implicit_gemm:
 			break;
 		case nnp_convolution_algorithm_direct:
+			if (max(kernel_size.height, kernel_size.width) > 1) {
+				status = nnp_status_unsupported_algorithm;
+				goto cleanup;
+			}
+			if (max(output_subsampling.height, output_subsampling.width) > 1) {
+				status = nnp_status_unsupported_algorithm;
+				goto cleanup;
+			}
 			break;
 		case nnp_convolution_algorithm_auto:
 			NNP_UNREACHABLE;
@@ -1186,18 +1246,14 @@ enum nnp_status nnp_convolution_inference(
 		case nnp_convolution_algorithm_wt8x8_fp16:
 		case nnp_convolution_algorithm_ft8x8:
 		case nnp_convolution_algorithm_ft16x16:
-			if (max(output_subsampling.height, output_subsampling.width) != 1) {
-				status = nnp_status_unsupported_algorithm;
-				goto cleanup;
-			}
-			if (kernel_size.height > tile_size.height || kernel_size.width > tile_size.width) {
+			if (input_transform_function == NULL || kernel_transform_function == NULL || output_transform_function == NULL) {
 				status = nnp_status_unsupported_algorithm;
 				goto cleanup;
 			}
 			status = compute_fast_convolution_inference(
 				fourier_transform, transform_strategy, transform_element_size,
 				input_channels, output_channels,
-				tile_size, input_size, input_padding, kernel_size, output_size,
+				tile_size, input_size, input_padding, kernel_size, output_size, output_subsampling,
 				input, kernel, bias, output, workspace_buffer, workspace_size,
 				input_transform_function, kernel_transform_function, output_transform_function,
 				threadpool, profile);
@@ -1214,14 +1270,6 @@ enum nnp_status nnp_convolution_inference(
 		case nnp_convolution_algorithm_direct:
 			if (transform_strategy != nnp_convolution_transform_strategy_compute) {
 				status = nnp_status_unsupported_transform_strategy;
-				goto cleanup;
-			}
-			if (max(output_subsampling.height, output_subsampling.width) != 1) {
-				status = nnp_status_unsupported_algorithm;
-				goto cleanup;
-			}
-			if (max(kernel_size.height, kernel_size.width) != 1) {
-				status = nnp_status_unsupported_algorithm;
 				goto cleanup;
 			}
 			status = compute_direct_convolution_inference(

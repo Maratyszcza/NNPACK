@@ -88,7 +88,9 @@ struct transforms {
 	nnp_transform_2d_with_offset owt_f6x6_3x3;
 #endif
 	nnp_transform_2d_with_bias owt_f6x6_3x3_with_bias;
+	nnp_transform_2d_with_bias owt_f6x6_3x3s2_with_bias;
 	nnp_transform_2d_with_bias owt_f6x6_3x3_with_bias_with_relu;
+	nnp_transform_2d_with_bias owt_f6x6_3x3s2_with_bias_with_relu;
 #if NNP_BACKEND_ARM
 	nnp_transform_2d_with_offset iwt_f6x6_3x3_fp16_with_offset;
 	nnp_transform_2d_with_offset kwt_f6x6_3x3_fp16;
