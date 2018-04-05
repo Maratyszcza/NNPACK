@@ -1040,13 +1040,6 @@ static inline enum nnp_convolution_algorithm select_algorithm(
 				return nnp_convolution_algorithm_ft16x16;
 			}
 		}
-	} else if (output_subsampling.height == 2 && output_subsampling.width == 2) {
-		if (kernel_size.height == 3 && kernel_size.width == 3) {
-			/* Special case: Winograd transform for 3x3 stride 2 */
-			if (nnp_hwinfo.transforms.owt_f6x6_3x3s2_with_bias != NULL) {
-				return nnp_convolution_algorithm_wt8x8;
-			}
-		}
 	}
 
 	/* Fall-back algorithm */
