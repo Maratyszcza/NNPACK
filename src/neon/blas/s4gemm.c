@@ -9,7 +9,7 @@ void nnp_s4gemm_only_3x3__neon(
 	const float a[restrict static 1],
 	const float b[restrict static 1],
 	float c[restrict static 1],
-	size_t row_stride, size_t column_stride)
+	size_t row_stride_c)
 {
 	float32x4_t acc00 = vdupq_n_f32(0.0f), acc01 = vdupq_n_f32(0.0f), acc02 = vdupq_n_f32(0.0f);
 	float32x4_t acc10 = vdupq_n_f32(0.0f), acc11 = vdupq_n_f32(0.0f), acc12 = vdupq_n_f32(0.0f);
@@ -40,11 +40,11 @@ void nnp_s4gemm_only_3x3__neon(
 		vst1q_f32_aligned(c +  0, vaddq_f32(vld1q_f32_aligned(c +  0), acc00));
 		vst1q_f32_aligned(c +  4, vaddq_f32(vld1q_f32_aligned(c +  4), acc01));
 		vst1q_f32_aligned(c +  8, vaddq_f32(vld1q_f32_aligned(c +  8), acc02));
-		c += row_stride;
+		c += row_stride_c;
 		vst1q_f32_aligned(c +  0, vaddq_f32(vld1q_f32_aligned(c +  0), acc10));
 		vst1q_f32_aligned(c +  4, vaddq_f32(vld1q_f32_aligned(c +  4), acc11));
 		vst1q_f32_aligned(c +  8, vaddq_f32(vld1q_f32_aligned(c +  8), acc12));
-		c += row_stride;
+		c += row_stride_c;
 		vst1q_f32_aligned(c +  0, vaddq_f32(vld1q_f32_aligned(c +  0), acc20));
 		vst1q_f32_aligned(c +  4, vaddq_f32(vld1q_f32_aligned(c +  4), acc21));
 		vst1q_f32_aligned(c +  8, vaddq_f32(vld1q_f32_aligned(c +  8), acc22));
@@ -52,11 +52,11 @@ void nnp_s4gemm_only_3x3__neon(
 		vst1q_f32_aligned(c +  0, acc00);
 		vst1q_f32_aligned(c +  4, acc01);
 		vst1q_f32_aligned(c +  8, acc02);
-		c += row_stride;
+		c += row_stride_c;
 		vst1q_f32_aligned(c +  0, acc10);
 		vst1q_f32_aligned(c +  4, acc11);
 		vst1q_f32_aligned(c +  8, acc12);
-		c += row_stride;
+		c += row_stride_c;
 		vst1q_f32_aligned(c +  0, acc20);
 		vst1q_f32_aligned(c +  4, acc21);
 		vst1q_f32_aligned(c +  8, acc22);
@@ -69,7 +69,7 @@ void nnp_s4gemm_upto_3x3__neon(
 	const float a[restrict static 1],
 	const float b[restrict static 1],
 	float c[restrict static 1],
-	size_t row_stride, size_t column_stride)
+	size_t row_stride_c)
 {
 	float32x4_t acc00 = vdupq_n_f32(0.0f), acc01 = vdupq_n_f32(0.0f), acc02 = vdupq_n_f32(0.0f);
 	float32x4_t acc10 = vdupq_n_f32(0.0f), acc11 = vdupq_n_f32(0.0f), acc12 = vdupq_n_f32(0.0f);
@@ -118,7 +118,7 @@ void nnp_s4gemm_upto_3x3__neon(
 			}
 		}
 		if (mr > 1) {
-			c += row_stride;
+			c += row_stride_c;
 			vst1q_f32_aligned(c, vaddq_f32(vld1q_f32_aligned(c), acc10));
 			if (nr > 1) {
 				vst1q_f32_aligned(c + 4, vaddq_f32(vld1q_f32_aligned(c + 4), acc11));
@@ -127,7 +127,7 @@ void nnp_s4gemm_upto_3x3__neon(
 				}
 			}
 			if (mr > 2) {
-				c += row_stride;
+				c += row_stride_c;
 				vst1q_f32_aligned(c, vaddq_f32(vld1q_f32_aligned(c), acc20));
 				if (nr > 1) {
 					vst1q_f32_aligned(c + 4, vaddq_f32(vld1q_f32_aligned(c + 4), acc21));
@@ -146,7 +146,7 @@ void nnp_s4gemm_upto_3x3__neon(
 			}
 		}
 		if (mr > 1) {
-			c += row_stride;
+			c += row_stride_c;
 			vst1q_f32_aligned(c, acc10);
 			if (nr > 1) {
 				vst1q_f32_aligned(c + 4, acc11);
@@ -155,7 +155,7 @@ void nnp_s4gemm_upto_3x3__neon(
 				}
 			}
 			if (mr > 2) {
-				c += row_stride;
+				c += row_stride_c;
 				vst1q_f32_aligned(c, acc20);
 				if (nr > 1) {
 					vst1q_f32_aligned(c + 4, acc21);

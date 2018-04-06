@@ -6,8 +6,7 @@
 #        const float* a,
 #        const float* b,
 #        float* c,
-#        size_t row_stride,
-#        size_t column_stride)
+#        size_t row_stride_c)
 BEGIN_FUNCTION nnp_s4gemm_only_3x3__aarch32_neon
 	.arm
 #ifndef __APPLE__
@@ -76,12 +75,12 @@ BEGIN_FUNCTION nnp_s4gemm_only_3x3__aarch32_neon
 
 	# Load arguments:
 	# - r2 = c
-	# - r3 = row_stride
+	# - r3 = row_stride_c
 	LDRD r2, r3, [sp, #64]
 	MOV ip, #-32
 	# Check if c is updated (r1 != 0) or overwritten (r1 == 0)
 	CMP r1, #0
-	# Convert row_stride (stride in elements) to stride in bytes
+	# Convert row_stride_c (stride in elements) to stride in bytes - 32
 	ADD r3, ip, r3, LSL #2
 	# Skip to label 1 to overwrite c
 	BEQ 1f
@@ -143,8 +142,7 @@ END_FUNCTION nnp_s4gemm_only_3x3__aarch32_neon
 #        const float* a,
 #        const float* b,
 #        float* c,
-#        size_t row_stride,
-#        size_t column_stride)
+#        size_t row_stride_c)
 BEGIN_FUNCTION nnp_s4gemm_only_3x3__aarch32_neon2
 	.arm
 #ifndef __APPLE__
@@ -213,12 +211,12 @@ BEGIN_FUNCTION nnp_s4gemm_only_3x3__aarch32_neon2
 
 	# Load arguments:
 	# - r2 = c
-	# - r3 = row_stride
+	# - r3 = row_stride_c
 	LDRD r2, r3, [sp, #64]
 	MOV ip, #-32
 	# Check if c is updated (r1 != 0) or overwritten (r1 == 0)
 	CMP r1, #0
-	# Convert row_stride (stride in elements) to stride in bytes
+	# Convert row_stride_c (stride in elements) to stride in bytes - 32
 	ADD r3, ip, r3, LSL #2
 	# Skip to label 1 to overwrite c
 	BEQ 1f

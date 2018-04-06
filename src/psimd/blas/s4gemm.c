@@ -9,7 +9,7 @@ void nnp_s4gemm_only_3x4__psimd(
 	const float a[restrict static 1],
 	const float b[restrict static 1],
 	float c[restrict static 1],
-	size_t row_stride, size_t column_stride)
+	size_t row_stride_c)
 {
 	psimd_f32 acc00 = psimd_zero_f32(), acc01 = psimd_zero_f32(), acc02 = psimd_zero_f32(), acc03 = psimd_zero_f32();
 	psimd_f32 acc10 = psimd_zero_f32(), acc11 = psimd_zero_f32(), acc12 = psimd_zero_f32(), acc13 = psimd_zero_f32();
@@ -45,12 +45,12 @@ void nnp_s4gemm_only_3x4__psimd(
 		psimd_store_f32(c +  4, psimd_load_f32(c +  4) + acc01);
 		psimd_store_f32(c +  8, psimd_load_f32(c +  8) + acc02);
 		psimd_store_f32(c + 12, psimd_load_f32(c + 12) + acc03);
-		c += row_stride;
+		c += row_stride_c;
 		psimd_store_f32(c +  0, psimd_load_f32(c +  0) + acc10);
 		psimd_store_f32(c +  4, psimd_load_f32(c +  4) + acc11);
 		psimd_store_f32(c +  8, psimd_load_f32(c +  8) + acc12);
 		psimd_store_f32(c + 12, psimd_load_f32(c + 12) + acc13);
-		c += row_stride;
+		c += row_stride_c;
 		psimd_store_f32(c +  0, psimd_load_f32(c +  0) + acc20);
 		psimd_store_f32(c +  4, psimd_load_f32(c +  4) + acc21);
 		psimd_store_f32(c +  8, psimd_load_f32(c +  8) + acc22);
@@ -60,12 +60,12 @@ void nnp_s4gemm_only_3x4__psimd(
 		psimd_store_f32(c +  4, acc01);
 		psimd_store_f32(c +  8, acc02);
 		psimd_store_f32(c + 12, acc03);
-		c += row_stride;
+		c += row_stride_c;
 		psimd_store_f32(c +  0, acc10);
 		psimd_store_f32(c +  4, acc11);
 		psimd_store_f32(c +  8, acc12);
 		psimd_store_f32(c + 12, acc13);
-		c += row_stride;
+		c += row_stride_c;
 		psimd_store_f32(c +  0, acc20);
 		psimd_store_f32(c +  4, acc21);
 		psimd_store_f32(c +  8, acc22);
@@ -79,7 +79,7 @@ void nnp_s4gemm_upto_3x4__psimd(
 	const float a[restrict static 1],
 	const float b[restrict static 1],
 	float c[restrict static 1],
-	size_t row_stride, size_t column_stride)
+	size_t row_stride_c)
 {
 	psimd_f32 acc00 = psimd_zero_f32(), acc01 = psimd_zero_f32(), acc02 = psimd_zero_f32(), acc03 = psimd_zero_f32();
 	psimd_f32 acc10 = psimd_zero_f32(), acc11 = psimd_zero_f32(), acc12 = psimd_zero_f32(), acc13 = psimd_zero_f32();
@@ -138,7 +138,7 @@ void nnp_s4gemm_upto_3x4__psimd(
 			}
 		}
 		if (mr > 1) {
-			c += row_stride;
+			c += row_stride_c;
 			psimd_store_f32(c, psimd_load_f32(c) + acc10);
 			if (nr > 1) {
 				psimd_store_f32(c + 4, psimd_load_f32(c + 4) + acc11);
@@ -150,7 +150,7 @@ void nnp_s4gemm_upto_3x4__psimd(
 				}
 			}
 			if (mr > 2) {
-				c += row_stride;
+				c += row_stride_c;
 				psimd_store_f32(c, psimd_load_f32(c) + acc20);
 				if (nr > 1) {
 					psimd_store_f32(c + 4, psimd_load_f32(c + 4) + acc21);
@@ -175,7 +175,7 @@ void nnp_s4gemm_upto_3x4__psimd(
 			}
 		}
 		if (mr > 1) {
-			c += row_stride;
+			c += row_stride_c;
 			psimd_store_f32(c, acc10);
 			if (nr > 1) {
 				psimd_store_f32(c + 4, acc11);
@@ -187,7 +187,7 @@ void nnp_s4gemm_upto_3x4__psimd(
 				}
 			}
 			if (mr > 2) {
-				c += row_stride;
+				c += row_stride_c;
 				psimd_store_f32(c, acc20);
 				if (nr > 1) {
 					psimd_store_f32(c + 4, acc21);

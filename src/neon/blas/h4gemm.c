@@ -9,7 +9,7 @@ void nnp_h4gemm_only_3x3__neonhp(
 	const void *restrict a_ptr,
 	const void *restrict b_ptr,
 	void *restrict c_ptr,
-	size_t row_stride, size_t column_stride)
+	size_t row_stride_c)
 {
 	const uint16_t *restrict a = a_ptr;
 	const uint16_t *restrict b = b_ptr;
@@ -44,11 +44,11 @@ void nnp_h4gemm_only_3x3__neonhp(
 		vst1q_f16_f32(c +  0, vaddq_f32(vld1q_f32_f16(c +  0), acc00));
 		vst1q_f16_f32(c +  4, vaddq_f32(vld1q_f32_f16(c +  4), acc01));
 		vst1q_f16_f32(c +  8, vaddq_f32(vld1q_f32_f16(c +  8), acc02));
-		c += row_stride;
+		c += row_stride_c;
 		vst1q_f16_f32(c +  0, vaddq_f32(vld1q_f32_f16(c +  0), acc10));
 		vst1q_f16_f32(c +  4, vaddq_f32(vld1q_f32_f16(c +  4), acc11));
 		vst1q_f16_f32(c +  8, vaddq_f32(vld1q_f32_f16(c +  8), acc12));
-		c += row_stride;
+		c += row_stride_c;
 		vst1q_f16_f32(c +  0, vaddq_f32(vld1q_f32_f16(c +  0), acc20));
 		vst1q_f16_f32(c +  4, vaddq_f32(vld1q_f32_f16(c +  4), acc21));
 		vst1q_f16_f32(c +  8, vaddq_f32(vld1q_f32_f16(c +  8), acc22));
@@ -56,11 +56,11 @@ void nnp_h4gemm_only_3x3__neonhp(
 		vst1q_f16_f32(c +  0, acc00);
 		vst1q_f16_f32(c +  4, acc01);
 		vst1q_f16_f32(c +  8, acc02);
-		c += row_stride;
+		c += row_stride_c;
 		vst1q_f16_f32(c +  0, acc10);
 		vst1q_f16_f32(c +  4, acc11);
 		vst1q_f16_f32(c +  8, acc12);
-		c += row_stride;
+		c += row_stride_c;
 		vst1q_f16_f32(c +  0, acc20);
 		vst1q_f16_f32(c +  4, acc21);
 		vst1q_f16_f32(c +  8, acc22);
@@ -73,7 +73,7 @@ void nnp_h4gemm_upto_3x3__neonhp(
 	const void *restrict a_ptr,
 	const void *restrict b_ptr,
 	void *restrict c_ptr,
-	size_t row_stride, size_t column_stride)
+	size_t row_stride_c)
 {
 	const uint16_t *restrict a = a_ptr;
 	const uint16_t *restrict b = b_ptr;
@@ -126,7 +126,7 @@ void nnp_h4gemm_upto_3x3__neonhp(
 			}
 		}
 		if (mr > 1) {
-			c += row_stride;
+			c += row_stride_c;
 			vst1q_f16_f32(c, vaddq_f32(vld1q_f32_f16(c), acc10));
 			if (nr > 1) {
 				vst1q_f16_f32(c + 4, vaddq_f32(vld1q_f32_f16(c + 4), acc11));
@@ -135,7 +135,7 @@ void nnp_h4gemm_upto_3x3__neonhp(
 				}
 			}
 			if (mr > 2) {
-				c += row_stride;
+				c += row_stride_c;
 				vst1q_f16_f32(c, vaddq_f32(vld1q_f32_f16(c), acc20));
 				if (nr > 1) {
 					vst1q_f16_f32(c + 4, vaddq_f32(vld1q_f32_f16(c + 4), acc21));
@@ -154,7 +154,7 @@ void nnp_h4gemm_upto_3x3__neonhp(
 			}
 		}
 		if (mr > 1) {
-			c += row_stride;
+			c += row_stride_c;
 			vst1q_f16_f32(c, acc10);
 			if (nr > 1) {
 				vst1q_f16_f32(c + 4, acc11);
@@ -163,7 +163,7 @@ void nnp_h4gemm_upto_3x3__neonhp(
 				}
 			}
 			if (mr > 2) {
-				c += row_stride;
+				c += row_stride_c;
 				vst1q_f16_f32(c, acc20);
 				if (nr > 1) {
 					vst1q_f16_f32(c + 4, acc21);
