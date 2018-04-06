@@ -319,7 +319,8 @@ ELSEIF(NNPACK_BACKEND STREQUAL "neon")
     src/neon/blas/conv1x1.c
     # BLAS microkernels
     src/neon/blas/sgemm.c)
-  IF(CMAKE_SYSTEM_PROCESSOR MATCHES "^(armv5te|armv7-a|armv7l)$")
+  IF(CMAKE_SYSTEM_PROCESSOR MATCHES "^armv")
+    # 32-bit ARM (armv7, armv7-a, armv7l, etc)
     LIST(APPEND NNPACK_BACKEND_SRCS
       # BLAS microkernels
       src/neon/blas/s4gemm-aarch32.S
