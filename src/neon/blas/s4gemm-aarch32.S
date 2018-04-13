@@ -82,9 +82,27 @@ BEGIN_FUNCTION nnp_s4gemm_only_3x3__aarch32_neon
 	CMP r1, #0
 	# Convert row_stride_c (stride in elements) to stride in bytes - 32
 	ADD r3, ip, r3, LSL #2
-	# Skip to label 1 to overwrite c
-	BEQ 1f
+	# Skip to label 1 to update c
+	BNE 1f
 
+	##### Overwrite c matrix with results in acc[0:3][0:16]
+
+	# Overwrite c[0][0:16] = acc[0][0:16]
+	VST1.32 {d14-d17}, [r2:128]!
+	VST1.32 {d18-d19}, [r2:128], r3
+
+	# Overwrite c[1][0:8] = acc[1][0:8]
+	VST1.32 {d20-d23}, [r2:128]!
+	VST1.32 {d24-d25}, [r2:128], r3
+
+	# Overwrite c[2][0:8] = acc[2][0:8]
+	VST1.32 {d26-d29}, [r2:128]!
+	VST1.32 {d30-d31}, [r2:128]
+
+	VPOP {d8-d15}
+	BX lr
+
+1:
 	##### Accumulate c matrix with results in acc[0:6][0:8]
 
 	# Accumulate c[0][0:16] += acc[0][0:16]
@@ -113,24 +131,6 @@ BEGIN_FUNCTION nnp_s4gemm_only_3x3__aarch32_neon
 	VADD.F32 q2, q2, q15
 	VST1.32 {d0-d3}, [r2:128]!
 	VST1.32 {d4-d5}, [r2:128]
-
-	VPOP {d8-d15}
-	BX lr
-
-1:
-	##### Overwrite c matrix with results in acc[0:3][0:16]
-
-	# Overwrite c[0][0:16] = acc[0][0:16]
-	VST1.32 {d14-d17}, [r2:128]!
-	VST1.32 {d18-d19}, [r2:128], r3
-
-	# Overwrite c[1][0:8] = acc[1][0:8]
-	VST1.32 {d20-d23}, [r2:128]!
-	VST1.32 {d24-d25}, [r2:128], r3
-
-	# Overwrite c[2][0:8] = acc[2][0:8]
-	VST1.32 {d26-d29}, [r2:128]!
-	VST1.32 {d30-d31}, [r2:128]
 
 	VPOP {d8-d15}
 	BX lr
@@ -218,9 +218,27 @@ BEGIN_FUNCTION nnp_s4gemm_only_3x3__aarch32_neon2
 	CMP r1, #0
 	# Convert row_stride_c (stride in elements) to stride in bytes - 32
 	ADD r3, ip, r3, LSL #2
-	# Skip to label 1 to overwrite c
-	BEQ 1f
+	# Skip to label 1 to update c
+	BNE 1f
 
+	##### Overwrite c matrix with results in acc[0:3][0:16]
+
+	# Overwrite c[0][0:16] = acc[0][0:16]
+	VST1.32 {d14-d17}, [r2:128]!
+	VST1.32 {d18-d19}, [r2:128], r3
+
+	# Overwrite c[1][0:8] = acc[1][0:8]
+	VST1.32 {d20-d23}, [r2:128]!
+	VST1.32 {d24-d25}, [r2:128], r3
+
+	# Overwrite c[2][0:8] = acc[2][0:8]
+	VST1.32 {d26-d29}, [r2:128]!
+	VST1.32 {d30-d31}, [r2:128]
+
+	VPOP {d8-d15}
+	BX lr
+
+1:
 	##### Accumulate c matrix with results in acc[0:6][0:8]
 
 	# Accumulate c[0][0:16] += acc[0][0:16]
@@ -249,24 +267,6 @@ BEGIN_FUNCTION nnp_s4gemm_only_3x3__aarch32_neon2
 	VADD.F32 q2, q2, q15
 	VST1.32 {d0-d3}, [r2:128]!
 	VST1.32 {d4-d5}, [r2:128]
-
-	VPOP {d8-d15}
-	BX lr
-
-1:
-	##### Overwrite c matrix with results in acc[0:3][0:16]
-
-	# Overwrite c[0][0:16] = acc[0][0:16]
-	VST1.32 {d14-d17}, [r2:128]!
-	VST1.32 {d18-d19}, [r2:128], r3
-
-	# Overwrite c[1][0:8] = acc[1][0:8]
-	VST1.32 {d20-d23}, [r2:128]!
-	VST1.32 {d24-d25}, [r2:128], r3
-
-	# Overwrite c[2][0:8] = acc[2][0:8]
-	VST1.32 {d26-d29}, [r2:128]!
-	VST1.32 {d30-d31}, [r2:128]
 
 	VPOP {d8-d15}
 	BX lr
