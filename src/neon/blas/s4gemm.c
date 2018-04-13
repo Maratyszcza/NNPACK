@@ -76,8 +76,8 @@ void nnp_s4gemm_upto_3x3__neon(
 	float32x4_t acc10 = vdupq_n_f32(0.0f), acc11 = vdupq_n_f32(0.0f), acc12 = vdupq_n_f32(0.0f);
 	float32x4_t acc20 = vdupq_n_f32(0.0f), acc21 = vdupq_n_f32(0.0f), acc22 = vdupq_n_f32(0.0f);
 	const float* b0_ptr = b;
-	const float* b1_ptr = (nr >= 2) ? b : b + 4;
-	const float* b2_ptr = (nr >= 3) ? b : b + 8;
+	const float* b1_ptr = (nr >= 2) ? b + 4 : b;
+	const float* b2_ptr = (nr >= 3) ? b + 8 : b;
 	const size_t b_increment = nr * 4;
 	switch (mr) {
 		case 1:
@@ -93,64 +93,6 @@ void nnp_s4gemm_upto_3x3__neon(
 				const float32x4_t b2 = vld1q_f32_aligned(b2_ptr); b2_ptr += b_increment;
 				acc02 = vmuladdq_f32(acc02, a0, b2);
 			} while (--k);
-
-			if (update != 0) {
-				vst1q_f32_aligned(c, vaddq_f32(vld1q_f32_aligned(c), acc00));
-				if (nr > 1) {
-					vst1q_f32_aligned(c + 4, vaddq_f32(vld1q_f32_aligned(c + 4), acc01));
-					if (nr > 2) {
-						vst1q_f32_aligned(c + 8, vaddq_f32(vld1q_f32_aligned(c + 8), acc02));
-					}
-				}
-				if (mr > 1) {
-					c += row_stride_c;
-					vst1q_f32_aligned(c, vaddq_f32(vld1q_f32_aligned(c), acc10));
-					if (nr > 1) {
-						vst1q_f32_aligned(c + 4, vaddq_f32(vld1q_f32_aligned(c + 4), acc11));
-						if (nr > 2) {
-							vst1q_f32_aligned(c + 8, vaddq_f32(vld1q_f32_aligned(c + 8), acc12));
-						}
-					}
-					if (mr > 2) {
-						c += row_stride_c;
-						vst1q_f32_aligned(c, vaddq_f32(vld1q_f32_aligned(c), acc20));
-						if (nr > 1) {
-							vst1q_f32_aligned(c + 4, vaddq_f32(vld1q_f32_aligned(c + 4), acc21));
-							if (nr > 2) {
-								vst1q_f32_aligned(c + 8, vaddq_f32(vld1q_f32_aligned(c + 8), acc22));
-							}
-						}
-					}
-				}
-			} else {
-				vst1q_f32_aligned(c, acc00);
-				if (nr > 1) {
-					vst1q_f32_aligned(c + 4, acc01);
-					if (nr > 2) {
-						vst1q_f32_aligned(c + 8, acc02);
-					}
-				}
-				if (mr > 1) {
-					c += row_stride_c;
-					vst1q_f32_aligned(c, acc10);
-					if (nr > 1) {
-						vst1q_f32_aligned(c + 4, acc11);
-						if (nr > 2) {
-							vst1q_f32_aligned(c + 8, acc12);
-						}
-					}
-					if (mr > 2) {
-						c += row_stride_c;
-						vst1q_f32_aligned(c, acc20);
-						if (nr > 1) {
-							vst1q_f32_aligned(c + 4, acc21);
-							if (nr > 2) {
-								vst1q_f32_aligned(c + 8, acc22);
-							}
-						}
-					}
-				}
-			}
 
 			if (update != 0) {
 				vst1q_f32_aligned(c, vaddq_f32(vld1q_f32_aligned(c), acc00)); c += 4;
