@@ -435,10 +435,10 @@ static void init_hwinfo(void) {
 			};
 #endif /* !NNP_CONVOLUTION_ONLY */
 			nnp_hwinfo.conv1x1 = (struct convolution) {
-				.mr = 2,
+				.mr = 4,
 				.nr = 4,
-				.only_mr_x_nr = nnp_conv1x1_only_2x4__neon,
-				.upto_mr_x_nr = nnp_conv1x1_upto_2x4__neon,
+				.only_mr_x_nr = nnp_conv1x1_only_4x4__neon,
+				.upto_mr_x_nr = nnp_conv1x1_upto_4x4__neon,
 			};
 			nnp_hwinfo.sgemm = (struct sgemm) {
 				.mr = 6,
