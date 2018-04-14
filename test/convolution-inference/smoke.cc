@@ -426,7 +426,7 @@ TEST(WT8x8_FP16, multi_tile) {
 	ConvolutionTester()
 		.inputSize(13, 13)
 		.iterations(100)
-		.errorLimit(1.0e-2)
+		.errorLimit(3.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_identity);
 }
 
@@ -434,7 +434,7 @@ TEST(WT8x8_FP16, multi_tile_with_relu) {
 	ConvolutionTester()
 		.inputSize(13, 13)
 		.iterations(100)
-		.errorLimit(1.0e-2)
+		.errorLimit(3.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_relu);
 }
 
