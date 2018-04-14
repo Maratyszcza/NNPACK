@@ -427,6 +427,7 @@ def main(args):
 
         build.benchmark("convolution-inference-bench", build.cxx("convolution-inference.cc"))
         build.benchmark("sgemm-bench", build.cxx("sgemm.cc"))
+        build.benchmark("sxgemm-bench", build.cxx("sxgemm.cc"))
 
     # Build benchmarking utilities
     if not options.inference_only and not build.target.is_android:
