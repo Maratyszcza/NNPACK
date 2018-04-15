@@ -5,11 +5,6 @@
 #include <nnpack/arm_neon.h>
 
 
-static NNP_SIMD_ALIGN int32_t mask_array[8] = {
-	0x00000000, 0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF
-};
-
-
 void nnp_conv1x1_only_4x4__neon(
 	size_t input_channels,
 	size_t image_size,
