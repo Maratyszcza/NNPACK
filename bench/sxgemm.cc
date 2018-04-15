@@ -88,21 +88,10 @@ private:
 };
 
 #if NNP_BACKEND_X86_64
-	BENCHMARK_TEMPLATE_F(SXGEMM, fast__fma3, 4, 24)(benchmark::State& state) {
-		for (auto _ : state) {
-			nnp_sgemm_only_4x24__fma3(kc(), 0, a(), b(), c(), nr());
-		}
-	}
-#endif
-
-#if NNP_BACKEND_ARM && CPUINFO_ARCH_ARM
-	BENCHMARK_TEMPLATE_F(SXGEMM, fast__aarch32_neon2, 4, 3, 3)(benchmark::State& state) {
-		if (!cpuinfo_has_arm_neon_fma()) {
-			state.SkipWithError("NEONv2 (NEON-FMA) is not supported");
-		}
+	BENCHMARK_TEMPLATE_F(SXGEMM, fast__fma3, 8, 3, 4)(benchmark::State& state) {
 		for (auto _ : state) {
 			for (uint32_t m = 0; m < mc(); m += mr()) {
-				nnp_s4gemm_only_3x3__aarch32_neon2(
+				nnp_s8gemm_only_3x4__fma3(
 					kc(),
 					0,
 					a() + xr() * m * kc(),
@@ -112,25 +101,42 @@ private:
 			}
 		}
 	}
-#endif
-
-#if NNP_BACKEND_ARM && CPUINFO_ARCH_ARM
-	BENCHMARK_TEMPLATE_F(SXGEMM, fast__aarch32_neon, 4, 3, 3)(benchmark::State& state) {
-		for (auto _ : state) {
-			for (uint32_t m = 0; m < mc(); m += mr()) {
-				nnp_s4gemm_only_3x3__aarch32_neon(
-					kc(),
-					0,
-					a() + xr() * m * kc(),
-					b(),
-					c() + xr() * m * nr(),
-					xr() * nr());
-			}
-		}
-	}
-#endif
+#endif /* NNP_BACKEND_X86_64 */
 
 #if NNP_BACKEND_ARM
+	#if CPUINFO_ARCH_ARM
+		BENCHMARK_TEMPLATE_F(SXGEMM, fast__aarch32_neon2, 4, 3, 3)(benchmark::State& state) {
+			if (!cpuinfo_has_arm_neon_fma()) {
+				state.SkipWithError("NEONv2 (NEON-FMA) is not supported");
+			}
+			for (auto _ : state) {
+				for (uint32_t m = 0; m < mc(); m += mr()) {
+					nnp_s4gemm_only_3x3__aarch32_neon2(
+						kc(),
+						0,
+						a() + xr() * m * kc(),
+						b(),
+						c() + xr() * m * nr(),
+						xr() * nr());
+				}
+			}
+		}
+
+		BENCHMARK_TEMPLATE_F(SXGEMM, fast__aarch32_neon, 4, 3, 3)(benchmark::State& state) {
+			for (auto _ : state) {
+				for (uint32_t m = 0; m < mc(); m += mr()) {
+					nnp_s4gemm_only_3x3__aarch32_neon(
+						kc(),
+						0,
+						a() + xr() * m * kc(),
+						b(),
+						c() + xr() * m * nr(),
+						xr() * nr());
+				}
+			}
+		}
+	#endif /* CPUINFO_ARCH_ARM */
+
 	BENCHMARK_TEMPLATE_F(SXGEMM, fast__neon, 4, 3, 3)(benchmark::State& state) {
 		for (auto _ : state) {
 			for (uint32_t m = 0; m < mc(); m += mr()) {
@@ -144,9 +150,7 @@ private:
 			}
 		}
 	}
-#endif
 
-#if NNP_BACKEND_ARM
 	BENCHMARK_TEMPLATE_F(SXGEMM, full__neon, 4, 3, 3)(benchmark::State& state) {
 		for (auto _ : state) {
 			for (uint32_t m = 0; m < mc(); m += mr()) {
@@ -161,22 +165,36 @@ private:
 			}
 		}
 	}
-#endif
+#endif /* NNP_BACKEND_ARM */
 
 #if NNP_BACKEND_PSIMD
-	BENCHMARK_TEMPLATE_F(SXGEMM, fast__psimd, 4, 8)(benchmark::State& state) {
+	BENCHMARK_TEMPLATE_F(SXGEMM, fast__psimd, 4, 3, 4)(benchmark::State& state) {
 		for (auto _ : state) {
-			nnp_sgemm_only_4x8__psimd(kc(), 0, a(), b(), c(), nr());
+			for (uint32_t m = 0; m < mc(); m += mr()) {
+				nnp_s4gemm_only_3x4__psimd(
+					kc(),
+					0,
+					a() + xr() * m * kc(),
+					b(),
+					c() + xr() * m * nr(),
+					xr() * nr());
+			}
 		}
 	}
-#endif
+#endif /* NNP_BACKEND_PSIMD */
 
 #if NNP_BACKEND_SCALAR
-	BENCHMARK_TEMPLATE_F(SXGEMM, fast__scalar, 4, 3)(benchmark::State& state) {
-		for (auto _ : state) {
-			nnp_sgemm_only_4x3__scalar(kc(), 0, a(), b(), c(), nr());
+	BENCHMARK_TEMPLATE_F(SXGEMM, fast__scalar, 2, 2, 2)(benchmark::State& state) {
+		for (uint32_t m = 0; m < mc(); m += mr()) {
+			nnp_s2gemm_only_2x2__scalar(
+				kc(),
+				0,
+				a() + xr() * m * kc(),
+				b(),
+				c() + xr() * m * nr(),
+				xr() * nr());
 		}
 	}
-#endif
+#endif /* NNP_BACKEND_SCALAR */
 
 BENCHMARK_MAIN();
