@@ -269,7 +269,7 @@ void nnp_conv1x1_upto_4x4__neon(
 	float*restrict output0 = output;
 	float*restrict output1 = output_channels_subblock_size > 1 ? output0 + image_size : output0;
 	float*restrict output2 = output_channels_subblock_size > 2 ? output1 + image_size : output1;
-	float*restrict output3 = output_channels_subblock_size > 3 ? output2 + image_size : output3;
+	float*restrict output3 = output_channels_subblock_size > 3 ? output2 + image_size : output2;
 	while (image_size >= 4) {
 		float32x4_t voutput0 = vld1q_f32(output0);
 		float32x4_t voutput1 = vld1q_f32(output1);
