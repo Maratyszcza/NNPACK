@@ -322,6 +322,9 @@ def main(args):
 
             build.smoketest("sgemm-test",
                 arch_nnpack_objects + [build.cxx("sgemm/neon.cc")])
+
+            build.smoketest("sxgemm-test",
+                arch_nnpack_objects + [build.cxx("sxgemm/neon.cc")])
         elif backend == "scalar":
             build.smoketest("fourier-test",
                 reference_fft_objects + arch_fft_stub_objects + [build.cxx("fourier/scalar.cc")])
