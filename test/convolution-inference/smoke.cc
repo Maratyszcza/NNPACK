@@ -82,7 +82,7 @@ TEST(WT8x8_FP16, single_tile) {
 	ConvolutionTester()
 		.inputSize(8, 8)
 		.iterations(100)
-		.errorLimit(1.0e-2)
+		.errorLimit(3.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_identity);
 }
 
@@ -90,7 +90,7 @@ TEST(WT8x8_FP16, single_tile_with_relu) {
 	ConvolutionTester()
 		.inputSize(8, 8)
 		.iterations(100)
-		.errorLimit(1.0e-2)
+		.errorLimit(3.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_relu);
 }
 
@@ -166,7 +166,7 @@ TEST(WT8x8_FP16_PRECOMPUTE, single_tile) {
 	ConvolutionTester()
 		.inputSize(8, 8)
 		.iterations(100)
-		.errorLimit(1.0e-2)
+		.errorLimit(3.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_identity, true);
 }
 
@@ -174,7 +174,7 @@ TEST(WT8x8_FP16_PRECOMPUTE, single_tile_with_relu) {
 	ConvolutionTester()
 		.inputSize(8, 8)
 		.iterations(100)
-		.errorLimit(1.0e-2)
+		.errorLimit(3.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_relu, true);
 }
 
@@ -254,7 +254,7 @@ TEST(WT8x8_FP16, input_subtile) {
 	ConvolutionTester()
 		.inputSize(4, 4)
 		.iterations(100)
-		.errorLimit(1.0e-2)
+		.errorLimit(3.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_identity);
 }
 
@@ -262,7 +262,7 @@ TEST(WT8x8_FP16, input_subtile_with_relu) {
 	ConvolutionTester()
 		.inputSize(4, 4)
 		.iterations(100)
-		.errorLimit(1.0e-2)
+		.errorLimit(3.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_relu);
 }
 
@@ -338,7 +338,7 @@ TEST(WT8x8_FP16_PRECOMPUTE, input_subtile) {
 	ConvolutionTester()
 		.inputSize(4, 4)
 		.iterations(100)
-		.errorLimit(1.0e-2)
+		.errorLimit(3.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_identity, true);
 }
 
@@ -346,7 +346,7 @@ TEST(WT8x8_FP16_PRECOMPUTE, input_subtile_with_relu) {
 	ConvolutionTester()
 		.inputSize(4, 4)
 		.iterations(100)
-		.errorLimit(1.0e-2)
+		.errorLimit(3.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_relu, true);
 }
 
@@ -510,7 +510,7 @@ TEST(WT8x8_FP16_PRECOMPUTE, multi_tile) {
 	ConvolutionTester()
 		.inputSize(13, 13)
 		.iterations(100)
-		.errorLimit(1.0e-2)
+		.errorLimit(3.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_identity, true);
 }
 
@@ -518,7 +518,7 @@ TEST(WT8x8_FP16_PRECOMPUTE, multi_tile_with_relu) {
 	ConvolutionTester()
 		.inputSize(13, 13)
 		.iterations(100)
-		.errorLimit(1.0e-2)
+		.errorLimit(3.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_relu, true);
 }
 
@@ -994,7 +994,7 @@ TEST(WT8x8_FP16, few_input_channels) {
 	ConvolutionTester tester;
 	tester.inputSize(8, 8)
 		.iterations(100)
-		.errorLimit(1.0e-2);
+		.errorLimit(3.0e-2);
 	for (size_t inputChannels = 2; inputChannels <= 5; inputChannels++) {
 		tester.inputChannels(inputChannels)
 			.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_identity);
@@ -1005,7 +1005,7 @@ TEST(WT8x8_FP16, few_input_channels_with_relu) {
 	ConvolutionTester tester;
 	tester.inputSize(8, 8)
 		.iterations(100)
-		.errorLimit(1.0e-2);
+		.errorLimit(3.0e-2);
 	for (size_t inputChannels = 2; inputChannels <= 5; inputChannels++) {
 		tester.inputChannels(inputChannels)
 			.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_relu);
@@ -1108,7 +1108,7 @@ TEST(WT8x8_FP16_PRECOMPUTE, few_input_channels) {
 	ConvolutionTester tester;
 	tester.inputSize(8, 8)
 		.iterations(100)
-		.errorLimit(1.0e-2);
+		.errorLimit(3.0e-2);
 	for (size_t inputChannels = 2; inputChannels <= 5; inputChannels++) {
 		tester.inputChannels(inputChannels)
 			.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_identity, true);
@@ -1119,7 +1119,7 @@ TEST(WT8x8_FP16_PRECOMPUTE, few_input_channels_with_relu) {
 	ConvolutionTester tester;
 	tester.inputSize(8, 8)
 		.iterations(100)
-		.errorLimit(1.0e-2);
+		.errorLimit(3.0e-2);
 	for (size_t inputChannels = 2; inputChannels <= 5; inputChannels++) {
 		tester.inputChannels(inputChannels)
 			.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_relu, true);
@@ -1510,7 +1510,7 @@ TEST(WT8x8_FP16, non_square_image) {
 	ConvolutionTester tester;
 	tester.inputSize(9, 10)
 		.iterations(100)
-		.errorLimit(1.0e-2)
+		.errorLimit(3.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_identity);
 }
 
@@ -1518,7 +1518,7 @@ TEST(WT8x8_FP16, non_square_image_with_relu) {
 	ConvolutionTester tester;
 	tester.inputSize(9, 10)
 		.iterations(100)
-		.errorLimit(1.0e-2)
+		.errorLimit(3.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_relu);
 }
 
@@ -1594,7 +1594,7 @@ TEST(WT8x8_FP16_PRECOMPUTE, non_square_image) {
 	ConvolutionTester tester;
 	tester.inputSize(9, 10)
 		.iterations(100)
-		.errorLimit(1.0e-2)
+		.errorLimit(3.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_identity, true);
 }
 
@@ -1602,7 +1602,7 @@ TEST(WT8x8_FP16_PRECOMPUTE, non_square_image_with_relu) {
 	ConvolutionTester tester;
 	tester.inputSize(9, 10)
 		.iterations(100)
-		.errorLimit(1.0e-2)
+		.errorLimit(3.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_relu, true);
 }
 

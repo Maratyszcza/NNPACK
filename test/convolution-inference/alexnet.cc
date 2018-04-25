@@ -151,13 +151,13 @@ TEST(WT8x8, conv3_with_relu) {
 
 TEST(WT8x8_FP16, conv3) {
 	AlexNet::conv3()
-		.errorLimit(1.0e-2)
+		.errorLimit(5.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_identity);
 }
 
 TEST(WT8x8_FP16, conv3_with_relu) {
 	AlexNet::conv3()
-		.errorLimit(1.0e-2)
+		.errorLimit(5.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_relu);
 }
 
@@ -211,13 +211,13 @@ TEST(WT8x8_PRECOMPUTE, conv3_with_relu) {
 
 TEST(WT8x8_FP16_PRECOMPUTE, conv3) {
 	AlexNet::conv3()
-		.errorLimit(1.0e-2)
+		.errorLimit(5.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_identity, true);
 }
 
 TEST(WT8x8_FP16_PRECOMPUTE, conv3_with_relu) {
 	AlexNet::conv3()
-		.errorLimit(1.0e-2)
+		.errorLimit(5.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_relu, true);
 }
 
@@ -275,13 +275,13 @@ TEST(WT8x8, conv4_with_relu) {
 
 TEST(WT8x8_FP16, conv4) {
 	AlexNet::conv4()
-		.errorLimit(1.0e-2)
+		.errorLimit(3.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_identity);
 }
 
 TEST(WT8x8_FP16, conv4_with_relu) {
 	AlexNet::conv4()
-		.errorLimit(1.0e-2)
+		.errorLimit(3.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_relu);
 }
 
@@ -335,13 +335,13 @@ TEST(WT8x8_PRECOMPUTE, conv4_with_relu) {
 
 TEST(WT8x8_FP16_PRECOMPUTE, conv4) {
 	AlexNet::conv4()
-		.errorLimit(1.0e-2)
+		.errorLimit(3.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_identity, true);
 }
 
 TEST(WT8x8_FP16_PRECOMPUTE, conv4_with_relu) {
 	AlexNet::conv4()
-		.errorLimit(1.0e-2)
+		.errorLimit(3.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_relu, true);
 }
 
@@ -399,13 +399,13 @@ TEST(WT8x8, conv5_with_relu) {
 
 TEST(WT8x8_FP16, conv5) {
 	AlexNet::conv5()
-		.errorLimit(1.0e-2)
+		.errorLimit(5.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_identity);
 }
 
 TEST(WT8x8_FP16, conv5_with_relu) {
 	AlexNet::conv5()
-		.errorLimit(1.0e-2)
+		.errorLimit(5.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_relu);
 }
 
@@ -459,13 +459,13 @@ TEST(WT8x8_PRECOMPUTE, conv5_with_relu) {
 
 TEST(WT8x8_FP16_PRECOMPUTE, conv5) {
 	AlexNet::conv5()
-		.errorLimit(1.0e-2)
+		.errorLimit(5.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_identity, true);
 }
 
 TEST(WT8x8_FP16_PRECOMPUTE, conv5_with_relu) {
 	AlexNet::conv5()
-		.errorLimit(1.0e-2)
+		.errorLimit(5.0e-2)
 		.testInference(nnp_convolution_algorithm_wt8x8_fp16, nnp_activation_relu, true);
 }
 
