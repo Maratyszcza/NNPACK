@@ -74,6 +74,14 @@ private:
 	uint32_t kc_;
 };
 
+#if NNP_BACKEND_X86_64
+	BENCHMARK_TEMPLATE_F(CONV1x1, fast__neon, 2, 4)(benchmark::State& state) {
+		for (auto _ : state) {
+			nnp_conv1x1_only_2x4__fma3(mr(), kc(), i(), k(), o());
+		}
+	}
+#endif
+
 #if NNP_BACKEND_ARM
 	BENCHMARK_TEMPLATE_F(CONV1x1, fast__neon, 4, 4)(benchmark::State& state) {
 		for (auto _ : state) {
@@ -83,17 +91,17 @@ private:
 #endif
 
 #if NNP_BACKEND_PSIMD
-	BENCHMARK_TEMPLATE_F(CONV1x1, psimd, 4, 8)(benchmark::State& state) {
+	BENCHMARK_TEMPLATE_F(CONV1x1, psimd, 2, 8)(benchmark::State& state) {
 		for (auto _ : state) {
-			nnp_sgemm_only_4x8__psimd(kc(), 0, a(), b(), c(), nr());
+			nnp_conv1x1_only_2x4__psimd(mr(), kc(), i(), k(), o());
 		}
 	}
 #endif
 
 #if NNP_BACKEND_SCALAR
-	BENCHMARK_TEMPLATE_F(CONV1x1, scalar, 4, 3)(benchmark::State& state) {
+	BENCHMARK_TEMPLATE_F(CONV1x1, scalar, 2, 4)(benchmark::State& state) {
 		for (auto _ : state) {
-			nnp_sgemm_only_4x3__scalar(kc(), 0, a(), b(), c(), nr());
+			nnp_conv1x1_only_2x4__scalar(mr(), kc(), i(), k(), o());
 		}
 	}
 #endif
