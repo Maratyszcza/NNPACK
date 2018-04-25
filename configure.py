@@ -176,6 +176,7 @@ def main(args):
             if options.target.is_arm:
                 # Functions implemented in assembly
                 arch_nnpack_objects += [
+                    build.cc("neon/blas/h4gemm-aarch32.S"),
                     build.cc("neon/blas/s4gemm-aarch32.S"),
                     build.cc("neon/blas/sgemm-aarch32.S"),
                 ]

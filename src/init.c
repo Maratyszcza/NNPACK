@@ -474,6 +474,12 @@ static void init_hwinfo(void) {
 					.upto_mr_x_nr = (nnp_full_tuple_gemm_function) nnp_h4gemm_upto_3x3__neonhp,
 				};
 			}
+			#if CPUINFO_ARCH_ARM
+				if (cpuinfo_has_arm_fp16_arith()) {
+					nnp_hwinfo.hxgemm.only_mr_x_nr =
+						(nnp_fast_tuple_gemm_function) nnp_h4gemm_only_3x3__aarch32_neonhparith;
+				}
+			#endif
 			nnp_hwinfo.cxgemm = (struct cxgemm) {
 				.mr = 2,
 				.nr = 2,
