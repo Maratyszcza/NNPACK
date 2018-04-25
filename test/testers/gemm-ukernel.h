@@ -85,6 +85,90 @@ public:
 		return this->errorLimit_;
 	}
 
+	void testTupleGEMM(nnp_fast_tuple_gemm_function fast_tuple_gemm) const {
+		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
+		auto rng = std::bind(std::uniform_real_distribution<float>(), std::mt19937(seed));
+
+		std::vector<float, AlignedAllocator<float, 32>> a(simdWidth() * mr() * kc());
+		std::vector<float, AlignedAllocator<float, 32>> b(simdWidth() * nr() * kc());
+		std::vector<float, AlignedAllocator<float, 32>> c(simdWidth() * mr() * nr());
+		std::vector<float> cReference(simdWidth() * mr() * nr());
+
+		std::vector<std::vector<float>> errors(simdWidth() * mr() * nr());
+		for (size_t iteration = 0; iteration < iterations(); iteration++) {
+			std::generate(a.begin(), a.end(), std::ref(rng));
+			std::generate(b.begin(), b.end(), std::ref(rng));
+			std::fill(c.begin(), c.end(), std::nanf(""));
+			std::fill(cReference.begin(), cReference.end(), 0.0f);
+
+			fast_tuple_gemm(kc(), 0, a.data(), b.data(), c.data(), simdWidth() * nr());
+
+			for (size_t k = 0; k < kc(); k++) {
+				for (size_t m = 0; m < mr(); m++) {
+					for (size_t n = 0; n < nr(); n++) {
+						for (size_t i = 0; i < simdWidth(); i++) {
+							cReference[(m * nr() + n) * simdWidth() + i] +=
+								a[(k * mr() + m) * simdWidth() + i] * b[(k * nr() + n) * simdWidth() + i];
+						}
+					}
+				}
+			}
+
+			for (size_t i = 0; i < errors.size(); i++) {
+				errors[i].push_back(relativeError(cReference[i], c[i]));
+			}
+		}
+
+		const std::vector<float> medianErrors = median(errors);
+		const float maxMedianError = *std::max_element(medianErrors.cbegin(), medianErrors.cend());
+		ASSERT_LT(maxMedianError, errorLimit()) <<
+			"Mr x Nr = " << mr() << " x " << nr() << ", Kc = " << kc() << ", SIMD width = " << simdWidth();
+	}
+
+	void testTupleGEMM(nnp_full_tuple_gemm_function full_tuple_gemm) const {
+		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
+		auto rng = std::bind(std::uniform_real_distribution<float>(), std::mt19937(seed));
+
+		for (uint32_t mr = 1; mr <= this->mr(); mr++) {
+			for (uint32_t nr = 1; nr <= this->nr(); nr++) {
+				std::vector<float, AlignedAllocator<float, 32>> a(simdWidth() * mr * kc());
+				std::vector<float, AlignedAllocator<float, 32>> b(simdWidth() * nr * kc());
+				std::vector<float, AlignedAllocator<float, 32>> c(simdWidth() * mr * nr);
+				std::vector<float> cReference(simdWidth() * mr * nr);
+
+				std::vector<std::vector<float>> errors(simdWidth() * mr * nr);
+				for (size_t iteration = 0; iteration < iterations(); iteration++) {
+					std::generate(a.begin(), a.end(), std::ref(rng));
+					std::generate(b.begin(), b.end(), std::ref(rng));
+					std::fill(c.begin(), c.end(), std::nanf(""));
+					std::fill(cReference.begin(), cReference.end(), 0.0f);
+
+					full_tuple_gemm(mr, nr, kc(), 0, a.data(), b.data(), c.data(), simdWidth() * nr);
+
+					for (size_t k = 0; k < kc(); k++) {
+						for (size_t m = 0; m < mr; m++) {
+							for (size_t n = 0; n < nr; n++) {
+								for (size_t i = 0; i < simdWidth(); i++) {
+									cReference[(m * nr + n) * simdWidth() + i] +=
+										a[(k * mr + m) * simdWidth() + i] * b[(k * nr + n) * simdWidth() + i];
+								}
+							}
+						}
+					}
+
+					for (size_t i = 0; i < errors.size(); i++) {
+						errors[i].push_back(relativeError(cReference[i], c[i]));
+					}
+				}
+
+				const std::vector<float> medianErrors = median(errors);
+				const float maxMedianError = *std::max_element(medianErrors.cbegin(), medianErrors.cend());
+				ASSERT_LT(maxMedianError, errorLimit()) <<
+					"Mr x Nr = " << mr << " x " << nr << ", Kc = " << kc() << ", SIMD width = " << simdWidth();
+			}
+		}
+	}
+
 	void testSGEMM(nnp_fast_sgemm_function fast_sgemm) const {
 		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
 		auto rng = std::bind(std::uniform_real_distribution<float>(), std::mt19937(seed));
