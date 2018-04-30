@@ -462,8 +462,15 @@ static void init_hwinfo(void) {
 			};
 			#if CPUINFO_ARCH_ARM
 				if (cpuinfo_has_arm_neon_fma()) {
-					nnp_hwinfo.sxgemm.only_mr_x_nr =
-						(nnp_fast_tuple_gemm_function) nnp_s4gemm_only_3x3__aarch32_neon2;
+					switch (cpuinfo_get_core(0)->uarch) {
+						case cpuinfo_uarch_meerkat_m3:
+							nnp_hwinfo.sxgemm.only_mr_x_nr =
+								(nnp_fast_tuple_gemm_function) nnp_s4gemm_only_3x3__aarch32_meerkat;
+							break;
+						default:
+							nnp_hwinfo.sxgemm.only_mr_x_nr =
+								(nnp_fast_tuple_gemm_function) nnp_s4gemm_only_3x3__aarch32_neon2;
+					}
 				}
 			#endif
 			if (cpuinfo_has_arm_neon_fp16()) {

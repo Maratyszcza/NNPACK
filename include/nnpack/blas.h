@@ -80,6 +80,7 @@ void nnp_s4gemm_upto_3x3__neon(uint32_t mr, uint32_t nr, size_t k, size_t update
 
 void nnp_s4gemm_only_3x3__aarch32_neon(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 void nnp_s4gemm_only_3x3__aarch32_neon2(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
+void nnp_s4gemm_only_3x3__aarch32_meerkat(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 
 void nnp_c4gemm_only_2x2__neon(size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);
 void nnp_c4gemm_upto_2x2__neon(uint32_t mr, uint32_t nr, size_t k, size_t update, const float* a, const float* b, float* c, size_t row_stride_c);

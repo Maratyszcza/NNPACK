@@ -105,6 +105,23 @@ private:
 
 #if NNP_BACKEND_ARM
 	#if CPUINFO_ARCH_ARM
+		BENCHMARK_TEMPLATE_F(SXGEMM, fast__aarch32_meerkat, 4, 3, 3)(benchmark::State& state) {
+			if (!cpuinfo_has_arm_neon_fma()) {
+				state.SkipWithError("NEONv2 (NEON-FMA) is not supported");
+			}
+			for (auto _ : state) {
+				for (uint32_t m = 0; m < mc(); m += mr()) {
+					nnp_s4gemm_only_3x3__aarch32_meerkat(
+						kc(),
+						0,
+						a() + xr() * m * kc(),
+						b(),
+						c() + xr() * m * nr(),
+						xr() * nr());
+				}
+			}
+		}
+
 		BENCHMARK_TEMPLATE_F(SXGEMM, fast__aarch32_neon2, 4, 3, 3)(benchmark::State& state) {
 			if (!cpuinfo_has_arm_neon_fma()) {
 				state.SkipWithError("NEONv2 (NEON-FMA) is not supported");
