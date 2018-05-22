@@ -265,3 +265,7 @@ BEGIN_FUNCTION nnp_s4gemm_only_3x3__aarch32_neon2
 	VPOP {d8-d15}
 	BX lr
 END_FUNCTION nnp_s4gemm_only_3x3__aarch32_neon2
+
+#ifdef __ELF__
+.section ".note.GNU-stack","",%progbits
+#endif

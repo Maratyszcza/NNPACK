@@ -443,3 +443,7 @@ BEGIN_FUNCTION nnp_h4gemm_only_3x3__aarch32_neonhparith
 	VPOP {d8-d15}
 	BX lr
 END_FUNCTION nnp_h4gemm_only_3x3__aarch32_neonhparith
+
+#ifdef __ELF__
+.section ".note.GNU-stack","",%progbits
+#endif

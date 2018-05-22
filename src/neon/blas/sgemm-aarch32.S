@@ -161,3 +161,7 @@ BEGIN_FUNCTION nnp_sgemm_only_6x8__aarch32_neon
 	VPOP {d8-d15}
 	BX lr
 END_FUNCTION nnp_sgemm_only_6x8__aarch32_neon
+
+#ifdef __ELF__
+.section ".note.GNU-stack","",%progbits
+#endif
