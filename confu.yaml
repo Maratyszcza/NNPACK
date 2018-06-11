@@ -5,12 +5,13 @@ deps:
   - name: pthreadpool
     url:  https://github.com/Maratyszcza/pthreadpool.git
   - name: cpuinfo
-    url:  https://github.com/Maratyszcza/cpuinfo.git
+    url:  https://github.com/pytorch/cpuinfo.git
   - name: fxdiv
     url:  https://github.com/Maratyszcza/FXdiv.git
   - name: fp16
     url:  https://github.com/Maratyszcza/FP16.git
   - name: psimd
     url:  https://github.com/Maratyszcza/psimd.git
+  - name: clog
   - name: googletest
   - name: googlebenchmark

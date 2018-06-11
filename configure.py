@@ -291,7 +291,9 @@ def main(args):
 
     # Build tests for micro-kernels. Link to the micro-kernels implementations
     with build.options(source_dir="test", extra_include_dirs="test",
-            deps=[build.deps.googletest, build.deps.cpuinfo, build.deps.fp16]):
+            deps={
+                (build.deps.googletest, build.deps.cpuinfo, build.deps.clog, build.deps.fp16): any,
+                "log": build.target.is_android}):
 
         build.unittest("fourier-reference-test",
             reference_fft_objects + [build.cxx("fourier/reference.cc")])
@@ -342,8 +344,9 @@ def main(args):
 
     # Build test for layers. Link to the library.
     with build.options(source_dir="test", include_dirs="test", deps={
-                (build, build.deps.pthreadpool, build.deps.cpuinfo, build.deps.googletest.core, build.deps.fp16): any,
-                "rt": build.target.is_linux
+                (build, build.deps.pthreadpool, build.deps.cpuinfo, build.deps.clog, build.deps.googletest.core, build.deps.fp16): any,
+                "rt": build.target.is_linux,
+                "log": build.target.is_android,
             }):
 
         if not options.inference_only:
@@ -430,19 +433,22 @@ def main(args):
 
     # Build automatic benchmarks
     with build.options(source_dir="bench", extra_include_dirs=["bench", "test"], macros=macros, deps={
-            (build, build.deps.pthreadpool, build.deps.cpuinfo, build.deps.googlebenchmark): all,
-            "rt": build.target.is_linux}):
+            (build, build.deps.pthreadpool, build.deps.cpuinfo, build.deps.clog, build.deps.fp16, build.deps.googlebenchmark): all,
+            "rt": build.target.is_linux,
+            "log": build.target.is_android}):
 
         build.benchmark("convolution-inference-bench", build.cxx("convolution-inference.cc"))
         build.benchmark("sgemm-bench", build.cxx("sgemm.cc"))
         build.benchmark("sxgemm-bench", build.cxx("sxgemm.cc"))
+        build.benchmark("hxgemm-bench", build.cxx("hxgemm.cc"))
         build.benchmark("conv1x1-bench", build.cxx("conv1x1.cc"))
 
     # Build benchmarking utilities
     if not options.inference_only and not build.target.is_android:
         with build.options(source_dir="bench", extra_include_dirs="bench", macros=macros, deps={
                 (build, build.deps.pthreadpool, build.deps.cpuinfo): all,
-                "rt": build.target.is_linux}):
+                "rt": build.target.is_linux,
+                "log": build.target.is_android}):
 
             support_objects = [build.cc("median.c")]
             if build.target.is_x86_64:
