@@ -196,7 +196,7 @@ BEGIN_FUNCTION nnp_h4gemm_only_3x3__aarch32_neon2
 	# - d0 = a0
 	# - d1 = a1
 	# - d2 = a2
-	VLD1.16 {d0-d2}, [r2:64]!
+	VLDM r2!, {d0-d2}
 
 	VCVT.F32.F16 q5, d0
 	VCVT.F32.F16 q0, d1
@@ -206,7 +206,7 @@ BEGIN_FUNCTION nnp_h4gemm_only_3x3__aarch32_neon2
 	# - d4 = b0
 	# - d5 = b1
 	# - d6 = b2
-	VLD1.16 {d4-d6}, [r3:64]!
+	VLDM r3!, {d4-d6}
 
 	VCVT.F32.F16 q4, d4
 	VCVT.F32.F16 q2, d5
@@ -266,7 +266,7 @@ BEGIN_FUNCTION nnp_h4gemm_only_3x3__aarch32_neon2
 	##### Accumulate c matrix with results in acc[0:3][0:12]
 
 	# Accumulate c[0][0:12] += acc[0][0:12]
-	VLD1.16 {d0-d2}, [r2:64]
+	VLDM r2, {d0-d2}
 	VCVT.F32.F16 q2, d0
 	VCVT.F32.F16 q3, d1
 	VCVT.F32.F16 q4, d2
@@ -279,7 +279,7 @@ BEGIN_FUNCTION nnp_h4gemm_only_3x3__aarch32_neon2
 	VST1.16 {d0-d2}, [r2:64], r3
 
 	# Accumulate c[1][0:12] += acc[1][0:12]
-	VLD1.32 {d0-d2}, [r2:64]
+	VLDM r2, {d0-d2}
 	VCVT.F32.F16 q2, d0
 	VCVT.F32.F16 q3, d1
 	VCVT.F32.F16 q4, d2
@@ -292,7 +292,7 @@ BEGIN_FUNCTION nnp_h4gemm_only_3x3__aarch32_neon2
 	VST1.32 {d0-d2}, [r2:64], r3
 
 	# Accumulate c[2][0:12] += acc[2][0:12]
-	VLD1.32 {d0-d2}, [r2:64]
+	VLDM r2, {d0-d2}
 	VCVT.F32.F16 q2, d0
 	VCVT.F32.F16 q3, d1
 	VCVT.F32.F16 q4, d2
