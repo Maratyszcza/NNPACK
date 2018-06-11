@@ -11,6 +11,8 @@
 #include <functional>
 #include <algorithm>
 
+#include <fp16.h>
+
 #include <nnpack/hwinfo.h>
 #include <nnpack/AlignedAllocator.h>
 
@@ -178,6 +180,102 @@ public:
 
 					for (size_t i = 0; i < errors.size(); i++) {
 						errors[i].push_back(relativeError(cReference[i], c[i]));
+					}
+				}
+
+				const std::vector<float> medianErrors = median(errors);
+				const float maxMedianError = *std::max_element(medianErrors.cbegin(), medianErrors.cend());
+				ASSERT_LT(maxMedianError, errorLimit()) <<
+					"Mr x Nr = " << mr << " x " << nr << ", Kc = " << kc() << ", SIMD width = " << simdWidth();
+			}
+		}
+	}
+
+	void testHXGEMM(nnp_fast_tuple_gemm_function fast_hxgemm) const {
+		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
+		auto rng = std::bind(fp16_ieee_from_fp32_value, std::bind(std::uniform_real_distribution<float>(), std::mt19937(seed)));
+
+		std::vector<uint16_t, AlignedAllocator<uint16_t, 32>> a(simdWidth() * mr() * kc());
+		std::vector<uint16_t, AlignedAllocator<uint16_t, 32>> b(simdWidth() * nr() * kc());
+		std::vector<uint16_t, AlignedAllocator<uint16_t, 32>> c(simdWidth() * mr() * nr());
+		std::vector<float> cReference(simdWidth() * mr() * nr());
+
+		std::vector<std::vector<float>> errors(simdWidth() * mr() * nr());
+		for (size_t iteration = 0; iteration < iterations(); iteration++) {
+			std::generate(a.begin(), a.end(), std::ref(rng));
+			std::generate(b.begin(), b.end(), std::ref(rng));
+			if (accumulateC()) {
+				std::generate(c.begin(), c.end(), std::ref(rng));
+				std::transform(c.cbegin(), c.cend(), cReference.begin(), fp16_ieee_to_fp32_value);
+			} else {
+				std::fill(c.begin(), c.end(), 0x7C00);
+				std::fill(cReference.begin(), cReference.end(), 0.0f);
+			}
+
+			fast_hxgemm(kc(), accumulateC(), a.data(), b.data(), c.data(), simdWidth() * nr());
+
+			for (size_t k = 0; k < kc(); k++) {
+				for (size_t m = 0; m < mr(); m++) {
+					for (size_t n = 0; n < nr(); n++) {
+						for (size_t i = 0; i < simdWidth(); i++) {
+							cReference[(m * nr() + n) * simdWidth() + i] +=
+								fp16_ieee_to_fp32_value(a[(k * mr() + m) * simdWidth() + i]) *
+								fp16_ieee_to_fp32_value(b[(k * nr() + n) * simdWidth() + i]);
+						}
+					}
+				}
+			}
+
+			for (size_t i = 0; i < errors.size(); i++) {
+				errors[i].push_back(relativeError(cReference[i], fp16_ieee_to_fp32_value(c[i])));
+			}
+		}
+
+		const std::vector<float> medianErrors = median(errors);
+		const float maxMedianError = *std::max_element(medianErrors.cbegin(), medianErrors.cend());
+		ASSERT_LT(maxMedianError, errorLimit()) <<
+			"Mr x Nr = " << mr() << " x " << nr() << ", Kc = " << kc() << ", SIMD width = " << simdWidth();
+	}
+
+	void testHXGEMM(nnp_full_tuple_gemm_function full_hxgemm) const {
+		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
+		auto rng = std::bind(fp16_ieee_from_fp32_value, std::bind(std::uniform_real_distribution<float>(), std::mt19937(seed)));
+
+		for (uint32_t mr = 1; mr <= this->mr(); mr++) {
+			for (uint32_t nr = 1; nr <= this->nr(); nr++) {
+				std::vector<uint16_t, AlignedAllocator<uint16_t, 32>> a(simdWidth() * mr * kc());
+				std::vector<uint16_t, AlignedAllocator<uint16_t, 32>> b(simdWidth() * nr * kc());
+				std::vector<uint16_t, AlignedAllocator<uint16_t, 32>> c(simdWidth() * mr * nr);
+				std::vector<float> cReference(simdWidth() * mr * nr);
+
+				std::vector<std::vector<float>> errors(simdWidth() * mr * nr);
+				for (size_t iteration = 0; iteration < iterations(); iteration++) {
+					std::generate(a.begin(), a.end(), std::ref(rng));
+					std::generate(b.begin(), b.end(), std::ref(rng));
+					if (accumulateC()) {
+						std::generate(c.begin(), c.end(), std::ref(rng));
+						std::transform(c.cbegin(), c.cend(), cReference.begin(), fp16_ieee_to_fp32_value);
+					} else {
+						std::fill(c.begin(), c.end(), 0x7C00);
+						std::fill(cReference.begin(), cReference.end(), 0.0f);
+					}
+
+					full_hxgemm(mr, nr, kc(), accumulateC(), a.data(), b.data(), c.data(), simdWidth() * nr);
+
+					for (size_t k = 0; k < kc(); k++) {
+						for (size_t m = 0; m < mr; m++) {
+							for (size_t n = 0; n < nr; n++) {
+								for (size_t i = 0; i < simdWidth(); i++) {
+									cReference[(m * nr + n) * simdWidth() + i] +=
+										fp16_ieee_to_fp32_value(a[(k * mr + m) * simdWidth() + i]) *
+										fp16_ieee_to_fp32_value(b[(k * nr + n) * simdWidth() + i]);
+								}
+							}
+						}
+					}
+
+					for (size_t i = 0; i < errors.size(); i++) {
+						errors[i].push_back(relativeError(cReference[i], fp16_ieee_to_fp32_value(c[i])));
 					}
 				}
 

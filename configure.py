@@ -290,7 +290,8 @@ def main(args):
         build.static_library("nnpack", nnpack_objects)
 
     # Build tests for micro-kernels. Link to the micro-kernels implementations
-    with build.options(source_dir="test", extra_include_dirs="test", deps=[build.deps.googletest, build.deps.cpuinfo]):
+    with build.options(source_dir="test", extra_include_dirs="test",
+            deps=[build.deps.googletest, build.deps.cpuinfo, build.deps.fp16]):
 
         build.unittest("fourier-reference-test",
             reference_fft_objects + [build.cxx("fourier/reference.cc")])
@@ -326,6 +327,9 @@ def main(args):
 
             build.smoketest("sxgemm-test",
                 arch_nnpack_objects + [build.cxx("sxgemm/neon.cc")])
+
+            build.smoketest("hxgemm-test",
+                arch_nnpack_objects + [build.cxx("hxgemm/neon.cc")])
         elif backend == "scalar":
             build.smoketest("fourier-test",
                 reference_fft_objects + arch_fft_stub_objects + [build.cxx("fourier/scalar.cc")])
