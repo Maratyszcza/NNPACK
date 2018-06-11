@@ -95,7 +95,7 @@ public:
 		return this->errorLimit_;
 	}
 
-	void testTupleGEMM(nnp_fast_tuple_gemm_function fast_tuple_gemm) const {
+	void testSXGEMM(nnp_fast_tuple_gemm_function fast_sxgemm) const {
 		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
 		auto rng = std::bind(std::uniform_real_distribution<float>(), std::mt19937(seed));
 
@@ -116,7 +116,7 @@ public:
 				std::fill(cReference.begin(), cReference.end(), 0.0f);
 			}
 
-			fast_tuple_gemm(kc(), accumulateC(), a.data(), b.data(), c.data(), simdWidth() * nr());
+			fast_sxgemm(kc(), accumulateC(), a.data(), b.data(), c.data(), simdWidth() * nr());
 
 			for (size_t k = 0; k < kc(); k++) {
 				for (size_t m = 0; m < mr(); m++) {
@@ -140,7 +140,7 @@ public:
 			"Mr x Nr = " << mr() << " x " << nr() << ", Kc = " << kc() << ", SIMD width = " << simdWidth();
 	}
 
-	void testTupleGEMM(nnp_full_tuple_gemm_function full_tuple_gemm) const {
+	void testSXGEMM(nnp_full_tuple_gemm_function full_sxgemm) const {
 		const uint_fast32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
 		auto rng = std::bind(std::uniform_real_distribution<float>(), std::mt19937(seed));
 
@@ -163,7 +163,7 @@ public:
 						std::fill(cReference.begin(), cReference.end(), 0.0f);
 					}
 
-					full_tuple_gemm(mr, nr, kc(), accumulateC(), a.data(), b.data(), c.data(), simdWidth() * nr);
+					full_sxgemm(mr, nr, kc(), accumulateC(), a.data(), b.data(), c.data(), simdWidth() * nr);
 
 					for (size_t k = 0; k < kc(); k++) {
 						for (size_t m = 0; m < mr; m++) {

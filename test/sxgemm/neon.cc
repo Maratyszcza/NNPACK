@@ -19,10 +19,10 @@ TEST(FAST_S4GEMM_3x3, neon) {
 			tester
 				.kc(kc)
 				.accumulateC(true)
-				.testTupleGEMM(nnp_fast_tuple_gemm_function(nnp_s4gemm_only_3x3__neon));
+				.testSXGEMM(nnp_fast_tuple_gemm_function(nnp_s4gemm_only_3x3__neon));
 			tester
 				.accumulateC(false)
-				.testTupleGEMM(nnp_fast_tuple_gemm_function(nnp_s4gemm_only_3x3__neon));
+				.testSXGEMM(nnp_fast_tuple_gemm_function(nnp_s4gemm_only_3x3__neon));
 		}
 	}
 }
@@ -40,10 +40,10 @@ TEST(FULL_S4GEMM_3x3, neon) {
 			tester
 				.kc(kc)
 				.accumulateC(true)
-				.testTupleGEMM(nnp_full_tuple_gemm_function(nnp_s4gemm_upto_3x3__neon));
+				.testSXGEMM(nnp_full_tuple_gemm_function(nnp_s4gemm_upto_3x3__neon));
 			tester
 				.accumulateC(false)
-				.testTupleGEMM(nnp_full_tuple_gemm_function(nnp_s4gemm_upto_3x3__neon));
+				.testSXGEMM(nnp_full_tuple_gemm_function(nnp_s4gemm_upto_3x3__neon));
 		}
 	}
 }
@@ -63,10 +63,10 @@ TEST(FAST_S4GEMM_3x3, aarch32_neon) {
 			tester
 				.kc(kc)
 				.accumulateC(true)
-				.testTupleGEMM(nnp_fast_tuple_gemm_function(nnp_s4gemm_only_3x3__aarch32_neon));
+				.testSXGEMM(nnp_fast_tuple_gemm_function(nnp_s4gemm_only_3x3__aarch32_neon));
 			tester
 				.accumulateC(false)
-				.testTupleGEMM(nnp_fast_tuple_gemm_function(nnp_s4gemm_only_3x3__aarch32_neon));
+				.testSXGEMM(nnp_fast_tuple_gemm_function(nnp_s4gemm_only_3x3__aarch32_neon));
 		}
 	}
 }
@@ -84,10 +84,10 @@ TEST(FAST_S4GEMM_3x3, aarch32_neon2) {
 			tester
 				.kc(kc)
 				.accumulateC(true)
-				.testTupleGEMM(nnp_fast_tuple_gemm_function(nnp_s4gemm_only_3x3__aarch32_neon2));
+				.testSXGEMM(nnp_fast_tuple_gemm_function(nnp_s4gemm_only_3x3__aarch32_neon2));
 			tester
 				.accumulateC(false)
-				.testTupleGEMM(nnp_fast_tuple_gemm_function(nnp_s4gemm_only_3x3__aarch32_neon2));
+				.testSXGEMM(nnp_fast_tuple_gemm_function(nnp_s4gemm_only_3x3__aarch32_neon2));
 		}
 	}
 }
