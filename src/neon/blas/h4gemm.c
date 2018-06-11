@@ -79,48 +79,53 @@ void nnp_h4gemm_upto_3x3__neonhp(
 	const uint16_t *restrict a = a_ptr;
 
 	float32x4_t acc00 = vdupq_n_f32(0.0f), acc01 = vdupq_n_f32(0.0f), acc02 = vdupq_n_f32(0.0f);
-	float32x4_t acc10 = vdupq_n_f32(0.0f), acc11 = vdupq_n_f32(0.0f), acc12 = vdupq_n_f32(0.0f);
-	float32x4_t acc20 = vdupq_n_f32(0.0f), acc21 = vdupq_n_f32(0.0f), acc22 = vdupq_n_f32(0.0f);
 	const uint16_t* b0_ptr = b_ptr;
-	const uint16_t* b1_ptr = (nr >= 2) ? b0_ptr + 4 : b0_ptr;
-	const uint16_t* b2_ptr = (nr >= 3) ? b1_ptr + 4 : b1_ptr;
+	const uint16_t* b1_ptr = b0_ptr + 4;
+	if (nr < 2) {
+		b1_ptr = b0_ptr;
+	}
+	const uint16_t* b2_ptr = b1_ptr + 4;
+	if (nr <= 2) {
+		b2_ptr = b1_ptr;
+	}
 	const size_t b_increment = nr * 4;
-	switch (mr) {
-		case 1:
-			do {
-				const float32x4_t a0 = vld1q_f32_f16(a); a += 4;
+	if (mr < 2) {
+		/* mr == 1 */
+		do {
+			const float32x4_t a0 = vld1q_f32_f16(a); a += 4;
 
-				const float32x4_t b0 = vld1q_f32_f16(b0_ptr); b0_ptr += b_increment;
-				acc00 = vmuladdq_f32(acc00, a0, b0);
+			const float32x4_t b0 = vld1q_f32_f16(b0_ptr); b0_ptr += b_increment;
+			acc00 = vmuladdq_f32(acc00, a0, b0);
 
-				const float32x4_t b1 = vld1q_f32_f16(b1_ptr); b1_ptr += b_increment;
-				acc01 = vmuladdq_f32(acc01, a0, b1);
+			const float32x4_t b1 = vld1q_f32_f16(b1_ptr); b1_ptr += b_increment;
+			acc01 = vmuladdq_f32(acc01, a0, b1);
 
-				const float32x4_t b2 = vld1q_f32_f16(b2_ptr); b2_ptr += b_increment;
-				acc02 = vmuladdq_f32(acc02, a0, b2);
-			} while (--k);
+			const float32x4_t b2 = vld1q_f32_f16(b2_ptr); b2_ptr += b_increment;
+			acc02 = vmuladdq_f32(acc02, a0, b2);
+		} while (--k);
 
-			uint16_t* restrict c = c_ptr;
-			if (update != 0) {
-				vst1q_f16_f32(c, vaddq_f32(vld1q_f32_f16(c), acc00));
-				if (nr > 1) {
-					vst1q_f16_f32(c + 4, vaddq_f32(vld1q_f32_f16(c + 4), acc01));
-					if (nr > 2) {
-						vst1q_f16_f32(c + 8, vaddq_f32(vld1q_f32_f16(c + 8), acc02));
-					}
-				}
-			} else {
-				vst1q_f16_f32(c, acc00);
-				if (nr > 1) {
-					vst1q_f16_f32(c + 4, acc01);
-					if (nr > 2) {
-						vst1q_f16_f32(c + 8, acc02);
-					}
+		uint16_t* restrict c = c_ptr;
+		if (update != 0) {
+			vst1q_f16_f32(c, vaddq_f32(vld1q_f32_f16(c), acc00));
+			if (nr > 1) {
+				vst1q_f16_f32(c + 4, vaddq_f32(vld1q_f32_f16(c + 4), acc01));
+				if (nr > 2) {
+					vst1q_f16_f32(c + 8, vaddq_f32(vld1q_f32_f16(c + 8), acc02));
 				}
 			}
-			break;
-		case 2:
-		{
+		} else {
+			vst1q_f16_f32(c, acc00);
+			if (nr > 1) {
+				vst1q_f16_f32(c + 4, acc01);
+				if (nr > 2) {
+					vst1q_f16_f32(c + 8, acc02);
+				}
+			}
+		}
+	} else {
+		float32x4_t acc10 = vdupq_n_f32(0.0f), acc11 = vdupq_n_f32(0.0f), acc12 = vdupq_n_f32(0.0f);
+		if (mr <= 2) {
+			/* mr == 2 */
 			do {
 				const float32x4_t a0 = vld1q_f32_f16(a); a += 4;
 				const float32x4_t a1 = vld1q_f32_f16(a); a += 4;
@@ -163,10 +168,9 @@ void nnp_h4gemm_upto_3x3__neonhp(
 					}
 				}
 			}
-			break;
-		}
-		case 3:
-		{
+		} else {
+			/* mr == 3 */
+			float32x4_t acc20 = vdupq_n_f32(0.0f), acc21 = vdupq_n_f32(0.0f), acc22 = vdupq_n_f32(0.0f);
 			do {
 				const float32x4_t a0 = vld1q_f32_f16(a); a += 4;
 				const float32x4_t a1 = vld1q_f32_f16(a); a += 4;
@@ -220,10 +224,6 @@ void nnp_h4gemm_upto_3x3__neonhp(
 					}
 				}
 			}
-			break;
 		}
-		default:
-			NNP_UNREACHABLE;
 	}
-
 }
