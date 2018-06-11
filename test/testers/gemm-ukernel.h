@@ -21,6 +21,7 @@ public:
 		nr_(1),
 		kc_(1),
 		simdWidth_(1),
+		accumulateC_(false),
 		iterations_(1000),
 		errorLimit_(1.0e-5)
 	{
@@ -76,6 +77,15 @@ public:
 		return this->iterations_;
 	}
 
+	inline GemmMicroKernelTester& accumulateC(bool value) {
+		this->accumulateC_ = value;
+		return *this;
+	}
+
+	inline bool accumulateC() const {
+		return this->accumulateC_;
+	}
+
 	inline GemmMicroKernelTester& errorLimit(float errorLimit) {
 		this->errorLimit_ = errorLimit;
 		return *this;
@@ -98,10 +108,15 @@ public:
 		for (size_t iteration = 0; iteration < iterations(); iteration++) {
 			std::generate(a.begin(), a.end(), std::ref(rng));
 			std::generate(b.begin(), b.end(), std::ref(rng));
-			std::fill(c.begin(), c.end(), std::nanf(""));
-			std::fill(cReference.begin(), cReference.end(), 0.0f);
+			if (accumulateC()) {
+				std::generate(c.begin(), c.end(), std::ref(rng));
+				std::copy(c.cbegin(), c.cend(), cReference.begin());
+			} else {
+				std::fill(c.begin(), c.end(), std::nanf(""));
+				std::fill(cReference.begin(), cReference.end(), 0.0f);
+			}
 
-			fast_tuple_gemm(kc(), 0, a.data(), b.data(), c.data(), simdWidth() * nr());
+			fast_tuple_gemm(kc(), accumulateC(), a.data(), b.data(), c.data(), simdWidth() * nr());
 
 			for (size_t k = 0; k < kc(); k++) {
 				for (size_t m = 0; m < mr(); m++) {
@@ -140,10 +155,15 @@ public:
 				for (size_t iteration = 0; iteration < iterations(); iteration++) {
 					std::generate(a.begin(), a.end(), std::ref(rng));
 					std::generate(b.begin(), b.end(), std::ref(rng));
-					std::fill(c.begin(), c.end(), std::nanf(""));
-					std::fill(cReference.begin(), cReference.end(), 0.0f);
+					if (accumulateC()) {
+						std::generate(c.begin(), c.end(), std::ref(rng));
+						std::copy(c.cbegin(), c.cend(), cReference.begin());
+					} else {
+						std::fill(c.begin(), c.end(), std::nanf(""));
+						std::fill(cReference.begin(), cReference.end(), 0.0f);
+					}
 
-					full_tuple_gemm(mr, nr, kc(), 0, a.data(), b.data(), c.data(), simdWidth() * nr);
+					full_tuple_gemm(mr, nr, kc(), accumulateC(), a.data(), b.data(), c.data(), simdWidth() * nr);
 
 					for (size_t k = 0; k < kc(); k++) {
 						for (size_t m = 0; m < mr; m++) {
@@ -182,10 +202,15 @@ public:
 		for (size_t iteration = 0; iteration < iterations(); iteration++) {
 			std::generate(a.begin(), a.end(), std::ref(rng));
 			std::generate(b.begin(), b.end(), std::ref(rng));
-			std::fill(c.begin(), c.end(), std::nanf(""));
-			std::fill(cReference.begin(), cReference.end(), 0.0f);
+			if (accumulateC()) {
+				std::generate(c.begin(), c.end(), std::ref(rng));
+				std::copy(c.cbegin(), c.cend(), cReference.begin());
+			} else {
+				std::fill(c.begin(), c.end(), std::nanf(""));
+				std::fill(cReference.begin(), cReference.end(), 0.0f);
+			}
 
-			fast_sgemm(kc(), 0, a.data(), b.data(), c.data(), nr());
+			fast_sgemm(kc(), accumulateC(), a.data(), b.data(), c.data(), nr());
 
 			for (size_t k = 0; k < kc(); k++) {
 				for (size_t m = 0; m < mr(); m++) {
@@ -221,10 +246,15 @@ public:
 				for (size_t iteration = 0; iteration < iterations(); iteration++) {
 					std::generate(a.begin(), a.end(), std::ref(rng));
 					std::generate(b.begin(), b.end(), std::ref(rng));
-					std::fill(c.begin(), c.end(), std::nanf(""));
-					std::fill(cReference.begin(), cReference.end(), 0.0f);
+					if (accumulateC()) {
+						std::generate(c.begin(), c.end(), std::ref(rng));
+						std::copy(c.cbegin(), c.cend(), cReference.begin());
+					} else {
+						std::fill(c.begin(), c.end(), std::nanf(""));
+						std::fill(cReference.begin(), cReference.end(), 0.0f);
+					}
 
-					full_sgemm(mr, nr, kc(), 0, a.data(), b.data(), c.data(), nr);
+					full_sgemm(mr, nr, kc(), accumulateC(), a.data(), b.data(), c.data(), nr);
 
 					for (size_t k = 0; k < kc(); k++) {
 						for (size_t m = 0; m < mr; m++) {
@@ -268,6 +298,7 @@ private:
 	size_t nr_;
 	size_t kc_;
 	size_t simdWidth_;
+	bool accumulateC_;
 	size_t iterations_;
 	float errorLimit_;
 };
