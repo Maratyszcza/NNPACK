@@ -475,7 +475,7 @@ static void init_hwinfo(void) {
 				};
 			}
 			#if CPUINFO_ARCH_ARM
-				if (cpuinfo_has_arm_fp16_arith()) {
+				if (cpuinfo_has_arm_neon_fp16_arith()) {
 					nnp_hwinfo.hxgemm.only_mr_x_nr =
 						(nnp_fast_tuple_gemm_function) nnp_h4gemm_only_3x3__aarch32_neonhparith;
 					nnp_hwinfo.hxgemm.upto_mr_x_nr =
