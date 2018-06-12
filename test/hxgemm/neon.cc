@@ -94,7 +94,7 @@ TEST(FAST_H4GEMM_3x3, aarch32_neon2) {
 
 TEST(FAST_H4GEMM_3x3, aarch32_neonhparith) {
 	ASSERT_TRUE(cpuinfo_initialize());
-	if (cpuinfo_has_arm_neon_fma()) {
+	if (cpuinfo_has_arm_neon_fp16_arith()) {
 		GemmMicroKernelTester tester = GemmMicroKernelTester()
 			.simdWidth(4)
 			.mr(3)
