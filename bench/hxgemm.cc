@@ -124,6 +124,25 @@ private:
 			}
 		}
 
+
+		BENCHMARK_TEMPLATE_F(HXGEMM, full__aarch32_neon2, 4, 3, 3)(benchmark::State& state) {
+			if (!cpuinfo_has_arm_neon_fma()) {
+				state.SkipWithError("NEONv2 (NEON-FMA) is not supported");
+			}
+			for (auto _ : state) {
+				for (uint32_t m = 0; m < mc(); m += mr()) {
+					nnp_h4gemm_upto_3x3__aarch32_neon2(
+						3, 3,
+						kc(),
+						0,
+						a() + xr() * m * kc(),
+						b(),
+						c() + xr() * m * nr(),
+						xr() * nr());
+				}
+			}
+		}
+
 		BENCHMARK_TEMPLATE_F(HXGEMM, fast__aarch32_neonhp, 4, 3, 3)(benchmark::State& state) {
 			if (!cpuinfo_has_arm_neon_fp16()) {
 				state.SkipWithError("NEONHP (NEON-FP16) is not supported");

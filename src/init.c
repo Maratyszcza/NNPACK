@@ -478,9 +478,13 @@ static void init_hwinfo(void) {
 				if (cpuinfo_has_arm_fp16_arith()) {
 					nnp_hwinfo.hxgemm.only_mr_x_nr =
 						(nnp_fast_tuple_gemm_function) nnp_h4gemm_only_3x3__aarch32_neonhparith;
+					nnp_hwinfo.hxgemm.upto_mr_x_nr =
+						(nnp_full_tuple_gemm_function) nnp_h4gemm_upto_3x3__aarch32_neon2;
 				} else if (cpuinfo_has_arm_neon_fma()) {
 					nnp_hwinfo.hxgemm.only_mr_x_nr =
 						(nnp_fast_tuple_gemm_function) nnp_h4gemm_only_3x3__aarch32_neon2;
+					nnp_hwinfo.hxgemm.upto_mr_x_nr =
+						(nnp_full_tuple_gemm_function) nnp_h4gemm_upto_3x3__aarch32_neon2;
 				} else if (cpuinfo_has_arm_neon_fp16()) {
 					nnp_hwinfo.hxgemm.only_mr_x_nr =
 						(nnp_fast_tuple_gemm_function) nnp_h4gemm_only_3x3__aarch32_neonhp;
