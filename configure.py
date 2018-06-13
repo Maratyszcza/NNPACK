@@ -442,6 +442,7 @@ def main(args):
         build.benchmark("sxgemm-bench", build.cxx("sxgemm.cc"))
         build.benchmark("hxgemm-bench", build.cxx("hxgemm.cc"))
         build.benchmark("conv1x1-bench", build.cxx("conv1x1.cc"))
+        build.benchmark("winograd-bench", build.cxx("winograd.cc"))
 
     # Build benchmarking utilities
     if not options.inference_only and not build.target.is_android:
