@@ -15,7 +15,7 @@ void nnp_relu__neon(
 	/* Length is always non-zero and proportional to SIMD width */
 	do {
 		vst1q_f32(output,
-			neon_relu_f32(vld1q_f32(input), vec_negative_slope));
+			neon_reluq_f32(vld1q_f32(input), vec_negative_slope));
 
 		input  += 4;
 		output += 4;
@@ -33,7 +33,7 @@ void nnp_inplace_relu__neon(
 	/* Length is always non-zero and proportional to SIMD width */
 	do {
 		vst1q_f32(data,
-			neon_relu_f32(vld1q_f32(data), vec_negative_slope));
+			neon_reluq_f32(vld1q_f32(data), vec_negative_slope));
 
 		data += 4;
 		length -= 4;
@@ -52,7 +52,7 @@ void nnp_grad_relu__neon(
 	/* Length is always non-zero and proportional to SIMD width */
 	do {
 		vst1q_f32(input_gradient,
-			neon_grad_relu_f32(vld1q_f32(output_gradient), vld1q_f32(input), vec_negative_slope));
+			neon_grad_reluq_f32(vld1q_f32(output_gradient), vld1q_f32(input), vec_negative_slope));
 
 		output_gradient += 4;
 		input += 4;

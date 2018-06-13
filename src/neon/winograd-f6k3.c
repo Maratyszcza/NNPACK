@@ -14,7 +14,8 @@ void nnp_iwt_f6k3__neon(
 	float32x4_t w6 = vld1q_f32(d + 24);
 	float32x4_t w7 = vld1q_f32(d + 28);
 
-	winograd_f6k3_input_transform_inplace(
+	winograd_f6k3_input_transform(
+		w0, w1, w2, w3, w4, w5, w6, w7,
 		&w0, &w1, &w2, &w3, &w4, &w5, &w6, &w7);
 
 	vst1q_f32(w +  0, w0);
@@ -64,13 +65,15 @@ void nnp_owt_f6k3__neon(
 	float32x4_t w6 = vld1q_f32(m + 24);
 	float32x4_t w7 = vld1q_f32(m + 28);
 
-	winograd_f6k3_output_transform_inplace(
-		&w0, &w1, &w2, &w3, &w4, &w5, &w6, &w7);
+	float32x4_t s0, s1, s2, s3, s4, s5;
+	winograd_f6k3_output_transformq(
+		w0, w1, w2, w3, w4, w5, w6, w7,
+		&s0, &s1, &s2, &s3, &s4, &s5);
 
-	vst1q_f32(s +  0, w0);
-	vst1q_f32(s +  4, w1);
-	vst1q_f32(s +  8, w2);
-	vst1q_f32(s + 12, w3);
-	vst1q_f32(s + 16, w4);
-	vst1q_f32(s + 20, w5);
+	vst1q_f32(s +  0, s0);
+	vst1q_f32(s +  4, s1);
+	vst1q_f32(s +  8, s2);
+	vst1q_f32(s + 12, s3);
+	vst1q_f32(s + 16, s4);
+	vst1q_f32(s + 20, s5);
 }

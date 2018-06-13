@@ -12,7 +12,7 @@
 
 void nnp_iwt8x8_3x3_fp16_with_offset__neonhp(
 	const float data[restrict static 1],
-	void *restrict transform,
+	void* transform,
 	size_t data_stride,
 	size_t transform_stride,
 	uint32_t row_count,
@@ -20,63 +20,76 @@ void nnp_iwt8x8_3x3_fp16_with_offset__neonhp(
 	uint32_t row_offset,
 	uint32_t column_offset)
 {
-	NNP_SIMD_ALIGN float32x4_t wd[8][2];
+	NNP_SIMD_ALIGN float32x4_t wd[16];
 	if NNP_LIKELY(row_count == 8 && column_count == 8 && row_offset == 0 && column_offset == 0) {
 		// Fast path where we can directly load `data` into `wd`.
-		for (size_t i = 0; i < 8; i++) {
-			for (size_t j = 0; j < 2; j++) {
-				wd[i][j] = vld1q_f32(&data[i * data_stride + j * 4]);
-			}
+		for (size_t col = 0; col < 2; col++) {
+			winograd_f6k3_input_transform(
+				vld1q_f32(&data[0 * data_stride + col * 4]),
+				vld1q_f32(&data[1 * data_stride + col * 4]),
+				vld1q_f32(&data[2 * data_stride + col * 4]),
+				vld1q_f32(&data[3 * data_stride + col * 4]),
+				vld1q_f32(&data[4 * data_stride + col * 4]),
+				vld1q_f32(&data[5 * data_stride + col * 4]),
+				vld1q_f32(&data[6 * data_stride + col * 4]),
+				vld1q_f32(&data[7 * data_stride + col * 4]),
+				&wd[0 + col * 4], &wd[1 + col * 4], &wd[ 2 + col * 4], &wd[ 3 + col * 4],
+				&wd[8 + col * 4], &wd[9 + col * 4], &wd[10 + col * 4], &wd[11 + col * 4]);
 		}
 	} else {
-		NNP_SIMD_ALIGN float block[8][8] = {{ 0 }};
+		NNP_SIMD_ALIGN float block[8][8];
+		{
+			const float32x4_t vzero = vmovq_n_f32(0.0f);
+			for (float *block_ptr = &block[0][0], *block_end = &block[8][8]; block_ptr != block_end; block_ptr += 4) {
+				vst1q_f32(block_ptr, vzero);
+			}
+		}
 		for (size_t i = 0; i < row_count; i++) {
 			for (size_t j = 0; j < column_count; j++) {
 				block[row_offset + i][column_offset + j] = data[i * data_stride + j];
 			}
 		}
 
-		for (size_t i = 0; i < 8; i++) {
-			for (size_t j = 0; j < 2; j++) {
-				wd[i][j] = vld1q_f32(&block[i][j * 4]);
-			}
+		for (size_t col = 0; col < 2; col++) {
+			winograd_f6k3_input_transform(
+				vld1q_f32(&block[0][col * 4]),
+				vld1q_f32(&block[1][col * 4]),
+				vld1q_f32(&block[2][col * 4]),
+				vld1q_f32(&block[3][col * 4]),
+				vld1q_f32(&block[4][col * 4]),
+				vld1q_f32(&block[5][col * 4]),
+				vld1q_f32(&block[6][col * 4]),
+				vld1q_f32(&block[7][col * 4]),
+				&wd[0 + col * 4], &wd[1 + col * 4], &wd[ 2 + col * 4], &wd[ 3 + col * 4],
+				&wd[8 + col * 4], &wd[9 + col * 4], &wd[10 + col * 4], &wd[11 + col * 4]);
 		}
 	}
 
 	for (size_t col = 0; col < 2; col++) {
-		winograd_f6k3_input_transform_inplace(&wd[0][col],
-			&wd[1][col],
-			&wd[2][col],
-			&wd[3][col],
-			&wd[4][col],
-			&wd[5][col],
-			&wd[6][col],
-			&wd[7][col]);
-		neon_transpose4x4_inplace_f32(&wd[0][col], &wd[1][col], &wd[2][col], &wd[3][col]);
-		neon_transpose4x4_inplace_f32(&wd[4][col], &wd[5][col], &wd[6][col], &wd[7][col]);
-	}
+		float32x4_t vout0, vout1, vout2, vout3, vout4, vout5, vout6, vout7;
+		float32x4x4_t vin0123 = vld4q_f32((const float*) &wd[0 + col * 8]);
+		float32x4x4_t vin4567 = vld4q_f32((const float*) &wd[4 + col * 8]);
+		winograd_f6k3_input_transform(
+			vin0123.val[0], vin0123.val[1], vin0123.val[2], vin0123.val[3],
+			vin4567.val[0], vin4567.val[1], vin4567.val[2], vin4567.val[3],
+			&vout0, &vout1, &vout2, &vout3, &vout4, &vout5, &vout6, &vout7);
 
-	vswapq_f32(&wd[4][0], &wd[0][1]);
-	vswapq_f32(&wd[5][0], &wd[1][1]);
-	vswapq_f32(&wd[6][0], &wd[2][1]);
-	vswapq_f32(&wd[7][0], &wd[3][1]);
-
-	for (size_t col = 0; col < 2; col++) {
-		winograd_f6k3_input_transform_inplace(&wd[0][col],
-			&wd[1][col],
-			&wd[2][col],
-			&wd[3][col],
-			&wd[4][col],
-			&wd[5][col],
-			&wd[6][col],
-			&wd[7][col]);
-	}
-
-	for (size_t col = 0; col < 2; col++) {
-		for (size_t row = 0; row < 8; row++) {
-			vst1q_f16_f32(transform, wd[row][col]);
-			transform += transform_stride;
-		}
+		vst1q_f16_f32(transform, vout0);
+		transform += transform_stride;
+		vst1q_f16_f32(transform, vout1);
+		transform += transform_stride;
+		vst1q_f16_f32(transform, vout2);
+		transform += transform_stride;
+		vst1q_f16_f32(transform, vout3);
+		transform += transform_stride;
+		vst1q_f16_f32(transform, vout4);
+		transform += transform_stride;
+		vst1q_f16_f32(transform, vout5);
+		transform += transform_stride;
+		vst1q_f16_f32(transform, vout6);
+		transform += transform_stride;
+		vst1q_f16_f32(transform, vout7);
+		transform += transform_stride;
 	}
 }
 
@@ -130,63 +143,99 @@ void nnp_owt8x8_3x3_fp16__neonhp(
 	uint32_t row_offset,
 	uint32_t column_offset)
 {
-	NNP_SIMD_ALIGN float32x4_t s[8][2];
-	for (size_t col = 0; col < 2; col++) {
-		s[0][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-		s[1][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-		s[2][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-		s[3][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-		s[4][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-		s[5][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-		s[6][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-		s[7][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-		winograd_f6k3_output_transform_inplace(
-			&s[0][col], &s[1][col], &s[2][col], &s[3][col],
-			&s[4][col], &s[5][col], &s[6][col], &s[7][col]);
-		neon_transpose4x4_inplace_f32(&s[0][col], &s[1][col], &s[2][col], &s[3][col]);
-		neon_transpose4x4_inplace_f32(&s[4][col], &s[5][col], &s[6][col], &s[7][col]);
+	NNP_SIMD_ALIGN float buffer[8 * 6];
+	float*restrict qbuffer = buffer;
+	float*restrict dbuffer = buffer + 32;
+	for (uint32_t col = 0; col < 2; col++) {
+		const float32x4_t m0 = vld1q_f32_f16(transform); transform += transform_stride;
+		const float32x4_t m1 = vld1q_f32_f16(transform); transform += transform_stride;
+		const float32x4_t m2 = vld1q_f32_f16(transform); transform += transform_stride;
+		const float32x4_t m3 = vld1q_f32_f16(transform); transform += transform_stride;
+		const float32x4_t m4 = vld1q_f32_f16(transform); transform += transform_stride;
+		const float32x4_t m5 = vld1q_f32_f16(transform); transform += transform_stride;
+		const float32x4_t m6 = vld1q_f32_f16(transform); transform += transform_stride;
+		const float32x4_t m7 = vld1q_f32_f16(transform); transform += transform_stride;
+		float32x4_t o0, o1, o2, o3, o4, o5;
+		winograd_f6k3_output_transformq(
+			m0, m1, m2, m3, m4, m5, m6, m7,
+			&o0, &o1, &o2, &o3, &o4, &o5);
+		vst1q_f32(qbuffer, o0); qbuffer += 4;
+		vst1q_f32(qbuffer, o1); qbuffer += 4;
+		vst1q_f32(qbuffer, o2); qbuffer += 4;
+		vst1q_f32(qbuffer, o3); qbuffer += 4;
+		vst1_f32(dbuffer, vget_low_f32(o4)); dbuffer += 2;
+		vst1_f32(dbuffer, vget_low_f32(o5)); dbuffer += 2;
+		vst1_f32(dbuffer, vget_high_f32(o4)); dbuffer += 2;
+		vst1_f32(dbuffer, vget_high_f32(o5)); dbuffer += 2;
 	}
 
-	vswapq_f32(&s[4][0], &s[0][1]);
-	vswapq_f32(&s[5][0], &s[1][1]);
-	vswapq_f32(&s[6][0], &s[2][1]);
-	vswapq_f32(&s[7][0], &s[3][1]);
-
+	const float*restrict read_ptr = buffer;
 	if NNP_LIKELY(row_count == 6 && column_count == 6 && output_stride >= 6) {
 		// Fast path to reuse `s` array and write directly into `output`.
-		winograd_f6k3_output_transform_inplace(
-			&s[0][0], &s[1][0], &s[2][0], &s[3][0],
-			&s[4][0], &s[5][0], &s[6][0], &s[7][0]);
-		for (size_t i = 0; i < 6; i++) {
-			vst1q_f32(&output[i * output_stride], s[i][0]);
-		}
-		winograd_f6k3_output_transform_inplace(
-			&s[0][1], &s[1][1], &s[2][1], &s[3][1],
-			&s[4][1], &s[5][1], &s[6][1], &s[7][1]);
-		for (size_t i = 0; i < 6; i++) {
-			vst1_f32(&output[i * output_stride + 4], vget_low_f32(s[i][1]));
-		}
+		float32x4x4_t qin0123 = vld4q_f32(read_ptr); read_ptr += 16;
+		float32x4x4_t qin4567 = vld4q_f32(read_ptr); read_ptr += 16;
+		float32x4_t qout0, qout1, qout2, qout3, qout4, qout5;
+		winograd_f6k3_output_transformq(
+			qin0123.val[0], qin0123.val[1], qin0123.val[2], qin0123.val[3],
+			qin4567.val[0], qin4567.val[1], qin4567.val[2], qin4567.val[3],
+			&qout0, &qout1, &qout2, &qout3, &qout4, &qout5);
+		float* output_col0123 = output;
+		vst1q_f32(output_col0123, qout0); output_col0123 += output_stride;
+		vst1q_f32(output_col0123, qout1); output_col0123 += output_stride;
+		vst1q_f32(output_col0123, qout2); output_col0123 += output_stride;
+		vst1q_f32(output_col0123, qout3); output_col0123 += output_stride;
+		vst1q_f32(output_col0123, qout4); output_col0123 += output_stride;
+		vst1q_f32(output_col0123, qout5);
+
+		float32x2x2_t din01 = vld2_f32(read_ptr); read_ptr += 4;
+		float32x2x2_t din23 = vld2_f32(read_ptr); read_ptr += 4;
+		float32x2x2_t din45 = vld2_f32(read_ptr); read_ptr += 4;
+		float32x2x2_t din67 = vld2_f32(read_ptr);
+		float32x2_t dout0, dout1, dout2, dout3, dout4, dout5;
+		winograd_f6k3_output_transform(
+			din01.val[0], din01.val[1], din23.val[0], din23.val[1],
+			din45.val[0], din45.val[1], din67.val[0], din67.val[1],
+			&dout0, &dout1, &dout2, &dout3, &dout4, &dout5);
+		float* output_col45 = output + 4;
+		vst1_f32(output_col45, dout0); output_col45 += output_stride;
+		vst1_f32(output_col45, dout1); output_col45 += output_stride;
+		vst1_f32(output_col45, dout2); output_col45 += output_stride;
+		vst1_f32(output_col45, dout3); output_col45 += output_stride;
+		vst1_f32(output_col45, dout4); output_col45 += output_stride;
+		vst1_f32(output_col45, dout5);
 	} else {
 		NNP_SIMD_ALIGN float block[6][8];
-		for (size_t col = 0; col < 2; col++) {
-			winograd_f6k3_output_transform_inplace(
-				&s[0][col], &s[1][col], &s[2][col], &s[3][col],
-				&s[4][col], &s[5][col], &s[6][col], &s[7][col]);
-			vst1q_f32(&block[0][col * 4], s[0][col]);
-			vst1q_f32(&block[1][col * 4], s[1][col]);
-			vst1q_f32(&block[2][col * 4], s[2][col]);
-			vst1q_f32(&block[3][col * 4], s[3][col]);
-			vst1q_f32(&block[4][col * 4], s[4][col]);
-			vst1q_f32(&block[5][col * 4], s[5][col]);
-		}
+
+		float32x4x4_t qin0123 = vld4q_f32(read_ptr); read_ptr += 16;
+		float32x4x4_t qin4567 = vld4q_f32(read_ptr); read_ptr += 16;
+		float32x4_t qout0, qout1, qout2, qout3, qout4, qout5;
+		winograd_f6k3_output_transformq(
+			qin0123.val[0], qin0123.val[1], qin0123.val[2], qin0123.val[3],
+			qin4567.val[0], qin4567.val[1], qin4567.val[2], qin4567.val[3],
+			&qout0, &qout1, &qout2, &qout3, &qout4, &qout5);
+		vst1q_f32(&block[0][0], qout0);
+		vst1q_f32(&block[1][0], qout1);
+		vst1q_f32(&block[2][0], qout2);
+		vst1q_f32(&block[3][0], qout3);
+		vst1q_f32(&block[4][0], qout4);
+		vst1q_f32(&block[5][0], qout5);
+
+		float32x2x2_t din01 = vld2_f32(read_ptr); read_ptr += 4;
+		float32x2x2_t din23 = vld2_f32(read_ptr); read_ptr += 4;
+		float32x2x2_t din45 = vld2_f32(read_ptr); read_ptr += 4;
+		float32x2x2_t din67 = vld2_f32(read_ptr);
+		float32x2_t dout0, dout1, dout2, dout3, dout4, dout5;
+		winograd_f6k3_output_transform(
+			din01.val[0], din01.val[1], din23.val[0], din23.val[1],
+			din45.val[0], din45.val[1], din67.val[0], din67.val[1],
+			&dout0, &dout1, &dout2, &dout3, &dout4, &dout5);
+		vst1_f32(&block[0][4], dout0);
+		vst1_f32(&block[1][4], dout1);
+		vst1_f32(&block[2][4], dout2);
+		vst1_f32(&block[3][4], dout3);
+		vst1_f32(&block[4][4], dout4);
+		vst1_f32(&block[5][4], dout5);
+
 		for (size_t i = 0; i < row_count; i++) {
 			for (size_t j = 0; j < column_count; j++) {
 				output[i * output_stride + j] = block[i][j];
@@ -205,68 +254,103 @@ void nnp_owt8x8_3x3_fp16_with_bias__neonhp(
 	uint32_t row_count,
 	uint32_t column_count)
 {
-	NNP_SIMD_ALIGN float32x4_t s[8][2];
-	for (size_t col = 0; col < 2; col++) {
-		s[0][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-		// Only difference in the with_bias vs non with_bias case.
-		if (col == 0) {
-			s[1][col] = vld1q_f32_f16(transform) + vsetq_lane_f32(*bias, vdupq_n_f32(0.0), 1);
-		} else {
-			s[1][col] = vld1q_f32_f16(transform);
-		}
-		transform += transform_stride;
-		s[2][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-		s[3][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-		s[4][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-		s[5][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-		s[6][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-		s[7][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-
-		winograd_f6k3_output_transform_inplace(
-			&s[0][col], &s[1][col], &s[2][col], &s[3][col],
-			&s[4][col], &s[5][col], &s[6][col], &s[7][col]);
-		neon_transpose4x4_inplace_f32(&s[0][col], &s[1][col], &s[2][col], &s[3][col]);
-		neon_transpose4x4_inplace_f32(&s[4][col], &s[5][col], &s[6][col], &s[7][col]);
+	NNP_SIMD_ALIGN float buffer[8 * 6];
+	float*restrict qbuffer = buffer;
+	float*restrict dbuffer = buffer + 32;
+	float32x2_t vbias = vreinterpret_f32_u64(vshl_n_u64(vreinterpret_u64_f32(vld1_dup_f32(bias)), 32));
+	for (uint32_t col = 0; col < 2; col++) {
+		const float32x4_t m0 = vld1q_f32_f16(transform); transform += transform_stride;
+		float32x4_t m1 = vld1q_f32_f16(transform); transform += transform_stride;
+		/* The only difference in the with_bias vs non with_bias case. */
+		m1 = vcombine_f32(vadd_f32(vget_low_f32(m1), vbias), vget_high_f32(m1));
+		vbias = vmov_n_f32(0.0f);
+		const float32x4_t m2 = vld1q_f32_f16(transform); transform += transform_stride;
+		const float32x4_t m3 = vld1q_f32_f16(transform); transform += transform_stride;
+		const float32x4_t m4 = vld1q_f32_f16(transform); transform += transform_stride;
+		const float32x4_t m5 = vld1q_f32_f16(transform); transform += transform_stride;
+		const float32x4_t m6 = vld1q_f32_f16(transform); transform += transform_stride;
+		const float32x4_t m7 = vld1q_f32_f16(transform); transform += transform_stride;
+		float32x4_t o0, o1, o2, o3, o4, o5;
+		winograd_f6k3_output_transformq(
+			m0, m1, m2, m3, m4, m5, m6, m7,
+			&o0, &o1, &o2, &o3, &o4, &o5);
+		vst1q_f32(qbuffer, o0); qbuffer += 4;
+		vst1q_f32(qbuffer, o1); qbuffer += 4;
+		vst1q_f32(qbuffer, o2); qbuffer += 4;
+		vst1q_f32(qbuffer, o3); qbuffer += 4;
+		vst1_f32(dbuffer, vget_low_f32(o4)); dbuffer += 2;
+		vst1_f32(dbuffer, vget_low_f32(o5)); dbuffer += 2;
+		vst1_f32(dbuffer, vget_high_f32(o4)); dbuffer += 2;
+		vst1_f32(dbuffer, vget_high_f32(o5)); dbuffer += 2;
 	}
 
-	vswapq_f32(&s[4][0], &s[0][1]);
-	vswapq_f32(&s[5][0], &s[1][1]);
-	vswapq_f32(&s[6][0], &s[2][1]);
-	vswapq_f32(&s[7][0], &s[3][1]);
+	const float*restrict read_ptr = buffer;
 	if NNP_LIKELY(row_count == 6 && column_count == 6 && output_stride >= 6) {
 		// Fast path to reuse `s` array and write directly into `output`.
-		winograd_f6k3_output_transform_inplace(
-			&s[0][0], &s[1][0], &s[2][0], &s[3][0],
-			&s[4][0], &s[5][0], &s[6][0], &s[7][0]);
-		for (size_t i = 0; i < row_count; i++) {
-			vst1q_f32(&output[i * output_stride], s[i][0]);
-		}
-		winograd_f6k3_output_transform_inplace(
-			&s[0][1], &s[1][1], &s[2][1], &s[3][1],
-			&s[4][1], &s[5][1], &s[6][1], &s[7][1]);
-		for (size_t i = 0; i < row_count; i++) {
-			vst1_f32(&output[i * output_stride + 4], vget_low_f32(s[i][1]));
-		}
+		float32x4x4_t qin0123 = vld4q_f32(read_ptr); read_ptr += 16;
+		float32x4x4_t qin4567 = vld4q_f32(read_ptr); read_ptr += 16;
+		float32x4_t qout0, qout1, qout2, qout3, qout4, qout5;
+		winograd_f6k3_output_transformq(
+			qin0123.val[0], qin0123.val[1], qin0123.val[2], qin0123.val[3],
+			qin4567.val[0], qin4567.val[1], qin4567.val[2], qin4567.val[3],
+			&qout0, &qout1, &qout2, &qout3, &qout4, &qout5);
+		float* output_col0123 = output;
+		vst1q_f32(output_col0123, qout0); output_col0123 += output_stride;
+		vst1q_f32(output_col0123, qout1); output_col0123 += output_stride;
+		vst1q_f32(output_col0123, qout2); output_col0123 += output_stride;
+		vst1q_f32(output_col0123, qout3); output_col0123 += output_stride;
+		vst1q_f32(output_col0123, qout4); output_col0123 += output_stride;
+		vst1q_f32(output_col0123, qout5);
+
+		float32x2x2_t din01 = vld2_f32(read_ptr); read_ptr += 4;
+		float32x2x2_t din23 = vld2_f32(read_ptr); read_ptr += 4;
+		float32x2x2_t din45 = vld2_f32(read_ptr); read_ptr += 4;
+		float32x2x2_t din67 = vld2_f32(read_ptr);
+		float32x2_t dout0, dout1, dout2, dout3, dout4, dout5;
+		winograd_f6k3_output_transform(
+			din01.val[0], din01.val[1], din23.val[0], din23.val[1],
+			din45.val[0], din45.val[1], din67.val[0], din67.val[1],
+			&dout0, &dout1, &dout2, &dout3, &dout4, &dout5);
+		float* output_col45 = output + 4;
+		vst1_f32(output_col45, dout0); output_col45 += output_stride;
+		vst1_f32(output_col45, dout1); output_col45 += output_stride;
+		vst1_f32(output_col45, dout2); output_col45 += output_stride;
+		vst1_f32(output_col45, dout3); output_col45 += output_stride;
+		vst1_f32(output_col45, dout4); output_col45 += output_stride;
+		vst1_f32(output_col45, dout5);
 	} else {
 		NNP_SIMD_ALIGN float block[6][8];
-		for (size_t col = 0; col < 2; col++) {
-			winograd_f6k3_output_transform_inplace(
-				&s[0][col], &s[1][col], &s[2][col], &s[3][col],
-				&s[4][col], &s[5][col], &s[6][col], &s[7][col]);
-			vst1q_f32(&block[0][col * 4], s[0][col]);
-			vst1q_f32(&block[1][col * 4], s[1][col]);
-			vst1q_f32(&block[2][col * 4], s[2][col]);
-			vst1q_f32(&block[3][col * 4], s[3][col]);
-			vst1q_f32(&block[4][col * 4], s[4][col]);
-			vst1q_f32(&block[5][col * 4], s[5][col]);
-		}
+
+		float32x4x4_t qin0123 = vld4q_f32(read_ptr); read_ptr += 16;
+		float32x4x4_t qin4567 = vld4q_f32(read_ptr); read_ptr += 16;
+		float32x4_t qout0, qout1, qout2, qout3, qout4, qout5;
+		winograd_f6k3_output_transformq(
+			qin0123.val[0], qin0123.val[1], qin0123.val[2], qin0123.val[3],
+			qin4567.val[0], qin4567.val[1], qin4567.val[2], qin4567.val[3],
+			&qout0, &qout1, &qout2, &qout3, &qout4, &qout5);
+		vst1q_f32(&block[0][0], qout0);
+		vst1q_f32(&block[1][0], qout1);
+		vst1q_f32(&block[2][0], qout2);
+		vst1q_f32(&block[3][0], qout3);
+		vst1q_f32(&block[4][0], qout4);
+		vst1q_f32(&block[5][0], qout5);
+
+		float32x2x2_t din01 = vld2_f32(read_ptr); read_ptr += 4;
+		float32x2x2_t din23 = vld2_f32(read_ptr); read_ptr += 4;
+		float32x2x2_t din45 = vld2_f32(read_ptr); read_ptr += 4;
+		float32x2x2_t din67 = vld2_f32(read_ptr);
+		float32x2_t dout0, dout1, dout2, dout3, dout4, dout5;
+		winograd_f6k3_output_transform(
+			din01.val[0], din01.val[1], din23.val[0], din23.val[1],
+			din45.val[0], din45.val[1], din67.val[0], din67.val[1],
+			&dout0, &dout1, &dout2, &dout3, &dout4, &dout5);
+		vst1_f32(&block[0][4], dout0);
+		vst1_f32(&block[1][4], dout1);
+		vst1_f32(&block[2][4], dout2);
+		vst1_f32(&block[3][4], dout3);
+		vst1_f32(&block[4][4], dout4);
+		vst1_f32(&block[5][4], dout5);
+
 		for (size_t i = 0; i < row_count; i++) {
 			for (size_t j = 0; j < column_count; j++) {
 				output[i * output_stride + j] = block[i][j];
@@ -284,69 +368,107 @@ void nnp_owt8x8_3x3_fp16_with_bias_with_relu__neonhp(
 	uint32_t row_count,
 	uint32_t column_count)
 {
-	NNP_SIMD_ALIGN float32x4_t s[8][2];
-	for (size_t col = 0; col < 2; col++) {
-		s[0][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-		// Only difference in the with_bias vs non with_bias case.
-		if (col == 0) {
-			s[1][col] = vld1q_f32_f16(transform) + vsetq_lane_f32(*bias, vdupq_n_f32(0.0), 1);
-		} else {
-			s[1][col] = vld1q_f32_f16(transform);
-		}
-		transform += transform_stride;
-		s[2][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-		s[3][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-		s[4][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-		s[5][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-		s[6][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-		s[7][col] = vld1q_f32_f16(transform);
-		transform += transform_stride;
-
-		winograd_f6k3_output_transform_inplace(
-			&s[0][col], &s[1][col], &s[2][col], &s[3][col],
-			&s[4][col], &s[5][col], &s[6][col], &s[7][col]);
-		neon_transpose4x4_inplace_f32(&s[0][col], &s[1][col], &s[2][col], &s[3][col]);
-		neon_transpose4x4_inplace_f32(&s[4][col], &s[5][col], &s[6][col], &s[7][col]);
+	NNP_SIMD_ALIGN float buffer[8 * 6];
+	float*restrict qbuffer = buffer;
+	float*restrict dbuffer = buffer + 32;
+	float32x2_t vbias = vreinterpret_f32_u64(vshl_n_u64(vreinterpret_u64_f32(vld1_dup_f32(bias)), 32));
+	for (uint32_t col = 0; col < 2; col++) {
+		const float32x4_t m0 = vld1q_f32_f16(transform); transform += transform_stride;
+		float32x4_t m1 = vld1q_f32_f16(transform); transform += transform_stride;
+		/* The only difference in the with_bias vs non with_bias case. */
+		m1 = vcombine_f32(vadd_f32(vget_low_f32(m1), vbias), vget_high_f32(m1));
+		vbias = vmov_n_f32(0.0f);
+		const float32x4_t m2 = vld1q_f32_f16(transform); transform += transform_stride;
+		const float32x4_t m3 = vld1q_f32_f16(transform); transform += transform_stride;
+		const float32x4_t m4 = vld1q_f32_f16(transform); transform += transform_stride;
+		const float32x4_t m5 = vld1q_f32_f16(transform); transform += transform_stride;
+		const float32x4_t m6 = vld1q_f32_f16(transform); transform += transform_stride;
+		const float32x4_t m7 = vld1q_f32_f16(transform); transform += transform_stride;
+		float32x4_t o0, o1, o2, o3, o4, o5;
+		winograd_f6k3_output_transformq(
+			m0, m1, m2, m3, m4, m5, m6, m7,
+			&o0, &o1, &o2, &o3, &o4, &o5);
+		vst1q_f32(qbuffer, o0); qbuffer += 4;
+		vst1q_f32(qbuffer, o1); qbuffer += 4;
+		vst1q_f32(qbuffer, o2); qbuffer += 4;
+		vst1q_f32(qbuffer, o3); qbuffer += 4;
+		vst1_f32(dbuffer, vget_low_f32(o4)); dbuffer += 2;
+		vst1_f32(dbuffer, vget_low_f32(o5)); dbuffer += 2;
+		vst1_f32(dbuffer, vget_high_f32(o4)); dbuffer += 2;
+		vst1_f32(dbuffer, vget_high_f32(o5)); dbuffer += 2;
 	}
 
-	vswapq_f32(&s[4][0], &s[0][1]);
-	vswapq_f32(&s[5][0], &s[1][1]);
-	vswapq_f32(&s[6][0], &s[2][1]);
-	vswapq_f32(&s[7][0], &s[3][1]);
-	const float32x4_t zero = vdupq_n_f32(0.0f);
+	const float*restrict read_ptr = buffer;
 	if NNP_LIKELY(row_count == 6 && column_count == 6 && output_stride >= 6) {
 		// Fast path to reuse `s` array and write directly into `output`.
-		winograd_f6k3_output_transform_inplace(
-			&s[0][0], &s[1][0], &s[2][0], &s[3][0],
-			&s[4][0], &s[5][0], &s[6][0], &s[7][0]);
-		for (size_t i = 0; i < row_count; i++) {
-			vst1q_f32(&output[i * output_stride], neon_relu_f32(s[i][0], zero));
-		}
-		winograd_f6k3_output_transform_inplace(
-			&s[0][1], &s[1][1], &s[2][1], &s[3][1],
-			&s[4][1], &s[5][1], &s[6][1], &s[7][1]);
-		for (size_t i = 0; i < row_count; i++) {
-			vst1_f32(&output[i * output_stride + 4], vget_low_f32(neon_relu_f32(s[i][1], zero)));
-		}
+		float32x4x4_t qin0123 = vld4q_f32(read_ptr); read_ptr += 16;
+		float32x4x4_t qin4567 = vld4q_f32(read_ptr); read_ptr += 16;
+		float32x4_t qout0, qout1, qout2, qout3, qout4, qout5;
+		winograd_f6k3_output_transformq(
+			qin0123.val[0], qin0123.val[1], qin0123.val[2], qin0123.val[3],
+			qin4567.val[0], qin4567.val[1], qin4567.val[2], qin4567.val[3],
+			&qout0, &qout1, &qout2, &qout3, &qout4, &qout5);
+		float* output_col0123 = output;
+		const float32x4_t qzero = vmovq_n_f32(0.0f);
+		vst1q_f32(output_col0123, neon_reluq_f32(qout0, qzero)); output_col0123 += output_stride;
+		vst1q_f32(output_col0123, neon_reluq_f32(qout1, qzero)); output_col0123 += output_stride;
+		vst1q_f32(output_col0123, neon_reluq_f32(qout2, qzero)); output_col0123 += output_stride;
+		vst1q_f32(output_col0123, neon_reluq_f32(qout3, qzero)); output_col0123 += output_stride;
+		vst1q_f32(output_col0123, neon_reluq_f32(qout4, qzero)); output_col0123 += output_stride;
+		vst1q_f32(output_col0123, neon_reluq_f32(qout5, qzero));
+
+		float32x2x2_t din01 = vld2_f32(read_ptr); read_ptr += 4;
+		float32x2x2_t din23 = vld2_f32(read_ptr); read_ptr += 4;
+		float32x2x2_t din45 = vld2_f32(read_ptr); read_ptr += 4;
+		float32x2x2_t din67 = vld2_f32(read_ptr);
+		float32x2_t dout0, dout1, dout2, dout3, dout4, dout5;
+		winograd_f6k3_output_transform(
+			din01.val[0], din01.val[1], din23.val[0], din23.val[1],
+			din45.val[0], din45.val[1], din67.val[0], din67.val[1],
+			&dout0, &dout1, &dout2, &dout3, &dout4, &dout5);
+		float* output_col45 = output + 4;
+		const float32x2_t dzero = vmov_n_f32(0.0f);
+		vst1_f32(output_col45, neon_relu_f32(dout0, dzero)); output_col45 += output_stride;
+		vst1_f32(output_col45, neon_relu_f32(dout1, dzero)); output_col45 += output_stride;
+		vst1_f32(output_col45, neon_relu_f32(dout2, dzero)); output_col45 += output_stride;
+		vst1_f32(output_col45, neon_relu_f32(dout3, dzero)); output_col45 += output_stride;
+		vst1_f32(output_col45, neon_relu_f32(dout4, dzero)); output_col45 += output_stride;
+		vst1_f32(output_col45, neon_relu_f32(dout5, dzero));
 	} else {
 		NNP_SIMD_ALIGN float block[6][8];
-		for (size_t col = 0; col < 2; col++) {
-			winograd_f6k3_output_transform_inplace(
-				&s[0][col], &s[1][col], &s[2][col], &s[3][col],
-				&s[4][col], &s[5][col], &s[6][col], &s[7][col]);
-			vst1q_f32(&block[0][col * 4], neon_relu_f32(s[0][col], zero));
-			vst1q_f32(&block[1][col * 4], neon_relu_f32(s[1][col], zero));
-			vst1q_f32(&block[2][col * 4], neon_relu_f32(s[2][col], zero));
-			vst1q_f32(&block[3][col * 4], neon_relu_f32(s[3][col], zero));
-			vst1q_f32(&block[4][col * 4], neon_relu_f32(s[4][col], zero));
-			vst1q_f32(&block[5][col * 4], neon_relu_f32(s[5][col], zero));
-		}
+
+		float32x4x4_t qin0123 = vld4q_f32(read_ptr); read_ptr += 16;
+		float32x4x4_t qin4567 = vld4q_f32(read_ptr); read_ptr += 16;
+		float32x4_t qout0, qout1, qout2, qout3, qout4, qout5;
+		winograd_f6k3_output_transformq(
+			qin0123.val[0], qin0123.val[1], qin0123.val[2], qin0123.val[3],
+			qin4567.val[0], qin4567.val[1], qin4567.val[2], qin4567.val[3],
+			&qout0, &qout1, &qout2, &qout3, &qout4, &qout5);
+		const float32x4_t qzero = vmovq_n_f32(0.0f);
+		vst1q_f32(&block[0][0], neon_reluq_f32(qout0, qzero));
+		vst1q_f32(&block[1][0], neon_reluq_f32(qout1, qzero));
+		vst1q_f32(&block[2][0], neon_reluq_f32(qout2, qzero));
+		vst1q_f32(&block[3][0], neon_reluq_f32(qout3, qzero));
+		vst1q_f32(&block[4][0], neon_reluq_f32(qout4, qzero));
+		vst1q_f32(&block[5][0], neon_reluq_f32(qout5, qzero));
+
+		float32x2x2_t din01 = vld2_f32(read_ptr); read_ptr += 4;
+		float32x2x2_t din23 = vld2_f32(read_ptr); read_ptr += 4;
+		float32x2x2_t din45 = vld2_f32(read_ptr); read_ptr += 4;
+		float32x2x2_t din67 = vld2_f32(read_ptr);
+		float32x2_t dout0, dout1, dout2, dout3, dout4, dout5;
+		winograd_f6k3_output_transform(
+			din01.val[0], din01.val[1], din23.val[0], din23.val[1],
+			din45.val[0], din45.val[1], din67.val[0], din67.val[1],
+			&dout0, &dout1, &dout2, &dout3, &dout4, &dout5);
+		const float32x2_t dzero = vmov_n_f32(0.0f);
+		vst1_f32(&block[0][4], neon_relu_f32(dout0, dzero));
+		vst1_f32(&block[1][4], neon_relu_f32(dout1, dzero));
+		vst1_f32(&block[2][4], neon_relu_f32(dout2, dzero));
+		vst1_f32(&block[3][4], neon_relu_f32(dout3, dzero));
+		vst1_f32(&block[4][4], neon_relu_f32(dout4, dzero));
+		vst1_f32(&block[5][4], neon_relu_f32(dout5, dzero));
+
 		for (size_t i = 0; i < row_count; i++) {
 			for (size_t j = 0; j < column_count; j++) {
 				output[i * output_stride + j] = block[i][j];
