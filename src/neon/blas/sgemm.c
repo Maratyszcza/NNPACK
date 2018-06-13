@@ -21,35 +21,19 @@ void nnp_sgemm_only_6x8__neon(size_t k, size_t update, const float* a, const flo
 		const float32x4_t vb1 = vld1q_f32_aligned(b + 4);
 		b += 8;
 
-		#if defined(__aarch64__)
-			vc00 = vfmaq_lane_f32(vc00, vb0, vget_low_f32(va0123), 0);
-			vc10 = vfmaq_lane_f32(vc10, vb0, vget_low_f32(va0123), 1);
-			vc20 = vfmaq_lane_f32(vc20, vb0, vget_high_f32(va0123), 0);
-			vc30 = vfmaq_lane_f32(vc30, vb0, vget_high_f32(va0123), 1);
-			vc40 = vfmaq_lane_f32(vc40, vb0, va45, 0);
-			vc50 = vfmaq_lane_f32(vc50, vb0, va45, 1);
+		vc00 = vmuladdq_lane0_f32(vc00, vb0, vget_low_f32(va0123));
+		vc10 = vmuladdq_lane1_f32(vc10, vb0, vget_low_f32(va0123));
+		vc20 = vmuladdq_lane0_f32(vc20, vb0, vget_high_f32(va0123));
+		vc30 = vmuladdq_lane1_f32(vc30, vb0, vget_high_f32(va0123));
+		vc40 = vmuladdq_lane0_f32(vc40, vb0, va45);
+		vc50 = vmuladdq_lane1_f32(vc50, vb0, va45);
 
-			vc01 = vfmaq_lane_f32(vc01, vb1, vget_low_f32(va0123), 0);
-			vc11 = vfmaq_lane_f32(vc11, vb1, vget_low_f32(va0123), 1);
-			vc21 = vfmaq_lane_f32(vc21, vb1, vget_high_f32(va0123), 0);
-			vc31 = vfmaq_lane_f32(vc31, vb1, vget_high_f32(va0123), 1);
-			vc41 = vfmaq_lane_f32(vc41, vb1, va45, 0);
-			vc51 = vfmaq_lane_f32(vc51, vb1, va45, 1);
-		#else
-			vc00 = vmlaq_lane_f32(vc00, vb0, vget_low_f32(va0123), 0);
-			vc10 = vmlaq_lane_f32(vc10, vb0, vget_low_f32(va0123), 1);
-			vc20 = vmlaq_lane_f32(vc20, vb0, vget_high_f32(va0123), 0);
-			vc30 = vmlaq_lane_f32(vc30, vb0, vget_high_f32(va0123), 1);
-			vc40 = vmlaq_lane_f32(vc40, vb0, va45, 0);
-			vc50 = vmlaq_lane_f32(vc50, vb0, va45, 1);
-
-			vc01 = vmlaq_lane_f32(vc01, vb1, vget_low_f32(va0123), 0);
-			vc11 = vmlaq_lane_f32(vc11, vb1, vget_low_f32(va0123), 1);
-			vc21 = vmlaq_lane_f32(vc21, vb1, vget_high_f32(va0123), 0);
-			vc31 = vmlaq_lane_f32(vc31, vb1, vget_high_f32(va0123), 1);
-			vc41 = vmlaq_lane_f32(vc41, vb1, va45, 0);
-			vc51 = vmlaq_lane_f32(vc51, vb1, va45, 1);
-		#endif
+		vc01 = vmuladdq_lane0_f32(vc01, vb1, vget_low_f32(va0123));
+		vc11 = vmuladdq_lane1_f32(vc11, vb1, vget_low_f32(va0123));
+		vc21 = vmuladdq_lane0_f32(vc21, vb1, vget_high_f32(va0123));
+		vc31 = vmuladdq_lane1_f32(vc31, vb1, vget_high_f32(va0123));
+		vc41 = vmuladdq_lane0_f32(vc41, vb1, va45);
+		vc51 = vmuladdq_lane1_f32(vc51, vb1, va45);
 	} while (--k);
 
 	if (update) {

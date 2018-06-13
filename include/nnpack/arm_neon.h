@@ -62,34 +62,98 @@ static inline void vst1q_f32_aligned(float* address, float32x4_t vector) {
 	#endif
 #endif
 
-static inline float32x4_t vmuladdq_f32(float32x4_t c, float32x4_t a, float32x4_t b) {
+static inline float32x4_t vmuladdq_f32(float32x4_t acc, float32x4_t a, float32x4_t b) {
 	#if defined(__aarch64__)
-		return vfmaq_f32(c, a, b);
+		return vfmaq_f32(acc, a, b);
 	#else
-		return vmlaq_f32(c, a, b);
+		return vmlaq_f32(acc, a, b);
 	#endif
 }
 
-static inline float32x4_t vmulsubq_f32(float32x4_t c, float32x4_t a, float32x4_t b) {
+static inline float32x4_t vmulsubq_f32(float32x4_t acc, float32x4_t a, float32x4_t b) {
 	#if defined(__aarch64__)
-		return vfmsq_f32(c, a, b);
+		return vfmsq_f32(acc, a, b);
 	#else
-		return vmlsq_f32(c, a, b);
+		return vmlsq_f32(acc, a, b);
 	#endif
 }
 
-static inline float32x2_t vmuladd_f32(float32x2_t c, float32x2_t a, float32x2_t b) {
+static inline float32x4_t vmuladdq_lane0_f32(float32x4_t acc, float32x4_t a, float32x2_t b) {
 	#if defined(__aarch64__)
-		return vfma_f32(c, a, b);
+		return vfmaq_lane_f32(acc, a, b, 0);
 	#else
-		return vmla_f32(c, a, b);
+		return vmlaq_lane_f32(acc, a, b, 0);
 	#endif
 }
 
-static inline float32x2_t vmulsub_f32(float32x2_t c, float32x2_t a, float32x2_t b) {
+static inline float32x4_t vmuladdq_lane1_f32(float32x4_t acc, float32x4_t a, float32x2_t b) {
 	#if defined(__aarch64__)
-		return vfms_f32(c, a, b);
+		return vfmaq_lane_f32(acc, a, b, 1);
 	#else
-		return vmls_f32(c, a, b);
+		return vmlaq_lane_f32(acc, a, b, 1);
+	#endif
+}
+
+static inline float32x4_t vmulsubq_lane0_f32(float32x4_t acc, float32x4_t a, float32x2_t b) {
+	#if defined(__aarch64__)
+		return vfmsq_lane_f32(acc, a, b, 0);
+	#else
+		return vmlsq_lane_f32(acc, a, b, 0);
+	#endif
+}
+
+static inline float32x4_t vmulsubq_lane1_f32(float32x4_t acc, float32x4_t a, float32x2_t b) {
+	#if defined(__aarch64__)
+		return vfmsq_lane_f32(acc, a, b, 1);
+	#else
+		return vmlsq_lane_f32(acc, a, b, 1);
+	#endif
+}
+
+static inline float32x2_t vmuladd_f32(float32x2_t acc, float32x2_t a, float32x2_t b) {
+	#if defined(__aarch64__)
+		return vfma_f32(acc, a, b);
+	#else
+		return vmla_f32(acc, a, b);
+	#endif
+}
+
+static inline float32x2_t vmulsub_f32(float32x2_t acc, float32x2_t a, float32x2_t b) {
+	#if defined(__aarch64__)
+		return vfms_f32(acc, a, b);
+	#else
+		return vmls_f32(acc, a, b);
+	#endif
+}
+
+static inline float32x2_t vmuladd_lane0_f32(float32x2_t acc, float32x2_t a, float32x2_t b) {
+	#if defined(__aarch64__)
+		return vfma_lane_f32(acc, a, b, 0);
+	#else
+		return vmla_lane_f32(acc, a, b, 0);
+	#endif
+}
+
+static inline float32x2_t vmuladd_lane1_f32(float32x2_t acc, float32x2_t a, float32x2_t b) {
+	#if defined(__aarch64__)
+		return vfma_lane_f32(acc, a, b, 1);
+	#else
+		return vmla_lane_f32(acc, a, b, 1);
+	#endif
+}
+
+static inline float32x2_t vmulsub_lane0_f32(float32x2_t acc, float32x2_t a, float32x2_t b) {
+	#if defined(__aarch64__)
+		return vfms_lane_f32(acc, a, b, 0);
+	#else
+		return vmls_lane_f32(acc, a, b, 0);
+	#endif
+}
+
+static inline float32x2_t vmulsub_lane1_f32(float32x2_t acc, float32x2_t a, float32x2_t b) {
+	#if defined(__aarch64__)
+		return vfms_lane_f32(acc, a, b, 1);
+	#else
+		return vmls_lane_f32(acc, a, b, 1);
 	#endif
 }

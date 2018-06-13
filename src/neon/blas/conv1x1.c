@@ -36,56 +36,28 @@ void nnp_conv1x1_only_4x4__neon(
 		float32x4_t voutput3 = vld1q_f32(output3);
 
 		const float32x4_t vinput0 = vld1q_f32(input0); input0 += 4;
-		#if defined(__aarch64__)
-			voutput0 = vfmaq_lane_f32(voutput0, vinput0, vget_low_f32(vkernel0x), 0);
-			voutput1 = vfmaq_lane_f32(voutput1, vinput0, vget_low_f32(vkernel1x), 0);
-			voutput2 = vfmaq_lane_f32(voutput2, vinput0, vget_low_f32(vkernel2x), 0);
-			voutput3 = vfmaq_lane_f32(voutput3, vinput0, vget_low_f32(vkernel3x), 0);
-		#else
-			voutput0 = vmlaq_lane_f32(voutput0, vinput0, vget_low_f32(vkernel0x), 0);
-			voutput1 = vmlaq_lane_f32(voutput1, vinput0, vget_low_f32(vkernel1x), 0);
-			voutput2 = vmlaq_lane_f32(voutput2, vinput0, vget_low_f32(vkernel2x), 0);
-			voutput3 = vmlaq_lane_f32(voutput3, vinput0, vget_low_f32(vkernel3x), 0);
-		#endif
+		voutput0 = vmuladdq_lane0_f32(voutput0, vinput0, vget_low_f32(vkernel0x));
+		voutput1 = vmuladdq_lane0_f32(voutput1, vinput0, vget_low_f32(vkernel1x));
+		voutput2 = vmuladdq_lane0_f32(voutput2, vinput0, vget_low_f32(vkernel2x));
+		voutput3 = vmuladdq_lane0_f32(voutput3, vinput0, vget_low_f32(vkernel3x));
 
 		const float32x4_t vinput1 = vld1q_f32(input1); input1 += 4;
-		#if defined(__aarch64__)
-			voutput0 = vfmaq_lane_f32(voutput0, vinput1, vget_low_f32(vkernel0x), 1);
-			voutput1 = vfmaq_lane_f32(voutput1, vinput1, vget_low_f32(vkernel1x), 1);
-			voutput2 = vfmaq_lane_f32(voutput2, vinput1, vget_low_f32(vkernel2x), 1);
-			voutput3 = vfmaq_lane_f32(voutput3, vinput1, vget_low_f32(vkernel3x), 1);
-		#else
-			voutput0 = vmlaq_lane_f32(voutput0, vinput1, vget_low_f32(vkernel0x), 1);
-			voutput1 = vmlaq_lane_f32(voutput1, vinput1, vget_low_f32(vkernel1x), 1);
-			voutput2 = vmlaq_lane_f32(voutput2, vinput1, vget_low_f32(vkernel2x), 1);
-			voutput3 = vmlaq_lane_f32(voutput3, vinput1, vget_low_f32(vkernel3x), 1);
-		#endif
+		voutput0 = vmuladdq_lane1_f32(voutput0, vinput1, vget_low_f32(vkernel0x));
+		voutput1 = vmuladdq_lane1_f32(voutput1, vinput1, vget_low_f32(vkernel1x));
+		voutput2 = vmuladdq_lane1_f32(voutput2, vinput1, vget_low_f32(vkernel2x));
+		voutput3 = vmuladdq_lane1_f32(voutput3, vinput1, vget_low_f32(vkernel3x));
 
 		const float32x4_t vinput2 = vld1q_f32(input2); input2 += 4;
-		#if defined(__aarch64__)
-			voutput0 = vfmaq_lane_f32(voutput0, vinput2, vget_high_f32(vkernel0x), 0);
-			voutput1 = vfmaq_lane_f32(voutput1, vinput2, vget_high_f32(vkernel1x), 0);
-			voutput2 = vfmaq_lane_f32(voutput2, vinput2, vget_high_f32(vkernel2x), 0);
-			voutput3 = vfmaq_lane_f32(voutput3, vinput2, vget_high_f32(vkernel3x), 0);
-		#else
-			voutput0 = vmlaq_lane_f32(voutput0, vinput2, vget_high_f32(vkernel0x), 0);
-			voutput1 = vmlaq_lane_f32(voutput1, vinput2, vget_high_f32(vkernel1x), 0);
-			voutput2 = vmlaq_lane_f32(voutput2, vinput2, vget_high_f32(vkernel2x), 0);
-			voutput3 = vmlaq_lane_f32(voutput3, vinput2, vget_high_f32(vkernel3x), 0);
-		#endif
+		voutput0 = vmuladdq_lane0_f32(voutput0, vinput2, vget_high_f32(vkernel0x));
+		voutput1 = vmuladdq_lane0_f32(voutput1, vinput2, vget_high_f32(vkernel1x));
+		voutput2 = vmuladdq_lane0_f32(voutput2, vinput2, vget_high_f32(vkernel2x));
+		voutput3 = vmuladdq_lane0_f32(voutput3, vinput2, vget_high_f32(vkernel3x));
 
 		const float32x4_t vinput3 = vld1q_f32(input3); input3 += 4;
-		#if defined(__aarch64__)
-			voutput0 = vfmaq_lane_f32(voutput0, vinput3, vget_high_f32(vkernel0x), 1);
-			voutput1 = vfmaq_lane_f32(voutput1, vinput3, vget_high_f32(vkernel1x), 1);
-			voutput2 = vfmaq_lane_f32(voutput2, vinput3, vget_high_f32(vkernel2x), 1);
-			voutput3 = vfmaq_lane_f32(voutput3, vinput3, vget_high_f32(vkernel3x), 1);
-		#else
-			voutput0 = vmlaq_lane_f32(voutput0, vinput3, vget_high_f32(vkernel0x), 1);
-			voutput1 = vmlaq_lane_f32(voutput1, vinput3, vget_high_f32(vkernel1x), 1);
-			voutput2 = vmlaq_lane_f32(voutput2, vinput3, vget_high_f32(vkernel2x), 1);
-			voutput3 = vmlaq_lane_f32(voutput3, vinput3, vget_high_f32(vkernel3x), 1);
-		#endif
+		voutput0 = vmuladdq_lane1_f32(voutput0, vinput3, vget_high_f32(vkernel0x));
+		voutput1 = vmuladdq_lane1_f32(voutput1, vinput3, vget_high_f32(vkernel1x));
+		voutput2 = vmuladdq_lane1_f32(voutput2, vinput3, vget_high_f32(vkernel2x));
+		voutput3 = vmuladdq_lane1_f32(voutput3, vinput3, vget_high_f32(vkernel3x));
 
 		vst1q_f32(output0, voutput0); output0 += 4;
 		vst1q_f32(output1, voutput1); output1 += 4;
@@ -101,56 +73,28 @@ void nnp_conv1x1_only_4x4__neon(
 		float32x2_t voutput3 = vld1_f32(output3);
 
 		const float32x2_t vinput0 = vld1_f32(input0); input0 += 2;
-		#if defined(__aarch64__)
-			voutput0 = vfma_lane_f32(voutput0, vinput0, vget_low_f32(vkernel0x), 0);
-			voutput1 = vfma_lane_f32(voutput1, vinput0, vget_low_f32(vkernel1x), 0);
-			voutput2 = vfma_lane_f32(voutput2, vinput0, vget_low_f32(vkernel2x), 0);
-			voutput3 = vfma_lane_f32(voutput3, vinput0, vget_low_f32(vkernel3x), 0);
-		#else
-			voutput0 = vmla_lane_f32(voutput0, vinput0, vget_low_f32(vkernel0x), 0);
-			voutput1 = vmla_lane_f32(voutput1, vinput0, vget_low_f32(vkernel1x), 0);
-			voutput2 = vmla_lane_f32(voutput2, vinput0, vget_low_f32(vkernel2x), 0);
-			voutput3 = vmla_lane_f32(voutput3, vinput0, vget_low_f32(vkernel3x), 0);
-		#endif
+		voutput0 = vmuladd_lane0_f32(voutput0, vinput0, vget_low_f32(vkernel0x));
+		voutput1 = vmuladd_lane0_f32(voutput1, vinput0, vget_low_f32(vkernel1x));
+		voutput2 = vmuladd_lane0_f32(voutput2, vinput0, vget_low_f32(vkernel2x));
+		voutput3 = vmuladd_lane0_f32(voutput3, vinput0, vget_low_f32(vkernel3x));
 
 		const float32x2_t vinput1 = vld1_f32(input1); input1 += 2;
-		#if defined(__aarch64__)
-			voutput0 = vfma_lane_f32(voutput0, vinput1, vget_low_f32(vkernel0x), 1);
-			voutput1 = vfma_lane_f32(voutput1, vinput1, vget_low_f32(vkernel1x), 1);
-			voutput2 = vfma_lane_f32(voutput2, vinput1, vget_low_f32(vkernel2x), 1);
-			voutput3 = vfma_lane_f32(voutput3, vinput1, vget_low_f32(vkernel3x), 1);
-		#else
-			voutput0 = vmla_lane_f32(voutput0, vinput1, vget_low_f32(vkernel0x), 1);
-			voutput1 = vmla_lane_f32(voutput1, vinput1, vget_low_f32(vkernel1x), 1);
-			voutput2 = vmla_lane_f32(voutput2, vinput1, vget_low_f32(vkernel2x), 1);
-			voutput3 = vmla_lane_f32(voutput3, vinput1, vget_low_f32(vkernel3x), 1);
-		#endif
+		voutput0 = vmuladd_lane1_f32(voutput0, vinput1, vget_low_f32(vkernel0x));
+		voutput1 = vmuladd_lane1_f32(voutput1, vinput1, vget_low_f32(vkernel1x));
+		voutput2 = vmuladd_lane1_f32(voutput2, vinput1, vget_low_f32(vkernel2x));
+		voutput3 = vmuladd_lane1_f32(voutput3, vinput1, vget_low_f32(vkernel3x));
 
 		const float32x2_t vinput2 = vld1_f32(input2); input2 += 2;
-		#if defined(__aarch64__)
-			voutput0 = vfma_lane_f32(voutput0, vinput2, vget_high_f32(vkernel0x), 0);
-			voutput1 = vfma_lane_f32(voutput1, vinput2, vget_high_f32(vkernel1x), 0);
-			voutput2 = vfma_lane_f32(voutput2, vinput2, vget_high_f32(vkernel2x), 0);
-			voutput3 = vfma_lane_f32(voutput3, vinput2, vget_high_f32(vkernel3x), 0);
-		#else
-			voutput0 = vmla_lane_f32(voutput0, vinput2, vget_high_f32(vkernel0x), 0);
-			voutput1 = vmla_lane_f32(voutput1, vinput2, vget_high_f32(vkernel1x), 0);
-			voutput2 = vmla_lane_f32(voutput2, vinput2, vget_high_f32(vkernel2x), 0);
-			voutput3 = vmla_lane_f32(voutput3, vinput2, vget_high_f32(vkernel3x), 0);
-		#endif
+		voutput0 = vmuladd_lane0_f32(voutput0, vinput2, vget_high_f32(vkernel0x));
+		voutput1 = vmuladd_lane0_f32(voutput1, vinput2, vget_high_f32(vkernel1x));
+		voutput2 = vmuladd_lane0_f32(voutput2, vinput2, vget_high_f32(vkernel2x));
+		voutput3 = vmuladd_lane0_f32(voutput3, vinput2, vget_high_f32(vkernel3x));
 
 		const float32x2_t vinput3 = vld1_f32(input3); input3 += 2;
-		#if defined(__aarch64__)
-			voutput0 = vfma_lane_f32(voutput0, vinput3, vget_high_f32(vkernel0x), 1);
-			voutput1 = vfma_lane_f32(voutput1, vinput3, vget_high_f32(vkernel1x), 1);
-			voutput2 = vfma_lane_f32(voutput2, vinput3, vget_high_f32(vkernel2x), 1);
-			voutput3 = vfma_lane_f32(voutput3, vinput3, vget_high_f32(vkernel3x), 1);
-		#else
-			voutput0 = vmla_lane_f32(voutput0, vinput3, vget_high_f32(vkernel0x), 1);
-			voutput1 = vmla_lane_f32(voutput1, vinput3, vget_high_f32(vkernel1x), 1);
-			voutput2 = vmla_lane_f32(voutput2, vinput3, vget_high_f32(vkernel2x), 1);
-			voutput3 = vmla_lane_f32(voutput3, vinput3, vget_high_f32(vkernel3x), 1);
-		#endif
+		voutput0 = vmuladd_lane1_f32(voutput0, vinput3, vget_high_f32(vkernel0x));
+		voutput1 = vmuladd_lane1_f32(voutput1, vinput3, vget_high_f32(vkernel1x));
+		voutput2 = vmuladd_lane1_f32(voutput2, vinput3, vget_high_f32(vkernel2x));
+		voutput3 = vmuladd_lane1_f32(voutput3, vinput3, vget_high_f32(vkernel3x));
 
 		vst1_f32(output0, voutput0); output0 += 2;
 		vst1_f32(output1, voutput1); output1 += 2;
@@ -166,56 +110,28 @@ void nnp_conv1x1_only_4x4__neon(
 		float32x2_t voutput3 = vld1_dup_f32(output3);
 
 		const float32x2_t vinput0 = vld1_dup_f32(input0);
-		#if defined(__aarch64__)
-			voutput0 = vfma_lane_f32(voutput0, vinput0, vget_low_f32(vkernel0x), 0);
-			voutput1 = vfma_lane_f32(voutput1, vinput0, vget_low_f32(vkernel1x), 0);
-			voutput2 = vfma_lane_f32(voutput2, vinput0, vget_low_f32(vkernel2x), 0);
-			voutput3 = vfma_lane_f32(voutput3, vinput0, vget_low_f32(vkernel3x), 0);
-		#else
-			voutput0 = vmla_lane_f32(voutput0, vinput0, vget_low_f32(vkernel0x), 0);
-			voutput1 = vmla_lane_f32(voutput1, vinput0, vget_low_f32(vkernel1x), 0);
-			voutput2 = vmla_lane_f32(voutput2, vinput0, vget_low_f32(vkernel2x), 0);
-			voutput3 = vmla_lane_f32(voutput3, vinput0, vget_low_f32(vkernel3x), 0);
-		#endif
+		voutput0 = vmuladd_lane0_f32(voutput0, vinput0, vget_low_f32(vkernel0x));
+		voutput1 = vmuladd_lane0_f32(voutput1, vinput0, vget_low_f32(vkernel1x));
+		voutput2 = vmuladd_lane0_f32(voutput2, vinput0, vget_low_f32(vkernel2x));
+		voutput3 = vmuladd_lane0_f32(voutput3, vinput0, vget_low_f32(vkernel3x));
 
 		const float32x2_t vinput1 = vld1_dup_f32(input1);
-		#if defined(__aarch64__)
-			voutput0 = vfma_lane_f32(voutput0, vinput1, vget_low_f32(vkernel0x), 1);
-			voutput1 = vfma_lane_f32(voutput1, vinput1, vget_low_f32(vkernel1x), 1);
-			voutput2 = vfma_lane_f32(voutput2, vinput1, vget_low_f32(vkernel2x), 1);
-			voutput3 = vfma_lane_f32(voutput3, vinput1, vget_low_f32(vkernel3x), 1);
-		#else
-			voutput0 = vmla_lane_f32(voutput0, vinput1, vget_low_f32(vkernel0x), 1);
-			voutput1 = vmla_lane_f32(voutput1, vinput1, vget_low_f32(vkernel1x), 1);
-			voutput2 = vmla_lane_f32(voutput2, vinput1, vget_low_f32(vkernel2x), 1);
-			voutput3 = vmla_lane_f32(voutput3, vinput1, vget_low_f32(vkernel3x), 1);
-		#endif
+		voutput0 = vmuladd_lane1_f32(voutput0, vinput1, vget_low_f32(vkernel0x));
+		voutput1 = vmuladd_lane1_f32(voutput1, vinput1, vget_low_f32(vkernel1x));
+		voutput2 = vmuladd_lane1_f32(voutput2, vinput1, vget_low_f32(vkernel2x));
+		voutput3 = vmuladd_lane1_f32(voutput3, vinput1, vget_low_f32(vkernel3x));
 
 		const float32x2_t vinput2 = vld1_dup_f32(input2);
-		#if defined(__aarch64__)
-			voutput0 = vfma_lane_f32(voutput0, vinput2, vget_high_f32(vkernel0x), 0);
-			voutput1 = vfma_lane_f32(voutput1, vinput2, vget_high_f32(vkernel1x), 0);
-			voutput2 = vfma_lane_f32(voutput2, vinput2, vget_high_f32(vkernel2x), 0);
-			voutput3 = vfma_lane_f32(voutput3, vinput2, vget_high_f32(vkernel3x), 0);
-		#else
-			voutput0 = vmla_lane_f32(voutput0, vinput2, vget_high_f32(vkernel0x), 0);
-			voutput1 = vmla_lane_f32(voutput1, vinput2, vget_high_f32(vkernel1x), 0);
-			voutput2 = vmla_lane_f32(voutput2, vinput2, vget_high_f32(vkernel2x), 0);
-			voutput3 = vmla_lane_f32(voutput3, vinput2, vget_high_f32(vkernel3x), 0);
-		#endif
+		voutput0 = vmuladd_lane0_f32(voutput0, vinput2, vget_high_f32(vkernel0x));
+		voutput1 = vmuladd_lane0_f32(voutput1, vinput2, vget_high_f32(vkernel1x));
+		voutput2 = vmuladd_lane0_f32(voutput2, vinput2, vget_high_f32(vkernel2x));
+		voutput3 = vmuladd_lane0_f32(voutput3, vinput2, vget_high_f32(vkernel3x));
 
 		const float32x2_t vinput3 = vld1_dup_f32(input3);
-		#if defined(__aarch64__)
-			voutput0 = vfma_lane_f32(voutput0, vinput3, vget_high_f32(vkernel0x), 1);
-			voutput1 = vfma_lane_f32(voutput1, vinput3, vget_high_f32(vkernel1x), 1);
-			voutput2 = vfma_lane_f32(voutput2, vinput3, vget_high_f32(vkernel2x), 1);
-			voutput3 = vfma_lane_f32(voutput3, vinput3, vget_high_f32(vkernel3x), 1);
-		#else
-			voutput0 = vmla_lane_f32(voutput0, vinput3, vget_high_f32(vkernel0x), 1);
-			voutput1 = vmla_lane_f32(voutput1, vinput3, vget_high_f32(vkernel1x), 1);
-			voutput2 = vmla_lane_f32(voutput2, vinput3, vget_high_f32(vkernel2x), 1);
-			voutput3 = vmla_lane_f32(voutput3, vinput3, vget_high_f32(vkernel3x), 1);
-		#endif
+		voutput0 = vmuladd_lane1_f32(voutput0, vinput3, vget_high_f32(vkernel0x));
+		voutput1 = vmuladd_lane1_f32(voutput1, vinput3, vget_high_f32(vkernel1x));
+		voutput2 = vmuladd_lane1_f32(voutput2, vinput3, vget_high_f32(vkernel2x));
+		voutput3 = vmuladd_lane1_f32(voutput3, vinput3, vget_high_f32(vkernel3x));
 
 		vst1_lane_f32(output0, voutput0, 0);
 		vst1_lane_f32(output1, voutput1, 0);
@@ -277,59 +193,31 @@ void nnp_conv1x1_upto_4x4__neon(
 		float32x4_t voutput3 = vld1q_f32(output3);
 
 		const float32x4_t vinput0 = vld1q_f32(input0); input0 += 4;
-		#if defined(__aarch64__)
-			voutput0 = vfmaq_lane_f32(voutput0, vinput0, vget_low_f32(vkernel0x), 0);
-			voutput1 = vfmaq_lane_f32(voutput1, vinput0, vget_low_f32(vkernel1x), 0);
-			voutput2 = vfmaq_lane_f32(voutput2, vinput0, vget_low_f32(vkernel2x), 0);
-			voutput3 = vfmaq_lane_f32(voutput3, vinput0, vget_low_f32(vkernel3x), 0);
-		#else
-			voutput0 = vmlaq_lane_f32(voutput0, vinput0, vget_low_f32(vkernel0x), 0);
-			voutput1 = vmlaq_lane_f32(voutput1, vinput0, vget_low_f32(vkernel1x), 0);
-			voutput2 = vmlaq_lane_f32(voutput2, vinput0, vget_low_f32(vkernel2x), 0);
-			voutput3 = vmlaq_lane_f32(voutput3, vinput0, vget_low_f32(vkernel3x), 0);
-		#endif
+		voutput0 = vmuladdq_lane0_f32(voutput0, vinput0, vget_low_f32(vkernel0x));
+		voutput1 = vmuladdq_lane0_f32(voutput1, vinput0, vget_low_f32(vkernel1x));
+		voutput2 = vmuladdq_lane0_f32(voutput2, vinput0, vget_low_f32(vkernel2x));
+		voutput3 = vmuladdq_lane0_f32(voutput3, vinput0, vget_low_f32(vkernel3x));
 
 		if (input_channels_subblock_size > 1) {
 			const float32x4_t vinput1 = vld1q_f32(input1); input1 += 4;
-			#if defined(__aarch64__)
-				voutput0 = vfmaq_lane_f32(voutput0, vinput1, vget_low_f32(vkernel0x), 1);
-				voutput1 = vfmaq_lane_f32(voutput1, vinput1, vget_low_f32(vkernel1x), 1);
-				voutput2 = vfmaq_lane_f32(voutput2, vinput1, vget_low_f32(vkernel2x), 1);
-				voutput3 = vfmaq_lane_f32(voutput3, vinput1, vget_low_f32(vkernel3x), 1);
-			#else
-				voutput0 = vmlaq_lane_f32(voutput0, vinput1, vget_low_f32(vkernel0x), 1);
-				voutput1 = vmlaq_lane_f32(voutput1, vinput1, vget_low_f32(vkernel1x), 1);
-				voutput2 = vmlaq_lane_f32(voutput2, vinput1, vget_low_f32(vkernel2x), 1);
-				voutput3 = vmlaq_lane_f32(voutput3, vinput1, vget_low_f32(vkernel3x), 1);
-			#endif
+			voutput0 = vmuladdq_lane1_f32(voutput0, vinput1, vget_low_f32(vkernel0x));
+			voutput1 = vmuladdq_lane1_f32(voutput1, vinput1, vget_low_f32(vkernel1x));
+			voutput2 = vmuladdq_lane1_f32(voutput2, vinput1, vget_low_f32(vkernel2x));
+			voutput3 = vmuladdq_lane1_f32(voutput3, vinput1, vget_low_f32(vkernel3x));
 
 			if (input_channels_subblock_size > 2) {
 				const float32x4_t vinput2 = vld1q_f32(input2); input2 += 4;
-				#if defined(__aarch64__)
-					voutput0 = vfmaq_lane_f32(voutput0, vinput2, vget_high_f32(vkernel0x), 0);
-					voutput1 = vfmaq_lane_f32(voutput1, vinput2, vget_high_f32(vkernel1x), 0);
-					voutput2 = vfmaq_lane_f32(voutput2, vinput2, vget_high_f32(vkernel2x), 0);
-					voutput3 = vfmaq_lane_f32(voutput3, vinput2, vget_high_f32(vkernel3x), 0);
-				#else
-					voutput0 = vmlaq_lane_f32(voutput0, vinput2, vget_high_f32(vkernel0x), 0);
-					voutput1 = vmlaq_lane_f32(voutput1, vinput2, vget_high_f32(vkernel1x), 0);
-					voutput2 = vmlaq_lane_f32(voutput2, vinput2, vget_high_f32(vkernel2x), 0);
-					voutput3 = vmlaq_lane_f32(voutput3, vinput2, vget_high_f32(vkernel3x), 0);
-				#endif
+				voutput0 = vmuladdq_lane0_f32(voutput0, vinput2, vget_high_f32(vkernel0x));
+				voutput1 = vmuladdq_lane0_f32(voutput1, vinput2, vget_high_f32(vkernel1x));
+				voutput2 = vmuladdq_lane0_f32(voutput2, vinput2, vget_high_f32(vkernel2x));
+				voutput3 = vmuladdq_lane0_f32(voutput3, vinput2, vget_high_f32(vkernel3x));
 
 				if (input_channels_subblock_size > 3) {
 					const float32x4_t vinput3 = vld1q_f32(input3); input3 += 4;
-					#if defined(__aarch64__)
-						voutput0 = vfmaq_lane_f32(voutput0, vinput3, vget_high_f32(vkernel0x), 1);
-						voutput1 = vfmaq_lane_f32(voutput1, vinput3, vget_high_f32(vkernel1x), 1);
-						voutput2 = vfmaq_lane_f32(voutput2, vinput3, vget_high_f32(vkernel2x), 1);
-						voutput3 = vfmaq_lane_f32(voutput3, vinput3, vget_high_f32(vkernel3x), 1);
-					#else
-						voutput0 = vmlaq_lane_f32(voutput0, vinput3, vget_high_f32(vkernel0x), 1);
-						voutput1 = vmlaq_lane_f32(voutput1, vinput3, vget_high_f32(vkernel1x), 1);
-						voutput2 = vmlaq_lane_f32(voutput2, vinput3, vget_high_f32(vkernel2x), 1);
-						voutput3 = vmlaq_lane_f32(voutput3, vinput3, vget_high_f32(vkernel3x), 1);
-					#endif
+					voutput0 = vmuladdq_lane1_f32(voutput0, vinput3, vget_high_f32(vkernel0x));
+					voutput1 = vmuladdq_lane1_f32(voutput1, vinput3, vget_high_f32(vkernel1x));
+					voutput2 = vmuladdq_lane1_f32(voutput2, vinput3, vget_high_f32(vkernel2x));
+					voutput3 = vmuladdq_lane1_f32(voutput3, vinput3, vget_high_f32(vkernel3x));
 				}
 			}
 		}
@@ -354,59 +242,31 @@ void nnp_conv1x1_upto_4x4__neon(
 		float32x2_t voutput3 = vld1_f32(output3);
 
 		const float32x2_t vinput0 = vld1_f32(input0); input0 += 2;
-		#if defined(__aarch64__)
-			voutput0 = vfma_lane_f32(voutput0, vinput0, vget_low_f32(vkernel0x), 0);
-			voutput1 = vfma_lane_f32(voutput1, vinput0, vget_low_f32(vkernel1x), 0);
-			voutput2 = vfma_lane_f32(voutput2, vinput0, vget_low_f32(vkernel2x), 0);
-			voutput3 = vfma_lane_f32(voutput3, vinput0, vget_low_f32(vkernel3x), 0);
-		#else
-			voutput0 = vmla_lane_f32(voutput0, vinput0, vget_low_f32(vkernel0x), 0);
-			voutput1 = vmla_lane_f32(voutput1, vinput0, vget_low_f32(vkernel1x), 0);
-			voutput2 = vmla_lane_f32(voutput2, vinput0, vget_low_f32(vkernel2x), 0);
-			voutput3 = vmla_lane_f32(voutput3, vinput0, vget_low_f32(vkernel3x), 0);
-		#endif
+		voutput0 = vmuladd_lane0_f32(voutput0, vinput0, vget_low_f32(vkernel0x));
+		voutput1 = vmuladd_lane0_f32(voutput1, vinput0, vget_low_f32(vkernel1x));
+		voutput2 = vmuladd_lane0_f32(voutput2, vinput0, vget_low_f32(vkernel2x));
+		voutput3 = vmuladd_lane0_f32(voutput3, vinput0, vget_low_f32(vkernel3x));
 
 		if (input_channels_subblock_size > 1) {
 			const float32x2_t vinput1 = vld1_f32(input1); input1 += 2;
-			#if defined(__aarch64__)
-				voutput0 = vfma_lane_f32(voutput0, vinput1, vget_low_f32(vkernel0x), 1);
-				voutput1 = vfma_lane_f32(voutput1, vinput1, vget_low_f32(vkernel1x), 1);
-				voutput2 = vfma_lane_f32(voutput2, vinput1, vget_low_f32(vkernel2x), 1);
-				voutput3 = vfma_lane_f32(voutput3, vinput1, vget_low_f32(vkernel3x), 1);
-			#else
-				voutput0 = vmla_lane_f32(voutput0, vinput1, vget_low_f32(vkernel0x), 1);
-				voutput1 = vmla_lane_f32(voutput1, vinput1, vget_low_f32(vkernel1x), 1);
-				voutput2 = vmla_lane_f32(voutput2, vinput1, vget_low_f32(vkernel2x), 1);
-				voutput3 = vmla_lane_f32(voutput3, vinput1, vget_low_f32(vkernel3x), 1);
-			#endif
+			voutput0 = vmuladd_lane1_f32(voutput0, vinput1, vget_low_f32(vkernel0x));
+			voutput1 = vmuladd_lane1_f32(voutput1, vinput1, vget_low_f32(vkernel1x));
+			voutput2 = vmuladd_lane1_f32(voutput2, vinput1, vget_low_f32(vkernel2x));
+			voutput3 = vmuladd_lane1_f32(voutput3, vinput1, vget_low_f32(vkernel3x));
 
 			if (input_channels_subblock_size > 2) {
 				const float32x2_t vinput2 = vld1_f32(input2); input2 += 2;
-				#if defined(__aarch64__)
-					voutput0 = vfma_lane_f32(voutput0, vinput2, vget_high_f32(vkernel0x), 0);
-					voutput1 = vfma_lane_f32(voutput1, vinput2, vget_high_f32(vkernel1x), 0);
-					voutput2 = vfma_lane_f32(voutput2, vinput2, vget_high_f32(vkernel2x), 0);
-					voutput3 = vfma_lane_f32(voutput3, vinput2, vget_high_f32(vkernel3x), 0);
-				#else
-					voutput0 = vmla_lane_f32(voutput0, vinput2, vget_high_f32(vkernel0x), 0);
-					voutput1 = vmla_lane_f32(voutput1, vinput2, vget_high_f32(vkernel1x), 0);
-					voutput2 = vmla_lane_f32(voutput2, vinput2, vget_high_f32(vkernel2x), 0);
-					voutput3 = vmla_lane_f32(voutput3, vinput2, vget_high_f32(vkernel3x), 0);
-				#endif
+				voutput0 = vmuladd_lane0_f32(voutput0, vinput2, vget_high_f32(vkernel0x));
+				voutput1 = vmuladd_lane0_f32(voutput1, vinput2, vget_high_f32(vkernel1x));
+				voutput2 = vmuladd_lane0_f32(voutput2, vinput2, vget_high_f32(vkernel2x));
+				voutput3 = vmuladd_lane0_f32(voutput3, vinput2, vget_high_f32(vkernel3x));
 
 				if (input_channels_subblock_size > 3) {
 					const float32x2_t vinput3 = vld1_f32(input3); input3 += 2;
-					#if defined(__aarch64__)
-						voutput0 = vfma_lane_f32(voutput0, vinput3, vget_high_f32(vkernel0x), 1);
-						voutput1 = vfma_lane_f32(voutput1, vinput3, vget_high_f32(vkernel1x), 1);
-						voutput2 = vfma_lane_f32(voutput2, vinput3, vget_high_f32(vkernel2x), 1);
-						voutput3 = vfma_lane_f32(voutput3, vinput3, vget_high_f32(vkernel3x), 1);
-					#else
-						voutput0 = vmla_lane_f32(voutput0, vinput3, vget_high_f32(vkernel0x), 1);
-						voutput1 = vmla_lane_f32(voutput1, vinput3, vget_high_f32(vkernel1x), 1);
-						voutput2 = vmla_lane_f32(voutput2, vinput3, vget_high_f32(vkernel2x), 1);
-						voutput3 = vmla_lane_f32(voutput3, vinput3, vget_high_f32(vkernel3x), 1);
-					#endif
+					voutput0 = vmuladd_lane1_f32(voutput0, vinput3, vget_high_f32(vkernel0x));
+					voutput1 = vmuladd_lane1_f32(voutput1, vinput3, vget_high_f32(vkernel1x));
+					voutput2 = vmuladd_lane1_f32(voutput2, vinput3, vget_high_f32(vkernel2x));
+					voutput3 = vmuladd_lane1_f32(voutput3, vinput3, vget_high_f32(vkernel3x));
 				}
 			}
 		}
@@ -431,59 +291,31 @@ void nnp_conv1x1_upto_4x4__neon(
 		float32x2_t voutput3 = vld1_dup_f32(output3);
 
 		const float32x2_t vinput0 = vld1_dup_f32(input0);
-		#if defined(__aarch64__)
-			voutput0 = vfma_lane_f32(voutput0, vinput0, vget_low_f32(vkernel0x), 0);
-			voutput1 = vfma_lane_f32(voutput1, vinput0, vget_low_f32(vkernel1x), 0);
-			voutput2 = vfma_lane_f32(voutput2, vinput0, vget_low_f32(vkernel2x), 0);
-			voutput3 = vfma_lane_f32(voutput3, vinput0, vget_low_f32(vkernel3x), 0);
-		#else
-			voutput0 = vmla_lane_f32(voutput0, vinput0, vget_low_f32(vkernel0x), 0);
-			voutput1 = vmla_lane_f32(voutput1, vinput0, vget_low_f32(vkernel1x), 0);
-			voutput2 = vmla_lane_f32(voutput2, vinput0, vget_low_f32(vkernel2x), 0);
-			voutput3 = vmla_lane_f32(voutput3, vinput0, vget_low_f32(vkernel3x), 0);
-		#endif
+		voutput0 = vmuladd_lane0_f32(voutput0, vinput0, vget_low_f32(vkernel0x));
+		voutput1 = vmuladd_lane0_f32(voutput1, vinput0, vget_low_f32(vkernel1x));
+		voutput2 = vmuladd_lane0_f32(voutput2, vinput0, vget_low_f32(vkernel2x));
+		voutput3 = vmuladd_lane0_f32(voutput3, vinput0, vget_low_f32(vkernel3x));
 
 		if (input_channels_subblock_size > 1) {
 			const float32x2_t vinput1 = vld1_dup_f32(input1);
-			#if defined(__aarch64__)
-				voutput0 = vfma_lane_f32(voutput0, vinput1, vget_low_f32(vkernel0x), 1);
-				voutput1 = vfma_lane_f32(voutput1, vinput1, vget_low_f32(vkernel1x), 1);
-				voutput2 = vfma_lane_f32(voutput2, vinput1, vget_low_f32(vkernel2x), 1);
-				voutput3 = vfma_lane_f32(voutput3, vinput1, vget_low_f32(vkernel3x), 1);
-			#else
-				voutput0 = vmla_lane_f32(voutput0, vinput1, vget_low_f32(vkernel0x), 1);
-				voutput1 = vmla_lane_f32(voutput1, vinput1, vget_low_f32(vkernel1x), 1);
-				voutput2 = vmla_lane_f32(voutput2, vinput1, vget_low_f32(vkernel2x), 1);
-				voutput3 = vmla_lane_f32(voutput3, vinput1, vget_low_f32(vkernel3x), 1);
-			#endif
+			voutput0 = vmuladd_lane1_f32(voutput0, vinput1, vget_low_f32(vkernel0x));
+			voutput1 = vmuladd_lane1_f32(voutput1, vinput1, vget_low_f32(vkernel1x));
+			voutput2 = vmuladd_lane1_f32(voutput2, vinput1, vget_low_f32(vkernel2x));
+			voutput3 = vmuladd_lane1_f32(voutput3, vinput1, vget_low_f32(vkernel3x));
 
 			if (input_channels_subblock_size > 2) {
 				const float32x2_t vinput2 = vld1_dup_f32(input2);
-				#if defined(__aarch64__)
-					voutput0 = vfma_lane_f32(voutput0, vinput2, vget_high_f32(vkernel0x), 0);
-					voutput1 = vfma_lane_f32(voutput1, vinput2, vget_high_f32(vkernel1x), 0);
-					voutput2 = vfma_lane_f32(voutput2, vinput2, vget_high_f32(vkernel2x), 0);
-					voutput3 = vfma_lane_f32(voutput3, vinput2, vget_high_f32(vkernel3x), 0);
-				#else
-					voutput0 = vmla_lane_f32(voutput0, vinput2, vget_high_f32(vkernel0x), 0);
-					voutput1 = vmla_lane_f32(voutput1, vinput2, vget_high_f32(vkernel1x), 0);
-					voutput2 = vmla_lane_f32(voutput2, vinput2, vget_high_f32(vkernel2x), 0);
-					voutput3 = vmla_lane_f32(voutput3, vinput2, vget_high_f32(vkernel3x), 0);
-				#endif
+				voutput0 = vmuladd_lane0_f32(voutput0, vinput2, vget_high_f32(vkernel0x));
+				voutput1 = vmuladd_lane0_f32(voutput1, vinput2, vget_high_f32(vkernel1x));
+				voutput2 = vmuladd_lane0_f32(voutput2, vinput2, vget_high_f32(vkernel2x));
+				voutput3 = vmuladd_lane0_f32(voutput3, vinput2, vget_high_f32(vkernel3x));
 
 				if (input_channels_subblock_size > 3) {
 					const float32x2_t vinput3 = vld1_dup_f32(input3);
-					#if defined(__aarch64__)
-						voutput0 = vfma_lane_f32(voutput0, vinput3, vget_high_f32(vkernel0x), 1);
-						voutput1 = vfma_lane_f32(voutput1, vinput3, vget_high_f32(vkernel1x), 1);
-						voutput2 = vfma_lane_f32(voutput2, vinput3, vget_high_f32(vkernel2x), 1);
-						voutput3 = vfma_lane_f32(voutput3, vinput3, vget_high_f32(vkernel3x), 1);
-					#else
-						voutput0 = vmla_lane_f32(voutput0, vinput3, vget_high_f32(vkernel0x), 1);
-						voutput1 = vmla_lane_f32(voutput1, vinput3, vget_high_f32(vkernel1x), 1);
-						voutput2 = vmla_lane_f32(voutput2, vinput3, vget_high_f32(vkernel2x), 1);
-						voutput3 = vmla_lane_f32(voutput3, vinput3, vget_high_f32(vkernel3x), 1);
-					#endif
+					voutput0 = vmuladd_lane1_f32(voutput0, vinput3, vget_high_f32(vkernel0x));
+					voutput1 = vmuladd_lane1_f32(voutput1, vinput3, vget_high_f32(vkernel1x));
+					voutput2 = vmuladd_lane1_f32(voutput2, vinput3, vget_high_f32(vkernel2x));
+					voutput3 = vmuladd_lane1_f32(voutput3, vinput3, vget_high_f32(vkernel3x));
 				}
 			}
 		}
