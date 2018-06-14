@@ -447,7 +447,7 @@ def main(args):
     # Build benchmarking utilities
     if not options.inference_only and not build.target.is_android:
         with build.options(source_dir="bench", extra_include_dirs="bench", macros=macros, deps={
-                (build, build.deps.pthreadpool, build.deps.cpuinfo): all,
+                (build, build.deps.pthreadpool, build.deps.cpuinfo, build.deps.clog): all,
                 "rt": build.target.is_linux,
                 "log": build.target.is_android}):
 
