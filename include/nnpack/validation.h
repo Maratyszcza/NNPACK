@@ -124,7 +124,7 @@ static inline enum nnp_status validate_pooling_arguments(
 		return nnp_status_invalid_pooling_stride;
 	}
 
-	if ((pooling_size.height < pooling_stride.height) || (pooling_size.width < pooling_size.width)) {
+	if ((pooling_size.height < pooling_stride.height) || (pooling_size.width < pooling_stride.width)) {
 		return nnp_status_invalid_pooling_stride;
 	}
 
