@@ -22,7 +22,7 @@ static float sum_exp_minus_c__scalar(size_t n, const float v[restrict static n],
 	return sum;
 }
 
-static void scaled_exp_minus_c__scalar(size_t n, const float x[restrict static n], float y[restrict static n], float scale, float c) {
+static void scaled_exp_minus_c__scalar(size_t n, const float x[static n], float y[static n], float scale, float c) {
 	do {
 		*y++ = scale * expf(*x++ - c);
 	} while (--n);
