@@ -30,7 +30,7 @@ NNPACK is not intended to be directly used by machine learning researchers; inst
 
 ## Features
 
-- Multiple algorithms for convolutiona layers:
+- Multiple algorithms for convolutional layers:
   - Fast convolution based on Fourier transform (for kernels up to 16x16 without stride)
   - Fast convolution based on Winograd transform (for 3x3 kernels without stride)
   - Implicit matrix-matrix multiplication algorithm (no limitations)
