@@ -1,6 +1,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12 FATAL_ERROR)
 
 INCLUDE(GNUInstallDirs)
+INCLUDE(CheckCSourceCompiles)
 
 # ---[ Project and semantic versioning.
 PROJECT(NNPACK C CXX ASM)
@@ -78,6 +79,18 @@ IF(NNPACK_BACKEND STREQUAL "auto")
 ENDIF()
 
 IF(NNPACK_BACKEND STREQUAL "x86-64")
+  # ---[ CMAKE_SYSTEM_PROCESSOR will show x86_64 when we're compiling on 32 bit systems on 64 bit cpus
+  CHECK_C_SOURCE_COMPILES("
+     #if ! (defined(__i386) || defined(_M_IX86))
+       #error AVX only on x86_64
+      #endif
+      int main() {
+        return 0;
+      }" NNPACK_ARCH_IS_X86_32)
+  IF(NNPACK_ARCH_IS_X86_32)
+    MESSAGE(STATUS "compiling for x86_32 on a 64bit machine, use to PSIMD backend")
+    SET(NNPACK_BACKEND "psimd")
+  ENDIF()
   # ---[ We need a Python interpreter to build PeachPy sources for x86-64
   FIND_PACKAGE(PythonInterp)
   IF(NOT PYTHONINTERP_FOUND)
@@ -85,6 +98,8 @@ IF(NNPACK_BACKEND STREQUAL "x86-64")
     SET(NNPACK_BACKEND "psimd")
   ENDIF()
 ENDIF()
+
+MESSAGE(STATUS "NNPACK backend is ${NNPACK_BACKEND}")
 
 # ---[ Download deps
 SET(CONFU_DEPENDENCIES_SOURCE_DIR ${CMAKE_SOURCE_DIR}/deps
