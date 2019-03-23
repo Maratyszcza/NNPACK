@@ -70,7 +70,21 @@ IF(NNPACK_BACKEND STREQUAL "auto")
     MESSAGE(WARNING "CMAKE_SYSTEM_PROCESSOR is not defined, using PSIMD backend")    
     SET(NNPACK_BACKEND "psimd")
   ELSEIF(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT CMAKE_SYSTEM_NAME STREQUAL "Android")
-    SET(NNPACK_BACKEND "x86-64")
+    # ---[ CMAKE_SYSTEM_PROCESSOR will show x86_64 when we're compiling on 32 bit systems on 64 bit cpus
+    CHECK_C_SOURCE_COMPILES("
+      #if ! (defined(__i386) || defined(_M_IX86))
+        #error AVX only on x86_64
+      #endif
+      int main() {
+        return 0;
+      }" NNPACK_ARCH_IS_X86_32)
+    IF(NNPACK_ARCH_IS_X86_32)
+      MESSAGE(STATUS "compiling for x86_32 on a 64bit machine, use to PSIMD backend")
+      SET(NNPACK_BACKEND "psimd")
+    ELSE()
+      # ---[ now we know it is a "real" x86-64 system
+      SET(NNPACK_BACKEND "x86-64")
+    ENDIF()
   ELSEIF(CMAKE_SYSTEM_PROCESSOR MATCHES "^(armv5te|armv7-a|armv7l|aarch64)$")
     SET(NNPACK_BACKEND "neon")
   ELSE()
@@ -79,18 +93,6 @@ IF(NNPACK_BACKEND STREQUAL "auto")
 ENDIF()
 
 IF(NNPACK_BACKEND STREQUAL "x86-64")
-  # ---[ CMAKE_SYSTEM_PROCESSOR will show x86_64 when we're compiling on 32 bit systems on 64 bit cpus
-  CHECK_C_SOURCE_COMPILES("
-     #if ! (defined(__i386) || defined(_M_IX86))
-       #error AVX only on x86_64
-      #endif
-      int main() {
-        return 0;
-      }" NNPACK_ARCH_IS_X86_32)
-  IF(NNPACK_ARCH_IS_X86_32)
-    MESSAGE(STATUS "compiling for x86_32 on a 64bit machine, use to PSIMD backend")
-    SET(NNPACK_BACKEND "psimd")
-  ENDIF()
   # ---[ We need a Python interpreter to build PeachPy sources for x86-64
   FIND_PACKAGE(PythonInterp)
   IF(NOT PYTHONINTERP_FOUND)
