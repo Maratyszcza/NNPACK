@@ -40,7 +40,7 @@ void nnp_iwt8x8_3x3_with_offset__neon(
 		NNP_SIMD_ALIGN float block[8][8];
 		{
 			const float32x4_t vzero = vmovq_n_f32(0.0f);
-			for (float *block_ptr = &block[0][0], *block_end = &block[8][8]; block_ptr != block_end; block_ptr += 4) {
+			for (float *block_ptr = &block[0][0], *block_end = &block[8][0]; block_ptr != block_end; block_ptr += 4) {
 				vst1q_f32(block_ptr, vzero);
 			}
 		}
