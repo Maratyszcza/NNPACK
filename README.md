@@ -72,7 +72,7 @@ Note: if `ninja` is not available on your system, configure without `-G Ninja`, 
 
 ### Cross-compilation for Android
 
-To cross-compile for Android, add extra configuration options for `cmake`: `-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.cmake.toolchain` (where `$ANDROID_NDK` is the path to Android NDK directorory, e.g. `/opt/android-ndk-r15c`) **AND** arguments from the table below
+To cross-compile for Android, add extra configuration options for `cmake`: `-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake` (where `$ANDROID_NDK` is the path to Android NDK directorory, e.g. `/opt/android-ndk-r15c`) **AND** arguments from the table below
 
 | ABI         | Extra cmake args                                    | Restrictions               |
 | ----------- | --------------------------------------------------- | -------------------------- |
