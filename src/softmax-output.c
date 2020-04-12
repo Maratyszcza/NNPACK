@@ -67,10 +67,11 @@ enum nnp_status nnp_softmax_output(
 			.input = input,
 			.output = output,
 		};
-		pthreadpool_compute_1d(threadpool,
+		pthreadpool_parallelize_1d(threadpool,
 			(pthreadpool_function_1d_t) compute_softmax_output,
 			&softmax_context,
-			batch_size);
+			batch_size,
+			PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 	} else {
 		/* In-place softmax */
 		struct inplace_softmax_context inplace_softmax_context = {
@@ -78,10 +79,11 @@ enum nnp_status nnp_softmax_output(
 			.channels = channels,
 			.data = output,
 		};
-		pthreadpool_compute_1d(threadpool,
+		pthreadpool_parallelize_1d(threadpool,
 			(pthreadpool_function_1d_t) compute_inplace_softmax_output,
 			&inplace_softmax_context,
-			batch_size);
+			batch_size,
+			PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 	}
 
 	return nnp_status_success;

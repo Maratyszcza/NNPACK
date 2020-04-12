@@ -87,8 +87,9 @@ void nnp_convolution_output__reference(
 		.output_pointer = output_pointer
 	};
 
-	pthreadpool_compute_2d(threadpool,
-		(pthreadpool_function_2d_t) compute_convolution_output,
+	pthreadpool_parallelize_2d(threadpool,
+		(pthreadpool_task_2d_t) compute_convolution_output,
 		&convolution_output_context,
-		batch_size, output_channels);
+		batch_size, output_channels,
+		PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 }

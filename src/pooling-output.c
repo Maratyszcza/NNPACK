@@ -180,10 +180,11 @@ enum nnp_status nnp_max_pooling_output(
 	}
 	#endif
 
-	pthreadpool_compute_2d(threadpool,
-		(pthreadpool_function_2d_t) compute_pooling_output,
+	pthreadpool_parallelize_2d(threadpool,
+		(pthreadpool_task_2d_t) compute_pooling_output,
 		&pooling_context,
-		batch_size, channels);
+		batch_size, channels,
+		PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 
 	return nnp_status_success;
 }

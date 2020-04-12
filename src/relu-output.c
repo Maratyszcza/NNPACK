@@ -89,10 +89,11 @@ enum nnp_status nnp_relu_output(
 			.output = output,
 			.negative_slope = negative_slope,
 		};
-		pthreadpool_compute_1d_tiled(threadpool,
+		pthreadpool_parallelize_1d_tile_1d(threadpool,
 			(pthreadpool_function_1d_tiled_t) compute_relu_output,
 			&relu_context,
-			elements, round_down(nnp_hwinfo.blocking.l1 / sizeof(float), simd_width));
+			elements, round_down(nnp_hwinfo.blocking.l1 / sizeof(float), simd_width),
+			PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 	} else {
 		/* In-place transformation */
 		struct inplace_relu_context inplace_relu_context = {
@@ -100,10 +101,11 @@ enum nnp_status nnp_relu_output(
 			.data = output,
 			.negative_slope = negative_slope,
 		};
-		pthreadpool_compute_1d_tiled(threadpool,
+		pthreadpool_parallelize_1d_tile_1d(threadpool,
 			(pthreadpool_function_1d_tiled_t) compute_inplace_relu_output,
 			&inplace_relu_context,
-			elements, round_down(nnp_hwinfo.blocking.l1 / sizeof(float), simd_width));
+			elements, round_down(nnp_hwinfo.blocking.l1 / sizeof(float), simd_width),
+			PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 	}
 
 	return nnp_status_success;

@@ -75,8 +75,9 @@ void nnp_max_pooling_output__reference(
 		.output = output
 	};
 
-	pthreadpool_compute_2d(threadpool,
+	pthreadpool_parallelize_2d(threadpool,
 		(pthreadpool_function_2d_t) compute_max_pooling_output,
 		&max_pooling_output_context,
-		batch_size, channels);
+		batch_size, channels,
+		PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 }

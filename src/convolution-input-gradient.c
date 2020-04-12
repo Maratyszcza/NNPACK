@@ -320,11 +320,12 @@ static enum nnp_status compute_fast_convolution_input_gradient(
 		.output_channels_block_max = output_channels_block_max,
 		.kernel_size = kernel_size,
 	};
-	pthreadpool_compute_2d_tiled(threadpool,
-		(pthreadpool_function_2d_tiled_t) compute_kernel_transform,
+	pthreadpool_parallelize_2d_tile_2d(threadpool,
+		(pthreadpool_task_2d_tile_2d_t) compute_kernel_transform,
 		&kernel_transform_context,
 		output_channels, input_channels,
-		1, input_channels_subblock_max);
+		1, input_channels_subblock_max,
+		PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 	NNP_KERNEL_TRANSFORM_END(profile)
 
 	for (size_t y = 0; y < input_size.height; y += grad_input_tile_size.height) {
@@ -349,11 +350,12 @@ static enum nnp_status compute_fast_convolution_input_gradient(
 				.column_count = min(output_size.width - grad_output_x,
 					tile_size.width - grad_output_transform_context.column_offset),
 			};
-			pthreadpool_compute_2d_tiled(threadpool,
-				(pthreadpool_function_2d_tiled_t) compute_grad_output_transform,
+			pthreadpool_parallelize_2d_tile_2d(threadpool,
+				(pthreadpool_task_2d_tile_2d_t) compute_grad_output_transform,
 				&grad_output_transform_context,
 				output_channels, batch_size,
-				1, batch_subblock_max);
+				1, batch_subblock_max,
+				PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 			NNP_OUTPUT_TRANSFORM_END(profile)
 
 			NNP_BLOCK_MULTIPLICATION_START(profile)
@@ -388,11 +390,12 @@ static enum nnp_status compute_fast_convolution_input_gradient(
 							matrix_multiplication_context.fast_gemm = nnp_hwinfo.sxgemm.only_mr_x_nr;
 							matrix_multiplication_context.full_gemm = nnp_hwinfo.sxgemm.upto_mr_x_nr;
 						}
-						pthreadpool_compute_2d_tiled(threadpool,
-							(pthreadpool_function_2d_tiled_t) compute_matrix_multiplication,
+						pthreadpool_parallelize_2d_tile_2d(threadpool,
+							(pthreadpool_task_2d_tile_2d_t) compute_matrix_multiplication,
 							&matrix_multiplication_context,
 							input_channels,           batch_block_size,
-							input_channels_block_max, batch_subblock_max);
+							input_channels_block_max, batch_subblock_max,
+							PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 					}
 				}
 			}
@@ -413,11 +416,12 @@ static enum nnp_status compute_fast_convolution_input_gradient(
 				.column_offset = fourier_transform ? kernel_size.width - 1 : 0,
 				.column_count = min(input_size.width - x, grad_input_tile_size.width),
 			};
-			pthreadpool_compute_2d_tiled(threadpool,
-				(pthreadpool_function_2d_tiled_t) compute_grad_input_transform,
+			pthreadpool_parallelize_2d_tile_2d(threadpool,
+				(pthreadpool_task_2d_tile_2d_t) compute_grad_input_transform,
 				&grad_input_transform_context,
 				batch_size, input_channels,
-				1, input_channels_subblock_max);
+				1, input_channels_subblock_max,
+				PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 			NNP_INPUT_TRANSFORM_END(profile)
 		}
 	}

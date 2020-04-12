@@ -150,7 +150,7 @@ unsigned long long benchmark_batch_transform(
 		.output_elements = output_elements
 	};
 #endif
-	pthreadpool_function_1d_t compute_function = NULL;
+	pthreadpool_task_1d_t compute_function = NULL;
 	void* compute_context = NULL;
 
 	switch (type) {
@@ -230,7 +230,7 @@ unsigned long long benchmark_batch_transform(
 		if (!read_timer(&start_time))
 			continue;
 
-		pthreadpool_compute_1d(threadpool, compute_function, compute_context, batch_size);
+		pthreadpool_parallelize_1d(threadpool, compute_function, compute_context, batch_size, PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 
 		if (!read_timer(&end_time))
 			continue;
@@ -318,7 +318,7 @@ unsigned long long profile_batch_fft(
 		if (!read_perf_counter(perf_counter_file_descriptor, &start_count))
 			continue;
 
-		pthreadpool_compute_1d(NULL, (pthreadpool_function_1d_t) compute_nnpack_transform, &context, batch_size);
+		pthreadpool_parallelise_1d(NULL, (pthreadpool_task_1d_t) compute_nnpack_transform, &context, batch_size);
 
 		if (!read_perf_counter(perf_counter_file_descriptor, &end_count))
 			continue;

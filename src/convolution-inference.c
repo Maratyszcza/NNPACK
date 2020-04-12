@@ -575,11 +575,12 @@ static enum nnp_status compute_fast_convolution_inference(
 						.output_channels = output_channels,
 						.kernel_size = kernel_size,
 					};
-					pthreadpool_compute_2d_tiled(threadpool,
-						(pthreadpool_function_2d_tiled_t) compute_kernel_transform,
+					pthreadpool_parallelize_2d_tile_2d(threadpool,
+						(pthreadpool_task_2d_tile_2d_t) compute_kernel_transform,
 						&kernel_transform_context,
 						output_channels,              input_channels_block_size,
-						output_channels_subblock_max, 1);
+						output_channels_subblock_max, 1,
+						PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 					NNP_KERNEL_TRANSFORM_END(profile)
 				} else {
 					kernel_transform = (void*) kernel + input_channels_block_start * output_channels * transform_tile_size;
@@ -601,11 +602,12 @@ static enum nnp_status compute_fast_convolution_inference(
 					.input_tile = tile_size,
 					.input_tile_step = tile_step,
 				};
-				pthreadpool_compute_2d_tiled(threadpool,
-					(pthreadpool_function_2d_tiled_t) compute_input_transform,
+				pthreadpool_parallelize_2d_tile_2d(threadpool,
+					(pthreadpool_task_2d_tile_2d_t) compute_input_transform,
 					&input_transform_context,
 					input_channels_block_size, tiles_count,
-					1,                         tiles_subblock_max);
+					1,                         tiles_subblock_max,
+					PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 				NNP_INPUT_TRANSFORM_END(profile)
 
 				NNP_BLOCK_MULTIPLICATION_START(profile)
@@ -651,11 +653,12 @@ static enum nnp_status compute_fast_convolution_inference(
 							.fast_gemm = fast_gemm_function,
 							.full_gemm = full_gemm_function,
 						};
-						pthreadpool_compute_2d_tiled(threadpool,
-							(pthreadpool_function_2d_tiled_t) compute_tuple_multiplication,
+						pthreadpool_parallelize_2d_tile_2d(threadpool,
+							(pthreadpool_task_2d_tile_2d_t) compute_tuple_multiplication,
 							&tuple_multiplication_context,
 							tiles_count,     output_channels_block_size,
-							tiles_block_max, output_channels_subblock_max);
+							tiles_block_max, output_channels_subblock_max,
+							PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 					}
 				}
 				NNP_BLOCK_MULTIPLICATION_END(profile)
@@ -674,11 +677,12 @@ static enum nnp_status compute_fast_convolution_inference(
 				.output_size = output_size,
 				.output_tile = output_tile_size,
 			};
-			pthreadpool_compute_2d_tiled(threadpool,
-				(pthreadpool_function_2d_tiled_t) compute_output_transform,
+			pthreadpool_parallelize_2d_tile_2d(threadpool,
+				(pthreadpool_task_2d_tile_2d_t) compute_output_transform,
 				&output_transform_context,
 				output_channels,              tiles_count,
-				output_channels_subblock_max, tiles_subblock_max);
+				output_channels_subblock_max, tiles_subblock_max,
+				PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 			NNP_OUTPUT_TRANSFORM_END(profile)
 			break;
 		}
@@ -709,11 +713,12 @@ static enum nnp_status compute_fast_convolution_inference(
 					.output_channels = output_channels,
 					.kernel_size = kernel_size,
 				};
-				pthreadpool_compute_2d_tiled(threadpool,
-					(pthreadpool_function_2d_tiled_t) compute_kernel_transform,
+				pthreadpool_parallelize_2d_tile_2d(threadpool,
+					(pthreadpool_task_2d_tile_2d_t) compute_kernel_transform,
 					&kernel_transform_context,
 					output_channels,              input_channels_block_size,
-					output_channels_subblock_max, 1);
+					output_channels_subblock_max, 1,
+					PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 				NNP_KERNEL_TRANSFORM_END(profile)
 			}
 			break;
@@ -811,11 +816,12 @@ static enum nnp_status compute_gemm_convolution_inference(
 						.reduction_block_start = reduction_block_start,
 						.reduction_block_size = reduction_block_size,
 					};
-					pthreadpool_compute_2d_tiled(threadpool,
-						(pthreadpool_function_2d_tiled_t) compute_kernel_packing,
+					pthreadpool_parallelize_2d_tile_2d(threadpool,
+						(pthreadpool_task_2d_tile_2d_t) compute_kernel_packing,
 						&kernel_packing_context,
 						output_channels,              reduction_block_size,
-						output_channels_subblock_max, 1);
+						output_channels_subblock_max, 1,
+						PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 					NNP_KERNEL_TRANSFORM_END(profile)
 				} else {
 					packed_kernel = (void*) kernel + output_channels * reduction_block_start * sizeof(float);
@@ -844,11 +850,12 @@ static enum nnp_status compute_gemm_convolution_inference(
 						.output_width = output_width_divisor,
 						.output_subsampling = output_subsampling,
 					};
-					pthreadpool_compute_2d_tiled(threadpool,
-						(pthreadpool_function_2d_tiled_t) compute_input_packing,
+					pthreadpool_parallelize_2d_tile_2d(threadpool,
+						(pthreadpool_task_2d_tile_2d_t) compute_input_packing,
 						&input_packing_context,
 						reduction_block_size, output_image_block_size,
-						1,                    output_image_subblock_max);
+						1,                    output_image_subblock_max,
+						PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 					NNP_INPUT_TRANSFORM_END(profile)
 
 					NNP_BLOCK_MULTIPLICATION_START(profile)
@@ -863,11 +870,12 @@ static enum nnp_status compute_gemm_convolution_inference(
 						.output_image_subblock_max = output_image_subblock_max,
 						.output_channels_subblock_max = output_channels_subblock_max,
 					};
-					pthreadpool_compute_2d_tiled(threadpool,
-						(pthreadpool_function_2d_tiled_t) compute_matrix_multiplication,
+					pthreadpool_parallelize_2d_tile_2d(threadpool,
+						(pthreadpool_task_2d_tile_2d_t) compute_matrix_multiplication,
 						&matrix_multiplication_context,
 						output_channels,           output_image_block_size,
-						output_channels_block_max, output_image_subblock_max);
+						output_channels_block_max, output_image_subblock_max,
+						PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 					NNP_BLOCK_MULTIPLICATION_END(profile)
 				}
 			}
@@ -922,11 +930,12 @@ static enum nnp_status compute_gemm_convolution_inference(
 					.reduction_block_start = reduction_block_start,
 					.reduction_block_size = reduction_block_size,
 				};
-				pthreadpool_compute_2d_tiled(threadpool,
-					(pthreadpool_function_2d_tiled_t) compute_kernel_packing,
+				pthreadpool_parallelize_2d_tile_2d(threadpool,
+					(pthreadpool_task_2d_tile_2d_t) compute_kernel_packing,
 					&kernel_packing_context,
 					output_channels,              reduction_block_size,
-					output_channels_subblock_max, 1);
+					output_channels_subblock_max, 1,
+					PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 				NNP_KERNEL_TRANSFORM_END(profile)
 			}
 			break;
@@ -975,10 +984,11 @@ static enum nnp_status compute_direct_convolution_inference(
 		.fast_conv = nnp_hwinfo.conv1x1.only_mr_x_nr,
 		.full_conv = nnp_hwinfo.conv1x1.upto_mr_x_nr,
 	};
-	pthreadpool_compute_1d_tiled(threadpool,
-		(pthreadpool_function_1d_tiled_t) compute_direct_convolution,
+	pthreadpool_parallelize_1d_tile_1d(threadpool,
+		(pthreadpool_task_1d_tile_1d_t) compute_direct_convolution,
 		&direct_convolution_context,
-		output_channels, nnp_hwinfo.conv1x1.nr);
+		output_channels, nnp_hwinfo.conv1x1.nr,
+		PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 	NNP_BLOCK_MULTIPLICATION_END(profile)
 
 	/* Add bias */

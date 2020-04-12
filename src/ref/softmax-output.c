@@ -58,8 +58,9 @@ void nnp_softmax_output__reference(
         .input = input,
         .output = output,
     };
-    pthreadpool_compute_1d(threadpool,
+    pthreadpool_parallelize_1d(threadpool,
         (pthreadpool_function_1d_t) compute_softmax_output,
         &softmax_output_context,
-        batch_size);
+        batch_size,
+        PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 }

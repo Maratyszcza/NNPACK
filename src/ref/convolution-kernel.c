@@ -97,8 +97,9 @@ void nnp_convolution_kernel_gradient__reference(
 		.grad_kernel_pointer = grad_kernel,
 	};
 
-	pthreadpool_compute_2d(threadpool,
+	pthreadpool_parallelize_2d(threadpool,
 		(pthreadpool_function_2d_t) compute_convolution_kernel_gradient,
 		&convolution_kernel_gradient_context,
-		output_channels, input_channels);
+		output_channels, input_channels,
+		PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 }

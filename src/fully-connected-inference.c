@@ -64,10 +64,11 @@ enum nnp_status nnp_fully_connected_inference(
 		.kernel = kernel,
 		.output = output,
 	};
-	pthreadpool_compute_1d_tiled(threadpool,
-		(pthreadpool_function_1d_tiled_t) compute_fully_connected_inference_f32,
+	pthreadpool_parallelize_1d_tile_1d(threadpool,
+		(pthreadpool_task_1d_tile_1d_t) compute_fully_connected_inference_f32,
 		&fully_connected_inference_context,
-		output_channels, output_channels_subblock_max);
+		output_channels, output_channels_subblock_max,
+		PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 
 	return nnp_status_success;
 }
@@ -94,10 +95,11 @@ enum nnp_status nnp_fully_connected_inference_f16f32(
 		.kernel = kernel,
 		.output = output,
 	};
-	pthreadpool_compute_1d_tiled(threadpool,
-		(pthreadpool_function_1d_tiled_t) compute_fully_connected_inference_f16f32,
+	pthreadpool_parallelize_1d_tile_1d(threadpool,
+		(pthreadpool_task_1d_tile_1d_t) compute_fully_connected_inference_f16f32,
 		&fully_connected_inference_context,
-		output_channels, output_channels_subblock_max);
+		output_channels, output_channels_subblock_max,
+		PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 
 	return nnp_status_success;
 }

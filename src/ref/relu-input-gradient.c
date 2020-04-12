@@ -43,8 +43,9 @@ void nnp_relu_input_gradient__reference(
 		.negative_slope = negative_slope,
 	};
 
-	pthreadpool_compute_1d(threadpool,
+	pthreadpool_parallelize_1d(threadpool,
 		(pthreadpool_function_1d_t) compute_relu_input_gradient,
 		&relu_input_gradient_context,
-		batch_size);
+		batch_size,
+		PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 }

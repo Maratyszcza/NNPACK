@@ -65,10 +65,11 @@ void nnp_fully_connected_output_f32__reference(
 		.output_pointer = output
 	};
 
-	pthreadpool_compute_2d(threadpool,
+	pthreadpool_parallelize_2d(threadpool,
 		(pthreadpool_function_2d_t) compute_fully_connected_output_f32,
 		&fully_connected_output_context,
-		batch_size, output_channels);
+		batch_size, output_channels,
+		PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 }
 
 void nnp_fully_connected_output_f16f32__reference(
@@ -88,8 +89,9 @@ void nnp_fully_connected_output_f16f32__reference(
 		.output_pointer = output
 	};
 
-	pthreadpool_compute_2d(threadpool,
+	pthreadpool_parallelize_2d(threadpool,
 		(pthreadpool_function_2d_t) compute_fully_connected_output_f16f32,
 		&fully_connected_output_context,
-		batch_size, output_channels);
+		batch_size, output_channels,
+		PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 }

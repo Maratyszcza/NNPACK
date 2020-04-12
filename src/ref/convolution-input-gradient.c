@@ -81,8 +81,9 @@ void nnp_convolution_input_gradient__reference(
 		.grad_input_pointer = grad_input_pointer,
 	};
 
-	pthreadpool_compute_2d(threadpool,
+	pthreadpool_parallelize_2d(threadpool,
 		(pthreadpool_function_2d_t) compute_convolution_input_gradient,
 		&convolution_input_gradient_context,
-		batch_size, input_channels);
+		batch_size, input_channels,
+		PTHREADPOOL_FLAG_DISABLE_DENORMALS);
 }
