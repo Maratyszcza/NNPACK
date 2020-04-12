@@ -24,9 +24,8 @@ NNPACK is not intended to be directly used by machine learning researchers; inst
 | Android      | x86-64        |                                  |
 | iOS          | ARM           |                                  |
 | iOS          | ARM64         |                                  |
-| Emscripten   | Asm.js        | Temporarily disabled             |
-| Emscripten   | WebAssembly   | Temporarily disabled             |
-| PNaCl        | Native Client | Temporarily disabled             |
+| Emscripten   | Asm.js        |                                  |
+| Emscripten   | WebAssembly   |                                  |
 
 ## Features
 
@@ -88,47 +87,18 @@ Notes:
 - **mips** and **mips64** are not supported, and we have no plans to add it (pull request would be welcome, though)
 - **x86_64** build will use generic 128-bit (SSE2) micro-kernels rather than AVX2 micro-kernels in native build
 
-### Development builds
-
-For NNPACK development, we recommend a different workflow, supported on macOS and Linux.
-
-Install [ninja](https://ninja-build.org) build system
-```bash
-sudo apt-get install ninja-build || brew install ninja
-```
-
-Install [PeachPy](https://github.com/Maratyszcza/PeachPy) assembler and [confu](https://github.com/Maratyszcza/confu) configuration system
-```bash
-[sudo] pip install --upgrade git+https://github.com/Maratyszcza/PeachPy
-[sudo] pip install --upgrade git+https://github.com/Maratyszcza/confu
-```
-
-Then clone NNPACK, install dependencies, configure, and build
-```bash
-git clone https://github.com/Maratyszcza/NNPACK.git
-cd NNPACK
-confu setup
-python configure.py
-ninja
-ninja smoketest # or `ninja test`
-```
-
-#### Cross-compilation
-- To cross-compile NNPACK for Android, set `$ANDROID_NDK` and `$ANDROID_SDK` variables, and add an extra configuration argument `--target=arm-android`, `--target=arm64-android`, `--target=x86-android`, or `--target=x86_64-android` to target, respectively, **armeabi-v7a**, **arm64-v8a**, **x86**, or **x86_64** Android ABI.
-- To cross-compile NNPACK for Asm.js or WebAssembly, download, build, and activate Emscripten SDK, and use configuration argument `--target=wasm` or `--target=asmjs`
-- To cross-compile NNPACK for Portable Native Client, download Native Client SDK, set `NACL_SDK_ROOT` variable, and configure NNPACK with `--target=pnacl` option.
-
 ## Ecosystem
 
 ### Deep Learning Frameworks
-- [Caffe2](http://caffe2.ai) natively supports NNPACK
-- [MXNet](http://mxnet.io) - supports NNPACK for inference in convolutional layers, fully-connected, and max-pooling layers. See [MXNet wiki](https://mxnet.incubator.apache.org/how_to/nnpack.html) for configuration instructions and performance benchmarks).
-- [PyTorch](http://pytorch.org/) - supports NNPACK as an optional dependency.
-- [tiny-dnn](https://github.com/tiny-dnn/tiny-dnn) - header-only deep learning framework in C++11, which natively supports NNPACK.
+- [PyTorch](http://pytorch.org/) supports NNPACK on mobile for inference in convolutional layers.
+- [TVM](https://tvm.apache.org/) supports NNPACK for inference in convolutional layers. See [these instructions](https://github.com/apache/incubator-tvm/blob/master/docs/install/nnpack.md) to enable NNPACK in TVM.
+- [MXNet](http://mxnet.io) supports NNPACK for inference in convolutional layers, fully-connected, and max-pooling layers. See [MXNet wiki](https://mxnet.incubator.apache.org/how_to/nnpack.html) for configuration instructions and performance benchmarks).
+- [Caffe2](http://caffe2.ai) supports NNPACK for inference in convolutional layers.
 - [darknet-nnpack](https://github.com/thomaspark-pkj/darknet-nnpack) - fork of [Darknet](https://pjreddie.com/darknet/) framework with NNPACK support.
-- [szagoruyko/nnpack.torch](https://github.com/szagoruyko/nnpack.torch) - integration of NNPACK into Lua Torch via ffi
+- [tiny-dnn](https://github.com/tiny-dnn/tiny-dnn) - header-only deep learning framework in C++11, which natively supports NNPACK.
 - [Maratyszcza/caffe](https://github.com/Maratyszcza/caffe) - up-to-date integration of NNPACK (convolutional, fully-connected, max-pooling, and ReLU layers) into Caffe based on `nnpack-pr` branch in [ajtulloch/caffe](https://github.com/ajtulloch/caffe/tree/nnpack-pr).
 - [Maratyszcza/caffe-nnpack](https://github.com/Maratyszcza/caffe-nnpack) - older and unmaintained integration of NNPACK (convolutional layers only) into Caffe.
+- [szagoruyko/nnpack.torch](https://github.com/szagoruyko/nnpack.torch) - integration of NNPACK into Lua Torch via ffi
 - See also discussion in [Issue #1](https://github.com/Maratyszcza/NNPACK/issues/1)
 
 ### Languages and Environments
