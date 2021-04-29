@@ -31,6 +31,11 @@ inline static double read_timer() {
 	return ((double) (mach_absolute_time() * timebase_info.numer / timebase_info.denom)) * 1.0e-9;
 #elif defined(EMSCRIPTEN)
 	return emscripten_get_now() * 1.0e-3;
+#elif defined(_MSC_VER)
+	__int64 wintime;
+	GetSystemTimeAsFileTime(&wintime);
+	wintime -= 116444736000000000i64;  //1jan1601 to 1jan1970
+	return (double) wintime;
 #else
 	#error No implementation available
 #endif
@@ -107,6 +112,9 @@ inline static void* allocate_memory(size_t memory_size) {
 			return NULL;
 		}
 	}
+	return memory_block;
+#elif defined(_MSC_VER)
+	void* memory_block = _aligned_malloc(memory_size, 64);
 	return memory_block;
 #else
 	void* memory_block = NULL;

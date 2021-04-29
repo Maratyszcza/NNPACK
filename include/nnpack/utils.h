@@ -6,6 +6,15 @@
 	#include <stddef.h>
 #endif
 
+// stdlib.h from Windows 10 SDK defines min & max macros.
+// Undefine them before defining the corresponding functions.
+#ifdef min
+  #undef min
+#endif
+#ifdef max
+  #undef max
+#endif
+
 static inline float maxf(float a, float b) {
 	return a > b ? a : b;
 }
