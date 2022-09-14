@@ -69,6 +69,18 @@ ninja
 
 Note: if `ninja` is not available on your system, configure without `-G Ninja`, and use `make` instead of `ninja`.
 
+## Building nnpack - Using vcpkg
+
+You can download and install nnpack using the [vcpkg](https://github.com/Microsoft/vcpkg) dependency manager:
+
+    git clone https://github.com/Microsoft/vcpkg.git
+    cd vcpkg
+    ./bootstrap-vcpkg.sh
+    ./vcpkg integrate install
+    ./vcpkg install nnpack
+
+The nnpack port in vcpkg is kept up to date by Microsoft team members and community contributors. If the version is out of date, please [create an issue or pull request](https://github.com/Microsoft/vcpkg) on the vcpkg repository.
+
 ### Cross-compilation for Android
 
 To cross-compile for Android, add extra configuration options for `cmake`: `-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake` (where `$ANDROID_NDK` is the path to Android NDK directorory, e.g. `/opt/android-ndk-r15c`) **AND** arguments from the table below
