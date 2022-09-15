@@ -69,17 +69,17 @@ ninja
 
 Note: if `ninja` is not available on your system, configure without `-G Ninja`, and use `make` instead of `ninja`.
 
-## Building nnpack - Using vcpkg
+## Building NNPACK - Using vcpkg
 
-You can download and install nnpack using the [vcpkg](https://github.com/Microsoft/vcpkg) dependency manager:
+You can download and install NNPACK using the [vcpkg](https://github.com/Microsoft/vcpkg) dependency manager:
 
     git clone https://github.com/Microsoft/vcpkg.git
     cd vcpkg
     ./bootstrap-vcpkg.sh
     ./vcpkg integrate install
-    ./vcpkg install nnpack
+    ./vcpkg install NNPACK
 
-The nnpack port in vcpkg is kept up to date by Microsoft team members and community contributors. If the version is out of date, please [create an issue or pull request](https://github.com/Microsoft/vcpkg) on the vcpkg repository.
+The NNPACK port in vcpkg is kept up to date by Microsoft team members and community contributors. If the version is out of date, please [create an issue or pull request](https://github.com/Microsoft/vcpkg) on the vcpkg repository.
 
 ### Cross-compilation for Android
 
@@ -103,20 +103,20 @@ Notes:
 
 ### Deep Learning Frameworks
 - [PyTorch](http://pytorch.org/) supports NNPACK on mobile for inference in convolutional layers.
-- [TVM](https://tvm.apache.org/) supports NNPACK for inference in convolutional layers. See [these instructions](https://github.com/apache/incubator-tvm/blob/master/docs/install/nnpack.md) to enable NNPACK in TVM.
-- [MXNet](http://mxnet.io) supports NNPACK for inference in convolutional layers, fully-connected, and max-pooling layers. See [MXNet wiki](https://mxnet.incubator.apache.org/how_to/nnpack.html) for configuration instructions and performance benchmarks).
+- [TVM](https://tvm.apache.org/) supports NNPACK for inference in convolutional layers. See [these instructions](https://github.com/apache/incubator-tvm/blob/master/docs/install/NNPACK.md) to enable NNPACK in TVM.
+- [MXNet](http://mxnet.io) supports NNPACK for inference in convolutional layers, fully-connected, and max-pooling layers. See [MXNet wiki](https://mxnet.incubator.apache.org/how_to/NNPACK.html) for configuration instructions and performance benchmarks).
 - [Caffe2](http://caffe2.ai) supports NNPACK for inference in convolutional layers.
-- [darknet-nnpack](https://github.com/thomaspark-pkj/darknet-nnpack) - fork of [Darknet](https://pjreddie.com/darknet/) framework with NNPACK support.
+- [darknet-NNPACK](https://github.com/thomaspark-pkj/darknet-NNPACK) - fork of [Darknet](https://pjreddie.com/darknet/) framework with NNPACK support.
 - [tiny-dnn](https://github.com/tiny-dnn/tiny-dnn) - header-only deep learning framework in C++11, which natively supports NNPACK.
-- [Maratyszcza/caffe](https://github.com/Maratyszcza/caffe) - up-to-date integration of NNPACK (convolutional, fully-connected, max-pooling, and ReLU layers) into Caffe based on `nnpack-pr` branch in [ajtulloch/caffe](https://github.com/ajtulloch/caffe/tree/nnpack-pr).
-- [Maratyszcza/caffe-nnpack](https://github.com/Maratyszcza/caffe-nnpack) - older and unmaintained integration of NNPACK (convolutional layers only) into Caffe.
-- [szagoruyko/nnpack.torch](https://github.com/szagoruyko/nnpack.torch) - integration of NNPACK into Lua Torch via ffi
+- [Maratyszcza/caffe](https://github.com/Maratyszcza/caffe) - up-to-date integration of NNPACK (convolutional, fully-connected, max-pooling, and ReLU layers) into Caffe based on `NNPACK-pr` branch in [ajtulloch/caffe](https://github.com/ajtulloch/caffe/tree/NNPACK-pr).
+- [Maratyszcza/caffe-NNPACK](https://github.com/Maratyszcza/caffe-NNPACK) - older and unmaintained integration of NNPACK (convolutional layers only) into Caffe.
+- [szagoruyko/NNPACK.torch](https://github.com/szagoruyko/NNPACK.torch) - integration of NNPACK into Lua Torch via ffi
 - See also discussion in [Issue #1](https://github.com/Maratyszcza/NNPACK/issues/1)
 
 ### Languages and Environments
-- [nnpack-windows](https://github.com/zeno40/nnpack-windows) - unofficial port for Windows
-- [node-nnpack](https://www.npmjs.com/package/node-nnpack) - Node.js bindings
-- [peterhj/libnnpack](https://github.com/peterhj/libnnpack) - Rust bindings
+- [NNPACK-windows](https://github.com/zeno40/NNPACK-windows) - unofficial port for Windows
+- [node-NNPACK](https://www.npmjs.com/package/node-NNPACK) - Node.js bindings
+- [peterhj/libNNPACK](https://github.com/peterhj/libNNPACK) - Rust bindings
 
 ### Users
 
