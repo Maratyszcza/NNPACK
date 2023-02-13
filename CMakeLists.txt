@@ -122,32 +122,6 @@ SET(CONFU_DEPENDENCIES_SOURCE_DIR ${CMAKE_SOURCE_DIR}/deps
 SET(CONFU_DEPENDENCIES_BINARY_DIR ${CMAKE_BINARY_DIR}/deps
   CACHE PATH "Confu-style dependencies binary directory")
 
-IF(NNPACK_BACKEND STREQUAL "x86-64")
-  IF(NOT DEFINED PYTHON_SIX_SOURCE_DIR)
-    MESSAGE(STATUS "Downloading six (Python package) to ${CONFU_DEPENDENCIES_SOURCE_DIR}/six (define PYTHON_SIX_SOURCE_DIR to avoid it)")
-    CONFIGURE_FILE(cmake/DownloadSix.cmake "${CONFU_DEPENDENCIES_BINARY_DIR}/six-download/CMakeLists.txt")
-    EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-      WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/six-download")
-    EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
-      WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/six-download")
-    SET(PYTHON_SIX_SOURCE_DIR "${CONFU_DEPENDENCIES_SOURCE_DIR}/six" CACHE STRING "six (Python package) source directory")
-  ENDIF()
-
-  IF(NOT DEFINED PYTHON_ENUM_SOURCE_DIR)
-    IF(${PYTHON_VERSION_STRING} VERSION_LESS 3.4)
-      # ---[ Python < 3.4 does not natively support enums, and needs a polyfill
-      MESSAGE(STATUS "Downloading enum (Python package) to ${CONFU_DEPENDENCIES_SOURCE_DIR}/enum (define PYTHON_ENUM_SOURCE_DIR to avoid it)")
-      CONFIGURE_FILE(cmake/DownloadEnum.cmake "${CONFU_DEPENDENCIES_BINARY_DIR}/enum-download/CMakeLists.txt")
-      EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-        WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/enum-download")
-      EXECUTE_PROCESS(COMMAND "${CMAKE_COMMAND}" --build .
-        WORKING_DIRECTORY "${CONFU_DEPENDENCIES_BINARY_DIR}/enum-download")
-      SET(PYTHON_ENUM_SOURCE_DIR "${CONFU_DEPENDENCIES_SOURCE_DIR}/enum" CACHE STRING "enum (Python package) source directory")
-    ELSE()
-      SET(PYTHON_ENUM_SOURCE_DIR "" CACHE STRING "enum (Python package) source directory")
-    ENDIF()
-  ENDIF()
-
   IF(NOT DEFINED PYTHON_PEACHPY_SOURCE_DIR)
     # ---[ PeachPy requires Opcodes for installation
     IF(NOT DEFINED PYTHON_OPCODES_SOURCE_DIR)
