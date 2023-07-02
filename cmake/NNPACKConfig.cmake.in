@@ -1,0 +1,5 @@
+@PACKAGE_INIT@
+include(CMakeFindDependencyMacro)
+find_dependency(pthreadpool REQUIRED)
+include("${CMAKE_CURRENT_LIST_DIR}/NNPACKTargets.cmake")
+check_required_components(NNPACK)
