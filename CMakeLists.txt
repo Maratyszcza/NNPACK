@@ -427,7 +427,7 @@ IF(NNPACK_BACKEND STREQUAL "x86-64")
       FILE(MAKE_DIRECTORY ${obj_dir})
       ADD_CUSTOM_COMMAND(
         OUTPUT ${obj}
-        COMMAND "PYTHONPATH=${PEACHPY_PYTHONPATH}"
+        COMMAND "PYTHONPATH=${PEACHPY_PYTHONPATH}:$ENV{PYTHONPATH}"
           ${PYTHON_EXECUTABLE} -m peachpy.x86_64
             -mabi=sysv -g4 -mimage-format=${PEACHPY_IMAGE_FORMAT}
             "-I${PROJECT_SOURCE_DIR}/src" "-I${PROJECT_SOURCE_DIR}/src/x86_64-fma" "-I${FP16_SOURCE_DIR}/include"
