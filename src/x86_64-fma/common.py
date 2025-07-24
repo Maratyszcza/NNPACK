@@ -116,7 +116,7 @@ def butterfly(a, b, negate_a=False, negate_b=False, scale_a=None, scale_b=None, 
             VFMSUB132PS(ymm_a, ymm_b, scale_a)
             VFMADD132PS(ymm_a_copy, ymm_b, scale_a)
         elif negate_a and not negate_b:
-            VFMMADD132PS(ymm_a, ymm_b, scale_a)
+            VFMADD132PS(ymm_a, ymm_b, scale_a)
             VFNMSUB132PS(ymm_a_copy, ymm_b, scale_a)
         elif negate_a and negate_b:
             VFNMSUB132PS(ymm_a, ymm_b, scale_a)
